@@ -145,6 +145,8 @@ La [guía de desarrollo](docs/08-development.md) explica la estructura, los coma
 - `POST /v1/field-access/redeem`
 - `POST /v1/field-access/passkeys/registration/options`
 - `POST /v1/field-access/passkeys/registration/verify`
+- `POST /v1/field-access/passkeys/authentication/options`
+- `POST /v1/field-access/passkeys/authentication/verify`
 
 </details>
 

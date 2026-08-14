@@ -277,6 +277,18 @@
   color: white;
   font-size: 32px;
 }
+.deviceMark {
+  display: grid;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 20px;
+  place-items: center;
+  border: 2px solid #006a4e;
+  border-radius: 18px;
+  color: #006a4e;
+  font-size: 38px;
+  font-weight: 700;
+}
 .centered .lead {
   max-width: 440px;
   margin: 0 auto;

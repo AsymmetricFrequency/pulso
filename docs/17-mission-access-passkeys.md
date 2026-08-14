@@ -23,7 +23,10 @@ Una persona de brigada debe pasar del mensaje de coordinación a su misión en s
 - Las sesiones son opacas, revocables, específicas del dispositivo y vencen a los 30 días.
 - Los desafíos WebAuthn vencen a los cinco minutos y se consumen después de un intento.
 - La verificación exige origen y RP ID exactos, además de verificación local de usuario.
-- La llave de emisión y el secreto HMAC son obligatorios en producción.
+- El canje permite cinco intentos por combinación de origen y código en una ventana de 15 minutos. PostgreSQL comparte el límite entre todas las instancias de la API.
+- Cada canje exitoso o fallido deja un evento de auditoría.
+- Emitir una invitación exige la llave de operaciones y un actor activo con rol `coordinator` o `incident_admin` en la misma emergencia.
+- La llave de operaciones y el secreto HMAC son obligatorios en producción.
 
 ## Variables
 
@@ -39,7 +42,7 @@ NEXT_PUBLIC_API_URL=https://api.pulso.my
 ## API
 
 - `POST /v1/assignments/:assignmentId/invitations`
-  - requiere `x-pulso-admin-key`;
+  - requiere `x-pulso-admin-key` y `x-pulso-actor-id` de coordinación;
   - devuelve el código solo al crearlo.
 - `POST /v1/field-access/redeem`
   - recibe código y `deviceId`;
@@ -48,7 +51,11 @@ NEXT_PUBLIC_API_URL=https://api.pulso.my
   - requiere `Authorization: Bearer <sessionToken>`.
 - `POST /v1/field-access/passkeys/registration/verify`
   - verifica y persiste la credencial pública.
+- `POST /v1/field-access/passkeys/authentication/options`
+  - inicia la recuperación passwordless de una misión guardada.
+- `POST /v1/field-access/passkeys/authentication/verify`
+  - verifica firma, origen, RP ID y contador; si todo coincide emite una sesión nueva.
 
 ## Límites conscientes
 
-La v0.2 registra la passkey, pero todavía no cifra el paquete offline ni restablece una sesión mediante esa passkey. La autenticación posterior, la recuperación por pérdida del teléfono y, si se exige confidencialidad local, el cifrado vinculado al dispositivo quedan para el siguiente incremento. Antes de exposición pública también se debe añadir limitación distribuida de intentos al canje de códigos y reemplazar la llave administrativa compartida por autenticación de coordinación basada en roles.
+La v0.2 ya puede restablecer una sesión vencida mediante passkey cuando existe conexión. En modo emergencia sin señal, el paquete local sigue disponible y la identidad se vuelve a validar al recuperar conectividad. El paquete offline todavía no está cifrado con una clave vinculada al dispositivo. La llave de operaciones continúa como autenticación de arranque para coordinación, pero toda emisión queda autorizada y atribuida a un actor con rol válido; reemplazar esa llave por login passwordless de coordinación es el siguiente cierre.

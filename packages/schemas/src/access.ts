@@ -61,8 +61,35 @@ export const passkeyVerificationResultSchema = z.object({
   verified: z.boolean(),
 });
 
+export const beginPasskeyAuthenticationSchema = z.object({
+  actorId: z.uuid(),
+  assignmentId: z.uuid(),
+  deviceId: z.string().trim().min(8).max(120),
+});
+
+export const passkeyAuthenticationResponseSchema = z.object({
+  id: z.string().min(1),
+  rawId: z.string().min(1),
+  response: z.object({
+    clientDataJSON: z.string().min(1),
+    authenticatorData: z.string().min(1),
+    signature: z.string().min(1),
+    userHandle: z.string().nullable().optional(),
+  }),
+  type: z.literal("public-key"),
+  clientExtensionResults: z.record(z.string(), z.unknown()).optional(),
+  authenticatorAttachment: z.enum(["platform", "cross-platform"]).nullable().optional(),
+});
+
+export const verifyPasskeyAuthenticationSchema = z.object({
+  attemptId: z.uuid(),
+  response: passkeyAuthenticationResponseSchema,
+});
+
 export type CreateMissionInvitationInput = z.infer<typeof createMissionInvitationSchema>;
 export type IssuedMissionInvitationDto = z.infer<typeof issuedMissionInvitationSchema>;
 export type RedeemMissionInvitationInput = z.infer<typeof redeemMissionInvitationSchema>;
 export type MissionPackageDto = z.infer<typeof missionPackageSchema>;
 export type FieldSessionDto = z.infer<typeof fieldSessionSchema>;
+export type BeginPasskeyAuthenticationInput = z.infer<typeof beginPasskeyAuthenticationSchema>;
+export type VerifyPasskeyAuthenticationInput = z.infer<typeof verifyPasskeyAuthenticationSchema>;

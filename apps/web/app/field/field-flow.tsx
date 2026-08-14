@@ -1,9 +1,13 @@
 "use client";
 
-import type { PublicKeyCredentialCreationOptionsJSON } from "@simplewebauthn/browser";
+import type {
+  PublicKeyCredentialCreationOptionsJSON,
+  PublicKeyCredentialRequestOptionsJSON,
+} from "@simplewebauthn/browser";
 import {
   browserSupportsWebAuthn,
   platformAuthenticatorIsAvailable,
+  startAuthentication,
   startRegistration,
 } from "@simplewebauthn/browser";
 import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
@@ -14,7 +18,7 @@ import {
 } from "../lib/offline-visit-queue";
 import styles from "./field.module.css";
 
-type FlowStep = "access" | "mission" | "ready" | "active";
+type FlowStep = "access" | "mission" | "unlock" | "ready" | "active";
 
 type Mission = {
   assignmentId: string;
@@ -144,7 +148,7 @@ export function FieldFlow() {
     if (new URLSearchParams(window.location.search).has("code")) return;
     void getLatestCachedMission()
       .then((cached) => {
-        if (!cached || cached.sessionExpiresAt <= new Date().toISOString()) return;
+        if (!cached) return;
         const {
           code: cachedCode,
           sessionToken,
@@ -160,7 +164,15 @@ export function FieldFlow() {
           passkeyRegistered,
           mission: cachedMission,
         });
-        setStep("ready");
+        setPasskeyProtected(passkeyRegistered);
+        if (sessionExpiresAt > new Date().toISOString()) {
+          setStep("ready");
+        } else if (passkeyRegistered && navigator.onLine) {
+          setStep("unlock");
+        } else {
+          setError("Puedes continuar sin señal. Validaremos tu acceso al recuperar conexión.");
+          setStep("ready");
+        }
       })
       .catch(() => undefined);
   }, []);
@@ -214,10 +226,67 @@ export function FieldFlow() {
         body: JSON.stringify(registration),
       });
       if (!verification.ok) throw new Error(await explainApiError(verification));
+      if (mission) {
+        await cacheMissionPackage({
+          code,
+          ...mission,
+          sessionToken: session.sessionToken,
+          sessionExpiresAt: session.sessionExpiresAt,
+          passkeyRegistered: true,
+        });
+      }
       setPasskeyProtected(true);
     } catch (caught) {
       if (caught instanceof Error && caught.name === "NotAllowedError") return;
       setError("No activamos la protección. Puedes continuar y hacerlo después.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const unlockWithPasskey = async () => {
+    if (!session) return;
+    setBusy(true);
+    setError("");
+    try {
+      const optionsResponse = await fetch(
+        `${apiUrl}/v1/field-access/passkeys/authentication/options`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            actorId: session.mission.actorId,
+            assignmentId: session.mission.assignmentId,
+            deviceId: getDeviceId(),
+          }),
+        },
+      );
+      if (!optionsResponse.ok) throw new Error(await explainApiError(optionsResponse));
+      const ceremony = (await optionsResponse.json()) as {
+        attemptId: string;
+        options: PublicKeyCredentialRequestOptionsJSON;
+      };
+      const authentication = await startAuthentication({ optionsJSON: ceremony.options });
+      const verification = await fetch(`${apiUrl}/v1/field-access/passkeys/authentication/verify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ attemptId: ceremony.attemptId, response: authentication }),
+      });
+      if (!verification.ok) throw new Error(await explainApiError(verification));
+      const refreshed = (await verification.json()) as FieldSession;
+      await cacheMissionPackage({
+        code,
+        ...refreshed.mission,
+        sessionToken: refreshed.sessionToken,
+        sessionExpiresAt: refreshed.sessionExpiresAt,
+        passkeyRegistered: true,
+      });
+      setSession(refreshed);
+      setPasskeyProtected(true);
+      setStep("ready");
+    } catch (caught) {
+      if (caught instanceof Error && caught.name === "NotAllowedError") return;
+      setError("No pudimos validar el acceso. Puedes intentarlo nuevamente.");
     } finally {
       setBusy(false);
     }
@@ -267,7 +336,7 @@ export function FieldFlow() {
           >
             2
           </li>
-          <li className={step === "ready" ? styles.current : ""}>3</li>
+          <li className={step === "ready" || step === "unlock" ? styles.current : ""}>3</li>
         </ol>
       )}
 
@@ -382,6 +451,31 @@ export function FieldFlow() {
           <p className={styles.safetyNote}>
             Confirma que estás en un lugar seguro antes de comenzar.
           </p>
+        </section>
+      )}
+
+      {step === "unlock" && mission && (
+        <section className={`${styles.card} ${styles.centered}`} aria-labelledby="unlock-title">
+          <span className={styles.deviceMark} aria-hidden="true">
+            ◎
+          </span>
+          <p className={styles.eyebrow}>Misión reconocida</p>
+          <h1 id="unlock-title">Confirma que eres tú</h1>
+          <p className={styles.lead}>
+            Usa la huella, el rostro o el PIN del teléfono. No necesitas recordar una contraseña.
+          </p>
+          {error && <p className={styles.error}>{error}</p>}
+          <button
+            className={styles.primaryButton}
+            type="button"
+            onClick={unlockWithPasskey}
+            disabled={busy}
+          >
+            {busy ? "Validando…" : "Continuar con este teléfono"}
+          </button>
+          <button className={styles.textButton} type="button" onClick={() => setStep("access")}>
+            Usar una invitación nueva
+          </button>
         </section>
       )}
 

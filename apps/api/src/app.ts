@@ -8,6 +8,7 @@ import {
   MissionAccessDeniedError,
   type MissionAccessRepository,
   MissionInvitationConflictError,
+  MissionRateLimitError,
   OperationalZoneNotFoundError,
   OperationsConflictError,
   type OperationsRepository,
@@ -17,6 +18,7 @@ import {
 import {
   acceptFieldAssignmentSchema,
   actorSchema,
+  beginPasskeyAuthenticationSchema,
   completeFieldVisitSchema,
   coverageEventSchema,
   createActorSchema,
@@ -45,10 +47,14 @@ import {
   territoryImportResultSchema,
   territoryImportSchema,
   territorySchema,
+  verifyPasskeyAuthenticationSchema,
 } from "@pulso/schemas";
 import {
+  type AuthenticationResponseJSON,
+  generateAuthenticationOptions,
   generateRegistrationOptions,
   type RegistrationResponseJSON,
+  verifyAuthenticationResponse,
   verifyRegistrationResponse,
 } from "@simplewebauthn/server";
 import Fastify from "fastify";
@@ -92,6 +98,31 @@ export async function buildApp(options: BuildAppOptions = {}) {
 
   const requireAdmin = (provided: string | string[] | undefined) => {
     if (provided !== adminKey) throw new MissionAccessDeniedError("No puedes emitir invitaciones.");
+  };
+
+  const requireCoordinator = async (
+    assignmentId: string,
+    providedAdminKey: string | string[] | undefined,
+    providedActorId: string | string[] | undefined,
+  ) => {
+    requireAdmin(providedAdminKey);
+    if (typeof providedActorId !== "string") {
+      throw new MissionAccessDeniedError("Falta identificar a la persona coordinadora.");
+    }
+    const [actor, assignment] = await Promise.all([
+      operations.findActor(providedActorId),
+      operations.findFieldAssignment(assignmentId),
+    ]);
+    if (
+      !actor ||
+      !assignment ||
+      actor.incidentId !== assignment.incidentId ||
+      !["coordinator", "incident_admin"].includes(actor.role) ||
+      actor.status !== "active"
+    ) {
+      throw new MissionAccessDeniedError("Esta persona no puede coordinar la misión.");
+    }
+    return actor.id;
   };
 
   const bearerToken = (authorization: string | undefined) => {
@@ -147,6 +178,13 @@ export async function buildApp(options: BuildAppOptions = {}) {
 
     if (error instanceof MissionAccessDeniedError) {
       return reply.status(401).send({ error: "mission_access_denied", message: error.message });
+    }
+
+    if (error instanceof MissionRateLimitError) {
+      return reply
+        .header("Retry-After", String(error.retryAfterSeconds))
+        .status(429)
+        .send({ error: "mission_rate_limited", message: error.message });
     }
 
     app.log.error(error);
@@ -286,10 +324,19 @@ export async function buildApp(options: BuildAppOptions = {}) {
   app.post<{ Params: { assignmentId: string } }>(
     "/v1/assignments/:assignmentId/invitations",
     async (request, reply) => {
-      requireAdmin(request.headers["x-pulso-admin-key"]);
+      const coordinatorId = await requireCoordinator(
+        request.params.assignmentId,
+        request.headers["x-pulso-admin-key"],
+        request.headers["x-pulso-actor-id"],
+      );
       const input = createMissionInvitationSchema.parse(request.body);
       const invitation = issuedMissionInvitationSchema.parse(
-        await missionAccess.issueInvitation(request.params.assignmentId, input, siteUrl),
+        await missionAccess.issueInvitation(
+          request.params.assignmentId,
+          input,
+          siteUrl,
+          coordinatorId,
+        ),
       );
       return reply.status(201).send(invitation);
     },
@@ -297,8 +344,71 @@ export async function buildApp(options: BuildAppOptions = {}) {
 
   app.post("/v1/field-access/redeem", async (request, reply) => {
     const input = redeemMissionInvitationSchema.parse(request.body);
-    const session = fieldSessionSchema.parse(await missionAccess.redeemInvitation(input));
+    const session = fieldSessionSchema.parse(
+      await missionAccess.redeemInvitation(input, request.ip),
+    );
     return reply.status(201).send(session);
+  });
+
+  app.post("/v1/field-access/passkeys/authentication/options", async (request) => {
+    const input = beginPasskeyAuthenticationSchema.parse(request.body);
+    const passkeys = await missionAccess.listPasskeys(input.actorId);
+    if (passkeys.length === 0) throw new MissionAccessDeniedError();
+    const authentication = await generateAuthenticationOptions({
+      rpID,
+      allowCredentials: passkeys.map((passkey) => ({
+        id: passkey.credentialId,
+        transports: passkey.transports as never,
+      })),
+      userVerification: "required",
+    });
+    const attemptId = await missionAccess.createAuthenticationAttempt(
+      input,
+      authentication.challenge,
+      new Date(Date.now() + 5 * 60_000).toISOString(),
+    );
+    return { attemptId, options: authentication };
+  });
+
+  app.post("/v1/field-access/passkeys/authentication/verify", async (request, reply) => {
+    const input = verifyPasskeyAuthenticationSchema.parse(request.body);
+    const attempt = await missionAccess.consumeAuthenticationAttempt(input.attemptId);
+    const passkey = await missionAccess.findPasskey(input.response.id);
+    if (!passkey || passkey.actorId !== attempt.actorId) {
+      throw new MissionAccessDeniedError();
+    }
+    try {
+      const verification = await verifyAuthenticationResponse({
+        response: input.response as AuthenticationResponseJSON,
+        expectedChallenge: attempt.challenge,
+        expectedOrigin: origin,
+        expectedRPID: rpID,
+        credential: {
+          id: passkey.credentialId,
+          publicKey: new Uint8Array(passkey.publicKey),
+          counter: passkey.counter,
+          transports: passkey.transports as never,
+        },
+        requireUserVerification: true,
+      });
+      if (!verification.verified) throw new Error("Passkey verification failed");
+      await missionAccess.updatePasskeyCounter(
+        passkey.credentialId,
+        verification.authenticationInfo.newCounter,
+      );
+      return fieldSessionSchema.parse(
+        await missionAccess.issueFieldSession(
+          attempt.actorId,
+          attempt.assignmentId,
+          attempt.deviceId,
+        ),
+      );
+    } catch {
+      return reply.status(401).send({
+        error: "passkey_authentication_failed",
+        message: "No pudimos validar este acceso.",
+      });
+    }
   });
 
   app.post("/v1/field-access/passkeys/registration/options", async (request) => {

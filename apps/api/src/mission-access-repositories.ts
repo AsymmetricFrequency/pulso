@@ -3,12 +3,14 @@ import {
   MissionAccessDeniedError,
   type MissionAccessRepository,
   MissionInvitationConflictError,
+  MissionRateLimitError,
   type OperationsRepository,
   type ResolvedFieldSession,
   type StoredPasskey,
   type TerritoryRepository,
 } from "@pulso/domain";
 import type {
+  BeginPasskeyAuthenticationInput,
   CreateMissionInvitationInput,
   FieldSessionDto,
   IssuedMissionInvitationDto,
@@ -27,6 +29,14 @@ type InvitationRecord = {
 };
 
 type SessionRecord = ResolvedFieldSession & { tokenHash: string };
+type AuthenticationAttemptRecord = {
+  id: string;
+  actorId: string;
+  assignmentId: string;
+  deviceId: string;
+  challenge: string;
+  expiresAt: string;
+};
 type DbRow = Record<string, unknown>;
 
 const alphabet = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
@@ -70,6 +80,8 @@ export class MemoryMissionAccessRepository
   readonly #sessions = new Map<string, SessionRecord>();
   readonly #challenges = new Map<string, { value: string; expiresAt: string }>();
   readonly #passkeys = new Map<string, StoredPasskey>();
+  readonly #authenticationAttempts = new Map<string, AuthenticationAttemptRecord>();
+  readonly #redemptionAttempts = new Map<string, { attempts: number; resetAt: number }>();
 
   constructor(
     secret: string,
@@ -83,6 +95,7 @@ export class MemoryMissionAccessRepository
     assignmentId: string,
     input: CreateMissionInvitationInput,
     siteUrl: string,
+    _issuedByActorId: string,
   ): Promise<IssuedMissionInvitationDto> {
     const assignment = await this.operations.findFieldAssignment(assignmentId);
     if (!assignment) throw new MissionAccessDeniedError("La misión no existe.");
@@ -110,8 +123,13 @@ export class MemoryMissionAccessRepository
     };
   }
 
-  async redeemInvitation(input: RedeemMissionInvitationInput): Promise<FieldSessionDto> {
+  async redeemInvitation(
+    input: RedeemMissionInvitationInput,
+    sourceIp: string,
+  ): Promise<FieldSessionDto> {
     const code = normalizeCode(input.code);
+    const rateKey = this.hash(`${sourceIp}:${code}`);
+    this.#consumeRedemptionAttempt(rateKey);
     const record = this.#invitations.get(this.hash(code));
     if (!record) throw new MissionAccessDeniedError();
     if (record.redeemedAt || record.expiresAt <= new Date().toISOString()) {
@@ -119,23 +137,8 @@ export class MemoryMissionAccessRepository
     }
     const mission = await this.#buildMission(record.assignmentId, record.actorId);
     record.redeemedAt = new Date().toISOString();
-    const token = makeToken();
-    const expiresAt = addMinutes(60 * 24 * 30);
-    const session: SessionRecord = {
-      id: uuidv7(),
-      tokenHash: this.hash(token),
-      actorId: record.actorId,
-      deviceId: input.deviceId,
-      expiresAt,
-      mission,
-    };
-    this.#sessions.set(session.tokenHash, session);
-    return {
-      sessionToken: token,
-      sessionExpiresAt: expiresAt,
-      passkeyRegistered: (await this.listPasskeys(record.actorId)).length > 0,
-      mission,
-    };
+    this.#redemptionAttempts.delete(rateKey);
+    return this.#storeSession(record.actorId, input.deviceId, mission);
   }
 
   async resolveSession(token: string): Promise<ResolvedFieldSession> {
@@ -166,13 +169,84 @@ export class MemoryMissionAccessRepository
     this.#passkeys.set(passkey.credentialId, passkey);
   }
 
+  async createAuthenticationAttempt(
+    input: BeginPasskeyAuthenticationInput,
+    challenge: string,
+    expiresAt: string,
+  ) {
+    await this.#buildMission(input.assignmentId, input.actorId);
+    const id = uuidv7();
+    this.#authenticationAttempts.set(id, { id, ...input, challenge, expiresAt });
+    return id;
+  }
+
+  async consumeAuthenticationAttempt(attemptId: string) {
+    const attempt = this.#authenticationAttempts.get(attemptId);
+    this.#authenticationAttempts.delete(attemptId);
+    if (!attempt || attempt.expiresAt <= new Date().toISOString()) {
+      throw new MissionAccessDeniedError("La validación venció. Intenta nuevamente.");
+    }
+    return attempt;
+  }
+
+  async findPasskey(credentialId: string) {
+    return this.#passkeys.get(credentialId);
+  }
+
+  async updatePasskeyCounter(credentialId: string, counter: number) {
+    const passkey = this.#passkeys.get(credentialId);
+    if (!passkey) throw new MissionAccessDeniedError();
+    this.#passkeys.set(credentialId, { ...passkey, counter });
+  }
+
+  async issueFieldSession(actorId: string, assignmentId: string, deviceId: string) {
+    const mission = await this.#buildMission(assignmentId, actorId);
+    return this.#storeSession(actorId, deviceId, mission);
+  }
+
+  async #storeSession(actorId: string, deviceId: string, mission: MissionPackageDto) {
+    const token = makeToken();
+    const expiresAt = addMinutes(60 * 24 * 30);
+    const session: SessionRecord = {
+      id: uuidv7(),
+      tokenHash: this.hash(token),
+      actorId,
+      deviceId,
+      expiresAt,
+      mission,
+    };
+    this.#sessions.set(session.tokenHash, session);
+    return {
+      sessionToken: token,
+      sessionExpiresAt: expiresAt,
+      passkeyRegistered: (await this.listPasskeys(actorId)).length > 0,
+      mission,
+    };
+  }
+
+  #consumeRedemptionAttempt(rateKey: string) {
+    const now = Date.now();
+    const current = this.#redemptionAttempts.get(rateKey);
+    const next =
+      !current || current.resetAt <= now
+        ? { attempts: 1, resetAt: now + 15 * 60_000 }
+        : { ...current, attempts: current.attempts + 1 };
+    this.#redemptionAttempts.set(rateKey, next);
+    if (next.attempts > 5) {
+      throw new MissionRateLimitError(Math.max(1, Math.ceil((next.resetAt - now) / 1000)));
+    }
+  }
+
   async #buildMission(assignmentId: string, actorId: string): Promise<MissionPackageDto> {
     const assignment = await this.operations.findFieldAssignment(assignmentId);
     const actor = await this.operations.findActor(actorId);
     if (!assignment || !actor) throw new MissionAccessDeniedError();
     const team = await this.operations.findTeam(assignment.teamId);
     const zone = await this.territories.findOperationalZone(assignment.zoneId);
-    if (!team || !zone) throw new MissionAccessDeniedError();
+    const memberships = await this.operations.listTeamMemberships(assignment.teamId);
+    if (!team || !zone || !memberships.some((item) => item.actorId === actorId)) {
+      throw new MissionAccessDeniedError();
+    }
     return {
       assignmentId,
       incidentId: assignment.incidentId,
@@ -205,6 +279,7 @@ export class PostgresMissionAccessRepository
     assignmentId: string,
     input: CreateMissionInvitationInput,
     siteUrl: string,
+    issuedByActorId: string,
   ): Promise<IssuedMissionInvitationDto> {
     const [eligible] = await this.sql<DbRow[]>`
       SELECT fa.id FROM field_assignments fa
@@ -224,9 +299,9 @@ export class PostgresMissionAccessRepository
     const expiresAt = addMinutes(input.expiresInMinutes);
     await this.sql`
       INSERT INTO mission_invitations (
-        id, assignment_id, actor_id, code_hash, expires_at
+        id, assignment_id, actor_id, code_hash, expires_at, issued_by_actor_id
       ) VALUES (
-        ${id}, ${assignmentId}, ${input.actorId}, ${this.hash(code)}, ${expiresAt}
+        ${id}, ${assignmentId}, ${input.actorId}, ${this.hash(code)}, ${expiresAt}, ${issuedByActorId}
       )
     `;
     return {
@@ -239,10 +314,16 @@ export class PostgresMissionAccessRepository
     };
   }
 
-  async redeemInvitation(input: RedeemMissionInvitationInput): Promise<FieldSessionDto> {
+  async redeemInvitation(
+    input: RedeemMissionInvitationInput,
+    sourceIp: string,
+  ): Promise<FieldSessionDto> {
     const codeHash = this.hash(normalizeCode(input.code));
-    return this.sql.begin(async (transaction) => {
-      const [row] = await transaction<DbRow[]>`
+    const rateKey = this.hash(`${sourceIp}:${normalizeCode(input.code)}`);
+    await this.#consumeRedemptionAttempt(rateKey);
+    try {
+      const result = await this.sql.begin(async (transaction) => {
+        const [row] = await transaction<DbRow[]>`
         SELECT mi.id AS invitation_id, mi.actor_id, mi.expires_at, mi.redeemed_at,
           fa.id AS assignment_id, fa.incident_id, fa.team_id, fa.zone_id, fa.objective,
           fa.starts_at, fa.due_at, a.display_name AS actor_name, t.name AS team_name,
@@ -254,18 +335,18 @@ export class PostgresMissionAccessRepository
         JOIN operational_zones z ON z.id = fa.zone_id AND z.deleted_at IS NULL
         WHERE mi.code_hash = ${codeHash} FOR UPDATE OF mi
       `;
-      if (!row || row.redeemed_at || new Date(String(row.expires_at)) <= new Date()) {
-        throw new MissionAccessDeniedError("La invitación venció, ya fue utilizada o no existe.");
-      }
-      const mission = missionFromRow(row);
-      const token = makeToken();
-      const tokenHash = this.hash(token);
-      const sessionId = uuidv7();
-      const sessionExpiresAt = addMinutes(60 * 24 * 30);
-      await transaction`
+        if (!row || row.redeemed_at || new Date(String(row.expires_at)) <= new Date()) {
+          throw new MissionAccessDeniedError("La invitación venció, ya fue utilizada o no existe.");
+        }
+        const mission = missionFromRow(row);
+        const token = makeToken();
+        const tokenHash = this.hash(token);
+        const sessionId = uuidv7();
+        const sessionExpiresAt = addMinutes(60 * 24 * 30);
+        await transaction`
         UPDATE mission_invitations SET redeemed_at = now() WHERE id = ${String(row.invitation_id)}
       `;
-      await transaction`
+        await transaction`
         INSERT INTO field_sessions (
           id, actor_id, assignment_id, device_id, token_hash, expires_at
         ) VALUES (
@@ -273,16 +354,29 @@ export class PostgresMissionAccessRepository
           ${tokenHash}, ${sessionExpiresAt}
         )
       `;
-      const [passkey] = await transaction<DbRow[]>`
+        const [passkey] = await transaction<DbRow[]>`
         SELECT id FROM actor_passkeys WHERE actor_id = ${String(row.actor_id)} LIMIT 1
       `;
-      return {
-        sessionToken: token,
-        sessionExpiresAt,
-        passkeyRegistered: Boolean(passkey),
-        mission,
-      };
-    });
+        return {
+          sessionToken: token,
+          sessionExpiresAt,
+          passkeyRegistered: Boolean(passkey),
+          mission,
+        };
+      });
+      await this.sql`DELETE FROM access_rate_limits WHERE key_hash = ${rateKey}`;
+      await this.#audit(
+        "mission_invitation.redeemed",
+        result.mission.actorId,
+        result.mission.assignmentId,
+        sourceIp,
+        true,
+      );
+      return result;
+    } catch (error) {
+      await this.#audit("mission_invitation.redeem_failed", null, null, sourceIp, false);
+      throw error;
+    }
   }
 
   async resolveSession(token: string): Promise<ResolvedFieldSession> {
@@ -360,6 +454,139 @@ export class PostgresMissionAccessRepository
         ${Buffer.from(passkey.publicKey)}, ${passkey.counter}, ${passkey.transports},
         ${passkey.deviceType}, ${passkey.backedUp}
       ) ON CONFLICT (credential_id) DO NOTHING
+    `;
+  }
+
+  async createAuthenticationAttempt(
+    input: BeginPasskeyAuthenticationInput,
+    challenge: string,
+    expiresAt: string,
+  ) {
+    const [eligible] = await this.sql<DbRow[]>`
+      SELECT fa.id FROM field_assignments fa
+      JOIN team_memberships tm ON tm.team_id = fa.team_id AND tm.actor_id = ${input.actorId}
+        AND tm.status = 'active'
+      JOIN actors a ON a.id = tm.actor_id AND a.status = 'active' AND a.deleted_at IS NULL
+      WHERE fa.id = ${input.assignmentId} AND fa.deleted_at IS NULL
+    `;
+    if (!eligible) throw new MissionAccessDeniedError();
+    const id = uuidv7();
+    await this.sql`
+      INSERT INTO passkey_authentication_attempts (
+        id, actor_id, assignment_id, device_id, challenge, expires_at
+      ) VALUES (
+        ${id}, ${input.actorId}, ${input.assignmentId}, ${input.deviceId}, ${challenge}, ${expiresAt}
+      )
+    `;
+    return id;
+  }
+
+  async consumeAuthenticationAttempt(attemptId: string) {
+    return this.sql.begin(async (transaction) => {
+      const [row] = await transaction<DbRow[]>`
+        SELECT * FROM passkey_authentication_attempts
+        WHERE id = ${attemptId} AND consumed_at IS NULL AND expires_at > now() FOR UPDATE
+      `;
+      if (!row) throw new MissionAccessDeniedError("La validación venció. Intenta nuevamente.");
+      await transaction`
+        UPDATE passkey_authentication_attempts SET consumed_at = now() WHERE id = ${attemptId}
+      `;
+      return {
+        id: String(row.id),
+        actorId: String(row.actor_id),
+        assignmentId: String(row.assignment_id),
+        deviceId: String(row.device_id),
+        challenge: String(row.challenge),
+        expiresAt: new Date(String(row.expires_at)).toISOString(),
+      };
+    });
+  }
+
+  async findPasskey(credentialId: string): Promise<StoredPasskey | undefined> {
+    const [row] = await this.sql<DbRow[]>`
+      SELECT * FROM actor_passkeys WHERE credential_id = ${credentialId} LIMIT 1
+    `;
+    if (!row) return undefined;
+    return {
+      id: String(row.id),
+      actorId: String(row.actor_id),
+      credentialId: String(row.credential_id),
+      publicKey: new Uint8Array(row.public_key as Buffer),
+      counter: Number(row.counter),
+      transports: (row.transports as string[]) ?? [],
+      deviceType: String(row.device_type),
+      backedUp: Boolean(row.backed_up),
+    };
+  }
+
+  async updatePasskeyCounter(credentialId: string, counter: number) {
+    await this.sql`
+      UPDATE actor_passkeys SET counter = ${counter}, last_used_at = now()
+      WHERE credential_id = ${credentialId}
+    `;
+  }
+
+  async issueFieldSession(actorId: string, assignmentId: string, deviceId: string) {
+    const [row] = await this.sql<DbRow[]>`
+      SELECT fa.id AS assignment_id, fa.incident_id, fa.team_id, fa.zone_id, fa.objective,
+        fa.starts_at, fa.due_at, a.id AS actor_id, a.display_name AS actor_name,
+        t.name AS team_name, z.name AS zone_reference, z.name AS location
+      FROM field_assignments fa
+      JOIN team_memberships tm ON tm.team_id = fa.team_id AND tm.actor_id = ${actorId}
+        AND tm.status = 'active'
+      JOIN actors a ON a.id = tm.actor_id AND a.status = 'active' AND a.deleted_at IS NULL
+      JOIN teams t ON t.id = fa.team_id AND t.status = 'active' AND t.deleted_at IS NULL
+      JOIN operational_zones z ON z.id = fa.zone_id AND z.deleted_at IS NULL
+      WHERE fa.id = ${assignmentId} AND fa.deleted_at IS NULL LIMIT 1
+    `;
+    if (!row) throw new MissionAccessDeniedError();
+    const mission = missionFromRow(row);
+    const token = makeToken();
+    const expiresAt = addMinutes(60 * 24 * 30);
+    await this.sql`
+      INSERT INTO field_sessions (id, actor_id, assignment_id, device_id, token_hash, expires_at)
+      VALUES (${uuidv7()}, ${actorId}, ${assignmentId}, ${deviceId}, ${this.hash(token)}, ${expiresAt})
+    `;
+    await this.#audit("passkey.authentication_succeeded", actorId, assignmentId, null, true);
+    return {
+      sessionToken: token,
+      sessionExpiresAt: expiresAt,
+      passkeyRegistered: true,
+      mission,
+    };
+  }
+
+  async #consumeRedemptionAttempt(rateKey: string) {
+    const [row] = await this.sql<DbRow[]>`
+      INSERT INTO access_rate_limits (key_hash, attempts, reset_at)
+      VALUES (${rateKey}, 1, now() + interval '15 minutes')
+      ON CONFLICT (key_hash) DO UPDATE SET
+        attempts = CASE WHEN access_rate_limits.reset_at <= now() THEN 1
+          ELSE access_rate_limits.attempts + 1 END,
+        reset_at = CASE WHEN access_rate_limits.reset_at <= now()
+          THEN now() + interval '15 minutes' ELSE access_rate_limits.reset_at END
+      RETURNING attempts, reset_at
+    `;
+    if (Number(row?.attempts) > 5) {
+      const retryAfter = Math.max(
+        1,
+        Math.ceil((new Date(String(row?.reset_at)).getTime() - Date.now()) / 1000),
+      );
+      throw new MissionRateLimitError(retryAfter);
+    }
+  }
+
+  async #audit(
+    eventType: string,
+    actorId: string | null,
+    assignmentId: string | null,
+    sourceIp: string | null,
+    succeeded: boolean,
+  ) {
+    await this.sql`
+      INSERT INTO mission_access_events (
+        id, event_type, actor_id, assignment_id, source_ip, succeeded
+      ) VALUES (${uuidv7()}, ${eventType}, ${actorId}, ${assignmentId}, ${sourceIp}, ${succeeded})
     `;
   }
 }

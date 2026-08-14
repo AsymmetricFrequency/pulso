@@ -293,6 +293,11 @@ describe("teams and field assignments API", () => {
       url: `/v1/incidents/${incidentId}/actors`,
       payload: { organizationId, displayName: "Actor externo", role: "field_worker" },
     });
+    const coordinator = await app.inject({
+      method: "POST",
+      url: `/v1/incidents/${incidentId}/actors`,
+      payload: { organizationId, displayName: "Coordinadora de prueba", role: "coordinator" },
+    });
     const team = await app.inject({
       method: "POST",
       url: `/v1/incidents/${incidentId}/teams`,
@@ -359,10 +364,24 @@ describe("teams and field assignments API", () => {
     });
     expect(unauthorizedInvitation.statusCode).toBe(401);
 
+    const unauthorizedRole = await app.inject({
+      method: "POST",
+      url: `/v1/assignments/${assigned.json().id}/invitations`,
+      headers: {
+        "x-pulso-admin-key": "pulso-local-admin",
+        "x-pulso-actor-id": outsider.json().id,
+      },
+      payload: { actorId: leader.json().id, expiresInMinutes: 60 },
+    });
+    expect(unauthorizedRole.statusCode).toBe(401);
+
     const invitation = await app.inject({
       method: "POST",
       url: `/v1/assignments/${assigned.json().id}/invitations`,
-      headers: { "x-pulso-admin-key": "pulso-local-admin" },
+      headers: {
+        "x-pulso-admin-key": "pulso-local-admin",
+        "x-pulso-actor-id": coordinator.json().id,
+      },
       payload: { actorId: leader.json().id, expiresInMinutes: 60 },
     });
     expect(invitation.statusCode).toBe(201);
@@ -396,6 +415,33 @@ describe("teams and field assignments API", () => {
       payload: { code: invitation.json().code, deviceId: "field-device-002" },
     });
     expect(reused.statusCode).toBe(401);
+
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const invalid = await app.inject({
+        method: "POST",
+        url: "/v1/field-access/redeem",
+        payload: { code: "AAAAAAAAAA", deviceId: "field-device-rate-limit" },
+      });
+      expect(invalid.statusCode).toBe(401);
+    }
+    const limited = await app.inject({
+      method: "POST",
+      url: "/v1/field-access/redeem",
+      payload: { code: "AAAAAAAAAA", deviceId: "field-device-rate-limit" },
+    });
+    expect(limited.statusCode).toBe(429);
+    expect(limited.headers["retry-after"]).toBeDefined();
+
+    const noPasskeyRecovery = await app.inject({
+      method: "POST",
+      url: "/v1/field-access/passkeys/authentication/options",
+      payload: {
+        actorId: leader.json().id,
+        assignmentId: assigned.json().id,
+        deviceId: "field-device-recovery",
+      },
+    });
+    expect(noPasskeyRecovery.statusCode).toBe(401);
 
     const coverage = await app.inject({
       method: "GET",
