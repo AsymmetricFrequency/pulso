@@ -5,6 +5,9 @@ import {
   IncidentCodeAlreadyExistsError,
   IncidentNotFoundError,
   type IncidentRepository,
+  MissionAccessDeniedError,
+  type MissionAccessRepository,
+  MissionInvitationConflictError,
   OperationalZoneNotFoundError,
   OperationsConflictError,
   type OperationsRepository,
@@ -21,34 +24,52 @@ import {
   createFieldAssignmentSchema,
   createFieldVisitSchema,
   createIncidentSchema,
+  createMissionInvitationSchema,
   createOperationalZoneSchema,
   createOrganizationSchema,
   createTeamMembershipSchema,
   createTeamSchema,
   fieldAssignmentSchema,
+  fieldSessionSchema,
   fieldVisitSchema,
   incidentListSchema,
   incidentSchema,
+  issuedMissionInvitationSchema,
   operationalZoneSchema,
   organizationSchema,
+  passkeyRegistrationResponseSchema,
+  passkeyVerificationResultSchema,
+  redeemMissionInvitationSchema,
   teamMembershipSchema,
   teamSchema,
   territoryImportResultSchema,
   territoryImportSchema,
   territorySchema,
 } from "@pulso/schemas";
+import {
+  generateRegistrationOptions,
+  type RegistrationResponseJSON,
+  verifyRegistrationResponse,
+} from "@simplewebauthn/server";
 import Fastify from "fastify";
 import { ZodError } from "zod";
 import { MemoryIncidentRepository } from "./memory-incident-repository.js";
 import { MemoryOperationsRepository } from "./memory-operations-repository.js";
 import { MemoryTerritoryRepository } from "./memory-territory-repository.js";
+import { MemoryMissionAccessRepository } from "./mission-access-repositories.js";
 
 export type BuildAppOptions = {
   incidentRepository?: IncidentRepository;
   territoryRepository?: TerritoryRepository;
   operationsRepository?: OperationsRepository;
+  missionAccessRepository?: MissionAccessRepository;
   persistence?: "memory" | "postgres";
   logger?: boolean;
+  missionInvitationSecret?: string;
+  missionAdminKey?: string;
+  siteUrl?: string;
+  webauthnRpId?: string;
+  webauthnOrigin?: string;
 };
 
 export async function buildApp(options: BuildAppOptions = {}) {
@@ -57,9 +78,30 @@ export async function buildApp(options: BuildAppOptions = {}) {
   const territories = options.territoryRepository ?? new MemoryTerritoryRepository(incidents);
   const operations =
     options.operationsRepository ?? new MemoryOperationsRepository(incidents, territories);
+  const missionAccess =
+    options.missionAccessRepository ??
+    new MemoryMissionAccessRepository(
+      options.missionInvitationSecret ?? "pulso-test-invitation-secret-change-me-2026",
+      operations,
+      territories,
+    );
+  const siteUrl = options.siteUrl ?? "http://localhost:3000";
+  const rpID = options.webauthnRpId ?? "localhost";
+  const origin = options.webauthnOrigin ?? "http://localhost:3000";
+  const adminKey = options.missionAdminKey ?? "pulso-local-admin";
+
+  const requireAdmin = (provided: string | string[] | undefined) => {
+    if (provided !== adminKey) throw new MissionAccessDeniedError("No puedes emitir invitaciones.");
+  };
+
+  const bearerToken = (authorization: string | undefined) => {
+    const [scheme, token] = authorization?.split(" ") ?? [];
+    if (scheme !== "Bearer" || !token) throw new MissionAccessDeniedError();
+    return token;
+  };
 
   await app.register(cors, {
-    origin: process.env.NODE_ENV !== "production",
+    origin: process.env.NODE_ENV === "production" ? siteUrl : true,
   });
 
   app.setErrorHandler((error, _request, reply) => {
@@ -95,6 +137,16 @@ export async function buildApp(options: BuildAppOptions = {}) {
         error: "operation_conflict",
         message: error.message,
       });
+    }
+
+    if (error instanceof MissionInvitationConflictError) {
+      return reply
+        .status(409)
+        .send({ error: "mission_invitation_conflict", message: error.message });
+    }
+
+    if (error instanceof MissionAccessDeniedError) {
+      return reply.status(401).send({ error: "mission_access_denied", message: error.message });
     }
 
     app.log.error(error);
@@ -230,6 +282,91 @@ export async function buildApp(options: BuildAppOptions = {}) {
       );
     },
   );
+
+  app.post<{ Params: { assignmentId: string } }>(
+    "/v1/assignments/:assignmentId/invitations",
+    async (request, reply) => {
+      requireAdmin(request.headers["x-pulso-admin-key"]);
+      const input = createMissionInvitationSchema.parse(request.body);
+      const invitation = issuedMissionInvitationSchema.parse(
+        await missionAccess.issueInvitation(request.params.assignmentId, input, siteUrl),
+      );
+      return reply.status(201).send(invitation);
+    },
+  );
+
+  app.post("/v1/field-access/redeem", async (request, reply) => {
+    const input = redeemMissionInvitationSchema.parse(request.body);
+    const session = fieldSessionSchema.parse(await missionAccess.redeemInvitation(input));
+    return reply.status(201).send(session);
+  });
+
+  app.post("/v1/field-access/passkeys/registration/options", async (request) => {
+    const session = await missionAccess.resolveSession(bearerToken(request.headers.authorization));
+    const passkeys = await missionAccess.listPasskeys(session.actorId);
+    const registration = await generateRegistrationOptions({
+      rpName: "PULSO",
+      rpID,
+      userID: new TextEncoder().encode(session.actorId),
+      userName: session.actorId,
+      userDisplayName: session.mission.actorName,
+      attestationType: "none",
+      excludeCredentials: passkeys.map((passkey) => ({
+        id: passkey.credentialId,
+        transports: passkey.transports as never,
+      })),
+      authenticatorSelection: {
+        residentKey: "preferred",
+        userVerification: "required",
+      },
+      preferredAuthenticatorType: "localDevice",
+    });
+    await missionAccess.saveRegistrationChallenge(
+      session.id,
+      registration.challenge,
+      new Date(Date.now() + 5 * 60_000).toISOString(),
+    );
+    return registration;
+  });
+
+  app.post("/v1/field-access/passkeys/registration/verify", async (request, reply) => {
+    const session = await missionAccess.resolveSession(bearerToken(request.headers.authorization));
+    const response = passkeyRegistrationResponseSchema.parse(
+      request.body,
+    ) as RegistrationResponseJSON;
+    const expectedChallenge = await missionAccess.consumeRegistrationChallenge(session.id);
+    try {
+      const verification = await verifyRegistrationResponse({
+        response,
+        expectedChallenge,
+        expectedOrigin: origin,
+        expectedRPID: rpID,
+        requireUserVerification: true,
+      });
+      if (!verification.verified || !verification.registrationInfo) {
+        return reply.status(400).send({ verified: false });
+      }
+      const { credential, credentialDeviceType, credentialBackedUp } =
+        verification.registrationInfo;
+      await missionAccess.savePasskey({
+        id: crypto.randomUUID(),
+        actorId: session.actorId,
+        credentialId: credential.id,
+        publicKey: credential.publicKey,
+        counter: credential.counter,
+        transports: credential.transports ?? [],
+        deviceType: credentialDeviceType,
+        backedUp: credentialBackedUp,
+      });
+      return passkeyVerificationResultSchema.parse({ verified: true });
+    } catch {
+      return reply.status(400).send({
+        error: "passkey_verification_failed",
+        message: "No pudimos verificar la protección del dispositivo.",
+        verified: false,
+      });
+    }
+  });
 
   app.post<{ Params: { incidentId: string } }>(
     "/v1/incidents/:incidentId/territories/import",

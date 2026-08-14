@@ -17,8 +17,10 @@ export interface OperationsRepository {
   listOrganizations(incidentId: string): Promise<OrganizationDto[]>;
   createActor(incidentId: string, input: CreateActorInput): Promise<ActorDto>;
   listActors(incidentId: string): Promise<ActorDto[]>;
+  findActor(actorId: string): Promise<ActorDto | undefined>;
   createTeam(incidentId: string, input: CreateTeamInput): Promise<TeamDto>;
   listTeams(incidentId: string): Promise<TeamDto[]>;
+  findTeam(teamId: string): Promise<TeamDto | undefined>;
   addTeamMembership(teamId: string, input: CreateTeamMembershipInput): Promise<TeamMembershipDto>;
   listTeamMemberships(teamId: string): Promise<TeamMembershipDto[]>;
   createFieldAssignment(
@@ -26,6 +28,7 @@ export interface OperationsRepository {
     input: CreateFieldAssignmentInput,
   ): Promise<FieldAssignmentDto>;
   listFieldAssignments(incidentId: string): Promise<FieldAssignmentDto[]>;
+  findFieldAssignment(assignmentId: string): Promise<FieldAssignmentDto | undefined>;
   acceptFieldAssignment(
     assignmentId: string,
     input: AcceptFieldAssignmentInput,

@@ -91,6 +91,10 @@ export class MemoryOperationsRepository implements OperationsRepository {
       .sort((a, b) => a.displayName.localeCompare(b.displayName, "es"));
   }
 
+  async findActor(actorId: string): Promise<ActorDto | undefined> {
+    return this.#actors.get(actorId);
+  }
+
   async createTeam(incidentId: string, input: CreateTeamInput): Promise<TeamDto> {
     await this.#requireIncident(incidentId);
     this.#requireOrganization(input.organizationId, incidentId);
@@ -111,6 +115,10 @@ export class MemoryOperationsRepository implements OperationsRepository {
     return [...this.#teams.values()]
       .filter((team) => team.incidentId === incidentId)
       .sort((a, b) => a.name.localeCompare(b.name, "es"));
+  }
+
+  async findTeam(teamId: string): Promise<TeamDto | undefined> {
+    return this.#teams.get(teamId);
   }
 
   async addTeamMembership(
@@ -202,6 +210,10 @@ export class MemoryOperationsRepository implements OperationsRepository {
     return [...this.#assignments.values()]
       .filter((assignment) => assignment.incidentId === incidentId)
       .sort((a, b) => b.startsAt.localeCompare(a.startsAt));
+  }
+
+  async findFieldAssignment(assignmentId: string): Promise<FieldAssignmentDto | undefined> {
+    return this.#assignments.get(assignmentId);
   }
 
   async acceptFieldAssignment(

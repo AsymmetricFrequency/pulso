@@ -141,6 +141,10 @@ La [guía de desarrollo](docs/08-development.md) explica la estructura, los coma
 - `GET|POST /v1/teams/:teamId/memberships`
 - `GET|POST /v1/incidents/:incidentId/assignments`
 - `POST /v1/assignments/:assignmentId/accept`
+- `POST /v1/assignments/:assignmentId/invitations`
+- `POST /v1/field-access/redeem`
+- `POST /v1/field-access/passkeys/registration/options`
+- `POST /v1/field-access/passkeys/registration/verify`
 
 </details>
 
@@ -167,6 +171,7 @@ La [guía de desarrollo](docs/08-development.md) explica la estructura, los coma
 - [Persistencia y visitas offline](docs/14-persistence-field-offline.md)
 - [Equipos y asignaciones de campo](docs/15-teams-field-assignments.md)
 - [Experiencia de campo con cero fricción](docs/16-zero-friction-field-ux.md)
+- [Invitaciones de misión y passkeys](docs/17-mission-access-passkeys.md)
 
 ### Confianza y decisiones
 

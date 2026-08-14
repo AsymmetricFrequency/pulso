@@ -352,6 +352,51 @@ describe("teams and field assignments API", () => {
       revision: 2,
     });
 
+    const unauthorizedInvitation = await app.inject({
+      method: "POST",
+      url: `/v1/assignments/${assigned.json().id}/invitations`,
+      payload: { actorId: leader.json().id, expiresInMinutes: 60 },
+    });
+    expect(unauthorizedInvitation.statusCode).toBe(401);
+
+    const invitation = await app.inject({
+      method: "POST",
+      url: `/v1/assignments/${assigned.json().id}/invitations`,
+      headers: { "x-pulso-admin-key": "pulso-local-admin" },
+      payload: { actorId: leader.json().id, expiresInMinutes: 60 },
+    });
+    expect(invitation.statusCode).toBe(201);
+    expect(invitation.json()).toMatchObject({
+      assignmentId: assigned.json().id,
+      actorId: leader.json().id,
+    });
+    expect(invitation.json().code).toHaveLength(10);
+    expect(invitation.json().link).toContain(`/field?code=${invitation.json().code}`);
+
+    const redeemed = await app.inject({
+      method: "POST",
+      url: "/v1/field-access/redeem",
+      payload: { code: invitation.json().code, deviceId: "field-device-001" },
+    });
+    expect(redeemed.statusCode).toBe(201);
+    expect(redeemed.json()).toMatchObject({
+      passkeyRegistered: false,
+      mission: {
+        assignmentId: assigned.json().id,
+        actorId: leader.json().id,
+        teamName: "Brigada Norte",
+        zoneReference: "Zona misión 01",
+      },
+    });
+    expect(redeemed.json().sessionToken.length).toBeGreaterThanOrEqual(32);
+
+    const reused = await app.inject({
+      method: "POST",
+      url: "/v1/field-access/redeem",
+      payload: { code: invitation.json().code, deviceId: "field-device-002" },
+    });
+    expect(reused.statusCode).toBe(401);
+
     const coverage = await app.inject({
       method: "GET",
       url: `/v1/incidents/${incidentId}/coverage`,

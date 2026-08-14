@@ -285,6 +285,42 @@
   margin: 14px 0 0;
 }
 
+.optionalProtection {
+  margin-top: 22px;
+  border: 1px solid #d8d8cd;
+  border-radius: 14px;
+  background: #f6f1e5;
+  padding: 16px;
+  text-align: left;
+}
+.optionalProtection > span {
+  display: block;
+  color: #68766f;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.optionalProtection strong {
+  display: block;
+  margin-top: 4px;
+}
+.optionalProtection p {
+  margin: 4px 0 12px;
+  color: #5f6f68;
+  font-size: 13px;
+}
+.optionalProtection button {
+  min-height: 42px;
+  border: 1px solid #006a4e;
+  border-radius: 9px;
+  background: transparent;
+  padding: 0 13px;
+  color: #006a4e;
+  cursor: pointer;
+  font-weight: 800;
+}
+
 .activeVisit {
   padding-top: 44px;
 }

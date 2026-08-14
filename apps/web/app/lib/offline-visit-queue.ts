@@ -10,9 +10,21 @@ export type QueuedFieldVisit = {
 
 export type CachedMissionPackage = {
   code: string;
+  assignmentId: string;
+  incidentId: string;
+  actorId: string;
+  actorName: string;
+  teamId: string;
+  zoneId: string;
   zoneReference: string;
   teamName: string;
+  location: string;
   objective: string;
+  startsAt: string;
+  dueAt: string | null;
+  sessionToken: string;
+  sessionExpiresAt: string;
+  passkeyRegistered: boolean;
   downloadedAt: string;
 };
 
@@ -83,4 +95,18 @@ export async function cacheMissionPackage(
   });
   database.close();
   return cached;
+}
+
+export async function getLatestCachedMission(): Promise<CachedMissionPackage | null> {
+  const database = await openDatabase();
+  const missions = await new Promise<CachedMissionPackage[]>((resolve, reject) => {
+    const request = database
+      .transaction(missionStoreName, "readonly")
+      .objectStore(missionStoreName)
+      .getAll();
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+  database.close();
+  return missions.sort((a, b) => b.downloadedAt.localeCompare(a.downloadedAt))[0] ?? null;
 }

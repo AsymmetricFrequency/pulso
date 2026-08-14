@@ -37,6 +37,7 @@ import type {
 } from "@pulso/schemas";
 import postgres from "postgres";
 import { v7 as uuidv7 } from "uuid";
+import { PostgresMissionAccessRepository } from "./mission-access-repositories.js";
 
 type DbRow = Record<string, unknown>;
 
@@ -523,6 +524,13 @@ class PostgresOperationsRepository implements OperationsRepository {
     return rows.map(actorFromRow);
   }
 
+  async findActor(actorId: string): Promise<ActorDto | undefined> {
+    const [row] = await this.sql<DbRow[]>`
+      SELECT * FROM actors WHERE id = ${actorId} AND deleted_at IS NULL LIMIT 1
+    `;
+    return row ? actorFromRow(row) : undefined;
+  }
+
   async createTeam(incidentId: string, input: CreateTeamInput): Promise<TeamDto> {
     await this.#requireIncident(incidentId);
     await this.#requireScoped("organizations", input.organizationId, incidentId, "Organization");
@@ -546,6 +554,13 @@ class PostgresOperationsRepository implements OperationsRepository {
       WHERE incident_id = ${incidentId} AND deleted_at IS NULL ORDER BY name
     `;
     return rows.map(teamFromRow);
+  }
+
+  async findTeam(teamId: string): Promise<TeamDto | undefined> {
+    const [row] = await this.sql<DbRow[]>`
+      SELECT * FROM teams WHERE id = ${teamId} AND deleted_at IS NULL LIMIT 1
+    `;
+    return row ? teamFromRow(row) : undefined;
   }
 
   async addTeamMembership(
@@ -655,6 +670,13 @@ class PostgresOperationsRepository implements OperationsRepository {
     return rows.map(assignmentFromRow);
   }
 
+  async findFieldAssignment(assignmentId: string): Promise<FieldAssignmentDto | undefined> {
+    const [row] = await this.sql<DbRow[]>`
+      SELECT * FROM field_assignments WHERE id = ${assignmentId} AND deleted_at IS NULL LIMIT 1
+    `;
+    return row ? assignmentFromRow(row) : undefined;
+  }
+
   async acceptFieldAssignment(
     assignmentId: string,
     input: AcceptFieldAssignmentInput,
@@ -727,10 +749,11 @@ class PostgresOperationsRepository implements OperationsRepository {
   }
 }
 
-export function createPostgresRepositories(databaseUrl: string) {
+export function createPostgresRepositories(databaseUrl: string, missionInvitationSecret: string) {
   const sql = postgres(databaseUrl, { max: 10, idle_timeout: 20, connect_timeout: 10 });
   return {
     incidents: new PostgresIncidentRepository(sql),
+    missionAccess: new PostgresMissionAccessRepository(missionInvitationSecret, sql),
     operations: new PostgresOperationsRepository(sql),
     territories: new PostgresTerritoryRepository(sql),
     close: () => sql.end({ timeout: 5 }),
