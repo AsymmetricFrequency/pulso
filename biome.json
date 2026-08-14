@@ -8,6 +8,7 @@
       "!!**/dist",
       "!!**/coverage",
       "!!**/.anchor",
+      "!!**/.test-keys",
       "!!**/target",
       "!!research",
       "!!data"
