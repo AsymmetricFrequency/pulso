@@ -44,7 +44,7 @@ La ausencia de contraseña no significa ausencia de seguridad:
 
 ## Implementación actual
 
-La ruta `/field` implementa el prototipo móvil completo: código de misión, confirmación, caché IndexedDB, comienzo idempotente y lista táctil de trabajo. La entrada desde Atlas Operations muestra las visitas pendientes de sincronización.
+La ruta `/field` implementa el prototipo móvil completo: código de misión, confirmación, caché IndexedDB, comienzo idempotente y lista táctil de trabajo. La entrada desde Pulso Operaciones muestra las visitas pendientes de sincronización.
 
 Los datos de la misión todavía son sintéticos. El siguiente incremento debe reemplazarlos por un paquete firmado emitido por la API y unir el enlace de invitación con el actor y la asignación reales.
 

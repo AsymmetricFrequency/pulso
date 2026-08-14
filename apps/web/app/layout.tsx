@@ -4,14 +4,14 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://pulso.my"),
-  title: "PULSO ATLAS",
+  title: "PULSO VIDA",
   description: "Coordinación territorial verificable para emergencias",
-  applicationName: "PULSO ATLAS",
+  applicationName: "PULSO VIDA",
   alternates: { canonical: "/" },
   openGraph: {
-    title: "PULSO ATLAS",
+    title: "PULSO VIDA",
     description: "Coordinación territorial verificable para emergencias",
-    siteName: "PULSO ATLAS",
+    siteName: "PULSO VIDA",
     type: "website",
     url: "/",
     images: [
@@ -19,13 +19,13 @@ export const metadata: Metadata = {
         url: "/og.png",
         width: 1731,
         height: 909,
-        alt: "PULSO — Información territorial para actuar",
+        alt: "PULSO VIDA — Información territorial para actuar",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "PULSO",
+    title: "PULSO VIDA",
     description: "Información territorial para actuar",
     images: ["/og.png"],
   },

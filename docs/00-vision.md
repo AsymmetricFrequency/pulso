@@ -4,7 +4,7 @@
 
 Después de una catástrofe, la información se fragmenta entre llamadas, mensajes, hojas de cálculo, formularios y fotografías sin contexto. Se duplican casos y ayudas, algunas zonas se visitan repetidamente y otras permanecen invisibles.
 
-PULSO ATLAS busca crear una vista operacional común sin exigir conectividad permanente ni eliminar la autonomía de comunidades y organizaciones.
+PULSO VIDA busca crear una vista operacional común sin exigir conectividad permanente ni eliminar la autonomía de comunidades y organizaciones.
 
 ## Principios
 

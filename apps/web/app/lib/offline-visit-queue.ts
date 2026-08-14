@@ -63,6 +63,7 @@ export type QueuedFieldEvidence = FieldEvidenceInput & {
   queuedAt: string;
 };
 
+// Identificador heredado: conservarlo evita perder colas offline creadas antes del cambio de marca.
 const databaseName = "pulso-atlas-field";
 const storeName = "mutations";
 const missionStoreName = "missions";

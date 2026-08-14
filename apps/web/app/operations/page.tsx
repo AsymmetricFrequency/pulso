@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { OperationsFlow } from "./operations-flow";
 
 export const metadata: Metadata = {
-  title: "Centro operacional | PULSO ATLAS",
+  title: "Centro operacional | PULSO VIDA",
   description: "Resumen protegido y verificable de una emergencia.",
 };
 

@@ -5,9 +5,9 @@ export default function PublicHome() {
   return (
     <main>
       <header className="topbar">
-        <a className="brand" href="#top" aria-label="Inicio de PULSO">
+        <a className="brand" href="#top" aria-label="Inicio de PULSO VIDA">
           <span className="brandMark" aria-hidden="true" />
-          <span>PULSO</span>
+          <span>PULSO VIDA</span>
         </a>
         <nav className="publicNav" aria-label="Navegación principal">
           <a href="#informe">Informe público</a>
@@ -39,7 +39,7 @@ export default function PublicHome() {
       <PublicSituationReport />
 
       <footer>
-        <span>PULSO · Infraestructura abierta para emergencias</span>
+        <span>PULSO VIDA · Infraestructura abierta para emergencias</span>
         <span>Demostración con datos sintéticos · Sin información personal</span>
       </footer>
     </main>

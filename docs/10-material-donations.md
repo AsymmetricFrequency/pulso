@@ -29,7 +29,7 @@ cantidad canónica + unidad canónica
 método de conversión + fuente + versión + incertidumbre
 ```
 
-PULSO ATLAS usa unidades del Sistema Internacional como referencia. No se obliga a los brigadistas a introducir conversiones manuales: seleccionan la presentación observada y el catálogo aprobado realiza la conversión.
+PULSO VIDA usa unidades del Sistema Internacional como referencia. No se obliga a los brigadistas a introducir conversiones manuales: seleccionan la presentación observada y el catálogo aprobado realiza la conversión.
 
 ## Dimensiones admitidas
 
@@ -208,7 +208,7 @@ El valor físico y el valor financiero son dimensiones separadas. `valuation_sna
 
 ## Seguridad estructural
 
-PULSO ATLAS registra información y evidencia; no declara por sí mismo que un material sea apto para una estructura. Los usos estructurales requieren especificaciones, inspecciones y profesionales conforme a la norma vigente en la jurisdicción. Para Colombia debe registrarse la versión y acto aplicable del Reglamento de Construcción Sismorresistente y cualquier exigencia local.
+PULSO VIDA registra información y evidencia; no declara por sí mismo que un material sea apto para una estructura. Los usos estructurales requieren especificaciones, inspecciones y profesionales conforme a la norma vigente en la jurisdicción. Para Colombia debe registrarse la versión y acto aplicable del Reglamento de Construcción Sismorresistente y cualquier exigencia local.
 
 ## Referencias de diseño
 

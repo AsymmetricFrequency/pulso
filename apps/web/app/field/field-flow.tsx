@@ -506,9 +506,9 @@ export function FieldFlow() {
   return (
     <main className={styles.shell}>
       <header className={styles.header}>
-        <a className={styles.brand} href="/" aria-label="Volver a PULSO ATLAS">
+        <a className={styles.brand} href="/" aria-label="Volver a PULSO VIDA">
           <span className={styles.brandMark} aria-hidden="true" />
-          <span>PULSO</span>
+          <span>PULSO VIDA</span>
         </a>
         <span className={`${styles.connection} ${isOnline ? styles.online : styles.offline}`}>
           <i aria-hidden="true" />
@@ -918,7 +918,7 @@ export function FieldFlow() {
       )}
 
       <footer className={styles.footer}>
-        <span>PULSO Field</span>
+        <span>Pulso Campo</span>
         <a href="/">Centro operacional</a>
       </footer>
     </main>

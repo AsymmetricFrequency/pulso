@@ -1,6 +1,6 @@
 # Seguridad
 
-PULSO ATLAS manejará información personal, ubicaciones y evidencia potencialmente sensible. La seguridad es una propiedad central del sistema.
+PULSO VIDA manejará información personal, ubicaciones y evidencia potencialmente sensible. La seguridad es una propiedad central del sistema.
 
 ## Reglas mínimas
 
