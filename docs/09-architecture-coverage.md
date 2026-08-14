@@ -22,9 +22,9 @@ Este documento define el mapa funcional que debe quedar acordado antes de levant
 | Logística | Reserva, despacho, transporte, recepción y devolución | PostgreSQL | P1 crítico |
 | Reconstrucción | Presupuestos de materiales, instalación y avance | PostgreSQL + evidencia | P1 |
 | Ayuda no material | Servicios, alojamiento, transporte y horas de equipo | PostgreSQL | P1 |
-| Donaciones financieras | Promesa, recepción, restricción, asignación y desembolso | Sistema financiero integrado | P2 |
+| Donaciones financieras | Promesa, recepción, restricción, asignación y desembolso | PostgreSQL + integración USDC en Solana | P2 |
 | Comunicaciones | Alertas, notificaciones y confirmaciones | Cola + proveedores | P1 |
-| Auditoría | Historial de cambios y eventos encadenados | PostgreSQL append-only | P0 |
+| Auditoría | Historial de cambios, eventos encadenados y compromisos públicos | PostgreSQL append-only + Solana posterior | P0/P2 |
 | Portal público | Datos agregados, transparencia y rendición de cuentas | Proyecciones de lectura | P1 |
 | Integraciones | Importación, exportación, webhooks y estándares | API/colas | P1 |
 

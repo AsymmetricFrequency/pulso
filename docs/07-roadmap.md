@@ -33,8 +33,10 @@
 - Distribución y seguimiento de ayudas.
 - Interoperabilidad institucional.
 - Credenciales verificables.
-- Anclaje criptográfico externo.
-- Contratos inteligentes solo cuando exista un flujo financiero validado.
+- Programa mínimo `pulso_anchor` y relayer en Solana Devnet.
+- Verificador público de manifiestos y raíces Merkle.
+- Piloto en Solana Mainnet únicamente después de auditoría y ensayo de recuperación.
+- USDC patrocinado solo cuando exista un flujo financiero, jurídico y operacional validado.
 
 ## Puertas antes de producción
 

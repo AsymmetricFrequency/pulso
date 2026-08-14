@@ -58,6 +58,15 @@ Objetivos provisionales que deben validarse con responsables operacionales:
 - Separación de entornos y prohibición de datos reales en desarrollo.
 - Revisiones periódicas de permisos y accesos de emergencia con vencimiento.
 
+La integración posterior con Solana exige además:
+
+- clave del relayer en HSM/MPC, nunca en variables de un navegador o dispositivo de campo;
+- autoridad del programa separada mediante multisig;
+- dos proveedores RPC independientes y cambio automático por salud;
+- espera de compromiso `finalized` para registrar un anclaje como definitivo;
+- límites diarios de SOL patrocinado y alertas por comportamiento anómalo;
+- conciliación entre outbox, manifiestos, secuencias del programa y firmas finalizadas.
+
 ## Observabilidad
 
 Métricas mínimas:
@@ -70,6 +79,7 @@ Métricas mínimas:
 - eventos de autorización denegada;
 - uso de almacenamiento y capacidad de base de datos;
 - salud de respaldos y última restauración exitosa.
+- secuencias Solana pendientes, expiradas, reintentadas y finalizadas.
 
 Alertas deben tener propietario, prioridad, canal y procedimiento de respuesta.
 

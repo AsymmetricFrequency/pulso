@@ -14,6 +14,8 @@ Clientes PWA / consola / mapa público
      PostgreSQL  Redis   Objetos S3
        PostGIS     |
                 Workers
+                   |
+          Relayer Solana posterior
 ```
 
 ## Aplicaciones
@@ -51,6 +53,8 @@ packages/
 - El mapa público consume agregaciones, nunca tablas privadas directamente.
 - El inventario se deriva de movimientos append-only; las proyecciones de stock son reconstruibles.
 - Las integraciones y workers reciben eventos mediante una outbox transaccional.
+- Solana recibe compromisos criptográficos por lotes y nunca es fuente de verdad operacional.
+- La caída de Solana o de un RPC no interrumpe el trabajo de campo; el relayer conserva reintentos idempotentes.
 
 ## Procesamiento asíncrono
 

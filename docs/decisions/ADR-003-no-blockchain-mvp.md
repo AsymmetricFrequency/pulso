@@ -13,4 +13,4 @@ El problema inmediato es cobertura, calidad de datos, evidencia y coordinación.
 
 ## Consecuencia
 
-En una fase posterior podrá publicarse una raíz criptográfica periódica o incorporarse lógica financiera, sin rediseñar el modelo operacional.
+En una fase posterior podrá publicarse una raíz criptográfica periódica en Solana o incorporarse lógica financiera en USDC, sin rediseñar el modelo operacional. La selección de red se documenta en ADR-007 y no cambia que blockchain permanezca fuera de la ruta crítica.

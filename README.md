@@ -184,7 +184,7 @@ La [guía de desarrollo](docs/08-development.md) explica la estructura, los coma
 
 - [Confianza, fraude y privacidad](docs/05-trust-fraud-privacy.md)
 - [Decisiones de arquitectura](docs/decisions/)
-- [ADR-007: Base para anclaje público de auditoría](docs/decisions/ADR-007-base-audit-anchoring.md)
+- [ADR-007: Solana como única blockchain de PULSO](docs/decisions/ADR-007-solana-audit-payments.md)
 - [Documento fundacional v0.2](docs/foundation/RecoveryChain_Protocol_v0.2.docx)
 
 ## Principios
