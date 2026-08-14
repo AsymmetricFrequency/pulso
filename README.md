@@ -53,6 +53,7 @@ La implementación inicial será un **monolito modular con workers**, desplegado
 - [Flujos, eventos y contratos de API](docs/11-operational-events-api.md)
 - [Seguridad, confiabilidad y preparación de producción](docs/12-production-readiness.md)
 - [Vertical territorial y de cobertura](docs/13-territory-coverage-vertical.md)
+- [Persistencia y visitas offline](docs/14-persistence-field-offline.md)
 - [Decisiones de arquitectura](docs/decisions/)
 - [Documento fundacional v0.2](docs/foundation/RecoveryChain_Protocol_v0.2.docx)
 - [Mapa preliminar de afectación](research/colombia-2026/mapa-impacto-terremoto.html)
@@ -85,6 +86,12 @@ pnpm check
 ```
 
 Más información en [la guía de desarrollo](docs/08-development.md).
+
+La API usa memoria por defecto. Para activar PostgreSQL/PostGIS después de ejecutar las migraciones:
+
+```bash
+PERSISTENCE_DRIVER=postgres pnpm --filter @pulso/api dev
+```
 
 ## Marca
 

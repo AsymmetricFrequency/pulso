@@ -1,5 +1,7 @@
 import cors from "@fastify/cors";
 import {
+  FieldVisitConflictError,
+  FieldVisitNotFoundError,
   IncidentCodeAlreadyExistsError,
   IncidentNotFoundError,
   type IncidentRepository,
@@ -7,10 +9,13 @@ import {
   type TerritoryRepository,
 } from "@pulso/domain";
 import {
+  completeFieldVisitSchema,
   coverageEventSchema,
   createCoverageEventSchema,
+  createFieldVisitSchema,
   createIncidentSchema,
   createOperationalZoneSchema,
+  fieldVisitSchema,
   incidentListSchema,
   incidentSchema,
   operationalZoneSchema,
@@ -26,6 +31,7 @@ import { MemoryTerritoryRepository } from "./memory-territory-repository.js";
 export type BuildAppOptions = {
   incidentRepository?: IncidentRepository;
   territoryRepository?: TerritoryRepository;
+  persistence?: "memory" | "postgres";
   logger?: boolean;
 };
 
@@ -54,9 +60,20 @@ export async function buildApp(options: BuildAppOptions = {}) {
       });
     }
 
-    if (error instanceof IncidentNotFoundError || error instanceof OperationalZoneNotFoundError) {
+    if (
+      error instanceof IncidentNotFoundError ||
+      error instanceof OperationalZoneNotFoundError ||
+      error instanceof FieldVisitNotFoundError
+    ) {
       return reply.status(404).send({
         error: "resource_not_found",
+        message: error.message,
+      });
+    }
+
+    if (error instanceof FieldVisitConflictError) {
+      return reply.status(409).send({
+        error: "field_visit_conflict",
         message: error.message,
       });
     }
@@ -72,7 +89,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
     status: "ok",
     service: "pulso-api",
     timestamp: new Date().toISOString(),
-    persistence: "memory",
+    persistence: options.persistence ?? "memory",
   }));
 
   app.get("/v1/incidents", async () => incidentListSchema.parse(await incidents.list()));
@@ -156,6 +173,33 @@ export async function buildApp(options: BuildAppOptions = {}) {
       coverageEventSchema
         .array()
         .parse(await territories.listCoverageEvents(request.params.zoneId)),
+  );
+
+  app.post<{ Params: { zoneId: string } }>(
+    "/v1/operational-zones/:zoneId/field-visits",
+    async (request, reply) => {
+      const input = createFieldVisitSchema.parse(request.body);
+      const visit = fieldVisitSchema.parse(
+        await territories.createFieldVisit(request.params.zoneId, input),
+      );
+      return reply.status(201).send(visit);
+    },
+  );
+
+  app.get<{ Params: { zoneId: string } }>(
+    "/v1/operational-zones/:zoneId/field-visits",
+    async (request) =>
+      fieldVisitSchema.array().parse(await territories.listFieldVisits(request.params.zoneId)),
+  );
+
+  app.post<{ Params: { visitId: string } }>(
+    "/v1/field-visits/:visitId/complete",
+    async (request) => {
+      const input = completeFieldVisitSchema.parse(request.body);
+      return fieldVisitSchema.parse(
+        await territories.completeFieldVisit(request.params.visitId, input),
+      );
+    },
   );
 
   return app;

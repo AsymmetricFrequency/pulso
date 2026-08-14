@@ -137,6 +137,17 @@ h2 {
   flex-wrap: wrap;
 }
 
+.offlineAction {
+  display: grid;
+  gap: 5px;
+}
+
+.offlineAction > span {
+  color: var(--muted);
+  font-size: 11px;
+  text-align: right;
+}
+
 .button {
   min-height: 44px;
   border: 1px solid var(--primary);

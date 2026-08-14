@@ -1,0 +1,396 @@
+import {
+  FieldVisitConflictError,
+  FieldVisitNotFoundError,
+  IncidentCodeAlreadyExistsError,
+  IncidentNotFoundError,
+  type IncidentRepository,
+  OperationalZoneNotFoundError,
+  type TerritoryRepository,
+} from "@pulso/domain";
+import type {
+  CompleteFieldVisitInput,
+  CoverageEventDto,
+  CreateCoverageEventInput,
+  CreateFieldVisitInput,
+  CreateIncidentInput,
+  CreateOperationalZoneInput,
+  FieldVisitDto,
+  IncidentDto,
+  OperationalZoneDto,
+  TerritoryDto,
+  TerritoryImportInput,
+  TerritoryImportResult,
+} from "@pulso/schemas";
+import postgres from "postgres";
+import { v7 as uuidv7 } from "uuid";
+
+type DbRow = Record<string, unknown>;
+
+const asIso = (value: unknown) =>
+  value instanceof Date ? value.toISOString() : new Date(String(value)).toISOString();
+
+const asGeometry = <T>(value: unknown): T =>
+  (typeof value === "string" ? JSON.parse(value) : value) as T;
+
+const incidentFromRow = (row: DbRow): IncidentDto => ({
+  id: String(row.id),
+  code: String(row.code),
+  name: String(row.name),
+  disasterType: row.disaster_type as IncidentDto["disasterType"],
+  countryCode: String(row.country_code),
+  timezone: String(row.timezone),
+  startedAt: asIso(row.started_at),
+  status: row.status as IncidentDto["status"],
+  revision: Number(row.revision),
+  createdAt: asIso(row.created_at),
+  updatedAt: asIso(row.updated_at),
+});
+
+const territoryFromRow = (row: DbRow): TerritoryDto => ({
+  id: String(row.id),
+  incidentId: String(row.incident_id),
+  parentId: row.parent_id ? String(row.parent_id) : null,
+  externalCode: row.external_code ? String(row.external_code) : null,
+  type: row.territory_type as TerritoryDto["type"],
+  name: String(row.name),
+  geometry: asGeometry<TerritoryDto["geometry"]>(row.geometry),
+  accessStatus: row.access_status as TerritoryDto["accessStatus"],
+  revision: Number(row.revision),
+  createdAt: asIso(row.created_at),
+});
+
+const zoneFromRow = (row: DbRow): OperationalZoneDto => ({
+  id: String(row.id),
+  incidentId: String(row.incident_id),
+  territoryId: row.territory_id ? String(row.territory_id) : null,
+  name: String(row.name),
+  geometry: asGeometry<OperationalZoneDto["geometry"]>(row.geometry),
+  priority: Number(row.priority),
+  status: row.status as OperationalZoneDto["status"],
+  coverageStatus: row.coverage_status as OperationalZoneDto["coverageStatus"],
+  revision: Number(row.revision),
+  createdAt: asIso(row.created_at),
+});
+
+const coverageFromRow = (row: DbRow): CoverageEventDto => ({
+  id: String(row.id),
+  incidentId: String(row.incident_id),
+  zoneId: String(row.zone_id),
+  visitId: row.visit_id ? String(row.visit_id) : null,
+  status: row.status as CoverageEventDto["status"],
+  occurredAt: asIso(row.occurred_at),
+  recordedAt: asIso(row.recorded_at),
+  notes: row.notes ? String(row.notes) : null,
+});
+
+const visitFromRow = (row: DbRow): FieldVisitDto => ({
+  id: String(row.id),
+  incidentId: String(row.incident_id),
+  zoneId: String(row.zone_id),
+  teamId: row.team_id ? String(row.team_id) : null,
+  deviceId: String(row.device_id),
+  clientMutationId: String(row.client_mutation_id),
+  startedAt: asIso(row.started_at),
+  status: row.status as FieldVisitDto["status"],
+  result: row.result ? (row.result as FieldVisitDto["result"]) : null,
+  completedAt: row.completed_at ? asIso(row.completed_at) : null,
+  track: row.track ? asGeometry<FieldVisitDto["track"]>(row.track) : null,
+  accessNotes: row.access_notes ? String(row.access_notes) : null,
+  revision: Number(row.revision),
+  createdAt: asIso(row.created_at),
+  updatedAt: asIso(row.updated_at),
+});
+
+class PostgresIncidentRepository implements IncidentRepository {
+  constructor(private readonly sql: postgres.Sql) {}
+
+  async create(input: CreateIncidentInput): Promise<IncidentDto> {
+    try {
+      const [row] = await this.sql<DbRow[]>`
+        INSERT INTO incidents (
+          id, code, name, disaster_type, country_code, timezone, started_at
+        ) VALUES (
+          ${uuidv7()}, ${input.code}, ${input.name}, ${input.disasterType},
+          ${input.countryCode}, ${input.timezone}, ${input.startedAt}
+        )
+        RETURNING *
+      `;
+      if (!row) throw new Error("PostgreSQL did not return the created incident");
+      return incidentFromRow(row);
+    } catch (error: unknown) {
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        error.code === "23505"
+      ) {
+        throw new IncidentCodeAlreadyExistsError(input.code);
+      }
+      throw error;
+    }
+  }
+
+  async findByCode(code: string): Promise<IncidentDto | undefined> {
+    const [row] = await this.sql<DbRow[]>`
+      SELECT * FROM incidents WHERE code = ${code} AND deleted_at IS NULL LIMIT 1
+    `;
+    return row ? incidentFromRow(row) : undefined;
+  }
+
+  async findById(id: string): Promise<IncidentDto | undefined> {
+    const [row] = await this.sql<DbRow[]>`
+      SELECT * FROM incidents WHERE id = ${id} AND deleted_at IS NULL LIMIT 1
+    `;
+    return row ? incidentFromRow(row) : undefined;
+  }
+
+  async list(): Promise<IncidentDto[]> {
+    const rows = await this.sql<DbRow[]>`
+      SELECT * FROM incidents WHERE deleted_at IS NULL ORDER BY started_at DESC
+    `;
+    return rows.map(incidentFromRow);
+  }
+}
+
+class PostgresTerritoryRepository implements TerritoryRepository {
+  constructor(private readonly sql: postgres.Sql) {}
+
+  async importTerritories(
+    incidentId: string,
+    input: TerritoryImportInput,
+  ): Promise<TerritoryImportResult> {
+    await this.#requireIncident(incidentId);
+    let imported = 0;
+    let skipped = 0;
+    await this.sql.begin(async (transaction) => {
+      for (const feature of input.featureCollection.features) {
+        const rawCode = feature.properties[input.codeProperty];
+        const rawName = feature.properties[input.nameProperty];
+        if (
+          (typeof rawCode !== "string" && typeof rawCode !== "number") ||
+          typeof rawName !== "string"
+        ) {
+          skipped += 1;
+          continue;
+        }
+        const rows = await transaction<DbRow[]>`
+          INSERT INTO territories (
+            id, incident_id, parent_id, external_code, territory_type, name, geometry
+          ) VALUES (
+            ${uuidv7()}, ${incidentId}, ${input.parentId}, ${String(rawCode)},
+            ${input.territoryType}, ${rawName.trim()},
+            ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(feature.geometry)}), 4326)
+          )
+          ON CONFLICT (incident_id, territory_type, external_code)
+            WHERE deleted_at IS NULL AND external_code IS NOT NULL
+          DO NOTHING
+          RETURNING id
+        `;
+        if (rows.length === 1) imported += 1;
+        else skipped += 1;
+      }
+    });
+    return { imported, skipped, source: input.source };
+  }
+
+  async listTerritories(incidentId: string): Promise<TerritoryDto[]> {
+    await this.#requireIncident(incidentId);
+    const rows = await this.sql<DbRow[]>`
+      SELECT *, ST_AsGeoJSON(geometry)::json AS geometry
+      FROM territories
+      WHERE incident_id = ${incidentId} AND deleted_at IS NULL
+      ORDER BY name
+    `;
+    return rows.map(territoryFromRow);
+  }
+
+  async createOperationalZone(
+    incidentId: string,
+    input: CreateOperationalZoneInput,
+  ): Promise<OperationalZoneDto> {
+    await this.#requireIncident(incidentId);
+    const [row] = await this.sql<DbRow[]>`
+      INSERT INTO operational_zones (
+        id, incident_id, territory_id, name, geometry, priority
+      ) VALUES (
+        ${uuidv7()}, ${incidentId}, ${input.territoryId}, ${input.name},
+        ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(input.geometry)}), 4326), ${input.priority}
+      )
+      RETURNING *, ST_AsGeoJSON(geometry)::json AS geometry
+    `;
+    if (!row) throw new Error("PostgreSQL did not return the created operational zone");
+    return zoneFromRow(row);
+  }
+
+  async listOperationalZones(incidentId: string): Promise<OperationalZoneDto[]> {
+    await this.#requireIncident(incidentId);
+    const rows = await this.sql<DbRow[]>`
+      SELECT *, ST_AsGeoJSON(geometry)::json AS geometry
+      FROM operational_zones
+      WHERE incident_id = ${incidentId} AND deleted_at IS NULL
+      ORDER BY priority DESC, name
+    `;
+    return rows.map(zoneFromRow);
+  }
+
+  async findOperationalZone(zoneId: string): Promise<OperationalZoneDto | undefined> {
+    const [row] = await this.sql<DbRow[]>`
+      SELECT *, ST_AsGeoJSON(geometry)::json AS geometry
+      FROM operational_zones WHERE id = ${zoneId} AND deleted_at IS NULL LIMIT 1
+    `;
+    return row ? zoneFromRow(row) : undefined;
+  }
+
+  async addCoverageEvent(
+    zoneId: string,
+    input: CreateCoverageEventInput,
+  ): Promise<CoverageEventDto> {
+    return this.sql.begin(async (transaction) => {
+      const [zone] = await transaction<DbRow[]>`
+        SELECT incident_id FROM operational_zones
+        WHERE id = ${zoneId} AND deleted_at IS NULL FOR UPDATE
+      `;
+      if (!zone) throw new OperationalZoneNotFoundError(zoneId);
+      const [event] = await transaction<DbRow[]>`
+        INSERT INTO coverage_events (
+          id, incident_id, zone_id, visit_id, status, occurred_at, notes
+        ) VALUES (
+          ${uuidv7()}, ${String(zone.incident_id)}, ${zoneId}, ${input.visitId},
+          ${input.status}, ${input.occurredAt}, ${input.notes}
+        ) RETURNING *
+      `;
+      await transaction`
+        UPDATE operational_zones
+        SET coverage_status = ${input.status}, revision = revision + 1, updated_at = now()
+        WHERE id = ${zoneId}
+      `;
+      if (!event) throw new Error("PostgreSQL did not return the coverage event");
+      return coverageFromRow(event);
+    });
+  }
+
+  async listCoverageEvents(zoneId: string): Promise<CoverageEventDto[]> {
+    if (!(await this.findOperationalZone(zoneId))) throw new OperationalZoneNotFoundError(zoneId);
+    const rows = await this.sql<DbRow[]>`
+      SELECT * FROM coverage_events WHERE zone_id = ${zoneId} ORDER BY occurred_at
+    `;
+    return rows.map(coverageFromRow);
+  }
+
+  async createFieldVisit(zoneId: string, input: CreateFieldVisitInput): Promise<FieldVisitDto> {
+    return this.sql.begin(async (transaction) => {
+      const [zone] = await transaction<DbRow[]>`
+        SELECT incident_id FROM operational_zones
+        WHERE id = ${zoneId} AND deleted_at IS NULL FOR UPDATE
+      `;
+      if (!zone) throw new OperationalZoneNotFoundError(zoneId);
+      const incidentId = String(zone.incident_id);
+      const [existing] = await transaction<DbRow[]>`
+        SELECT *, ST_AsGeoJSON(track)::json AS track FROM field_visits
+        WHERE incident_id = ${incidentId} AND client_mutation_id = ${input.clientMutationId}
+        LIMIT 1
+      `;
+      if (existing) return visitFromRow(existing);
+
+      const visitId = uuidv7();
+      const [visit] = await transaction<DbRow[]>`
+        INSERT INTO field_visits (
+          id, incident_id, zone_id, team_id, device_id, client_mutation_id,
+          started_at, status, result, access_notes
+        ) VALUES (
+          ${visitId}, ${incidentId}, ${zoneId}, ${input.teamId}, ${input.deviceId},
+          ${input.clientMutationId}, ${input.startedAt}, 'in_progress', NULL, ${input.accessNotes}
+        ) RETURNING *, ST_AsGeoJSON(track)::json AS track
+      `;
+      await transaction`
+        INSERT INTO coverage_events (
+          id, incident_id, zone_id, visit_id, status, occurred_at, notes, idempotency_key
+        ) VALUES (
+          ${uuidv7()}, ${incidentId}, ${zoneId}, ${visitId}, 'in_progress',
+          ${input.startedAt}, ${input.accessNotes}, ${input.clientMutationId}
+        )
+      `;
+      await transaction`
+        UPDATE operational_zones
+        SET coverage_status = 'in_progress', revision = revision + 1, updated_at = now()
+        WHERE id = ${zoneId}
+      `;
+      if (!visit) throw new Error("PostgreSQL did not return the created field visit");
+      return visitFromRow(visit);
+    });
+  }
+
+  async completeFieldVisit(
+    visitId: string,
+    input: CompleteFieldVisitInput,
+  ): Promise<FieldVisitDto> {
+    return this.sql.begin(async (transaction) => {
+      const [current] = await transaction<DbRow[]>`
+        SELECT *, ST_AsGeoJSON(track)::json AS track FROM field_visits
+        WHERE id = ${visitId} FOR UPDATE
+      `;
+      if (!current) throw new FieldVisitNotFoundError(visitId);
+      const existing = visitFromRow(current);
+      if (existing.status === "completed") {
+        if (existing.result === input.result) return existing;
+        throw new FieldVisitConflictError("La visita ya fue cerrada con un resultado diferente.");
+      }
+      if (input.completedAt < existing.startedAt) {
+        throw new FieldVisitConflictError("La visita no puede finalizar antes de comenzar.");
+      }
+      const coverageStatus = input.result === "completed" ? "visited" : input.result;
+      const track = input.track ? JSON.stringify(input.track) : null;
+      const [completed] = await transaction<DbRow[]>`
+        UPDATE field_visits SET
+          status = 'completed', result = ${input.result}, completed_at = ${input.completedAt},
+          track = CASE WHEN ${track}::text IS NULL THEN NULL
+            ELSE ST_SetSRID(ST_GeomFromGeoJSON(${track}), 4326) END,
+          access_notes = COALESCE(${input.accessNotes}, access_notes),
+          revision = revision + 1, updated_at = now()
+        WHERE id = ${visitId}
+        RETURNING *, ST_AsGeoJSON(track)::json AS track
+      `;
+      await transaction`
+        INSERT INTO coverage_events (
+          id, incident_id, zone_id, visit_id, status, occurred_at, notes, idempotency_key
+        ) VALUES (
+          ${uuidv7()}, ${existing.incidentId}, ${existing.zoneId}, ${visitId},
+          ${coverageStatus}, ${input.completedAt}, ${input.accessNotes}, ${input.clientMutationId}
+        ) ON CONFLICT (incident_id, idempotency_key)
+          WHERE idempotency_key IS NOT NULL DO NOTHING
+      `;
+      await transaction`
+        UPDATE operational_zones SET
+          coverage_status = ${coverageStatus}, revision = revision + 1, updated_at = now()
+        WHERE id = ${existing.zoneId}
+      `;
+      if (!completed) throw new Error("PostgreSQL did not return the completed field visit");
+      return visitFromRow(completed);
+    });
+  }
+
+  async listFieldVisits(zoneId: string): Promise<FieldVisitDto[]> {
+    if (!(await this.findOperationalZone(zoneId))) throw new OperationalZoneNotFoundError(zoneId);
+    const rows = await this.sql<DbRow[]>`
+      SELECT *, ST_AsGeoJSON(track)::json AS track
+      FROM field_visits WHERE zone_id = ${zoneId} ORDER BY started_at DESC
+    `;
+    return rows.map(visitFromRow);
+  }
+
+  async #requireIncident(incidentId: string) {
+    const [row] = await this.sql<DbRow[]>`
+      SELECT id FROM incidents WHERE id = ${incidentId} AND deleted_at IS NULL LIMIT 1
+    `;
+    if (!row) throw new IncidentNotFoundError(incidentId);
+  }
+}
+
+export function createPostgresRepositories(databaseUrl: string) {
+  const sql = postgres(databaseUrl, { max: 10, idle_timeout: 20, connect_timeout: 10 });
+  return {
+    incidents: new PostgresIncidentRepository(sql),
+    territories: new PostgresTerritoryRepository(sql),
+    close: () => sql.end({ timeout: 5 }),
+  };
+}

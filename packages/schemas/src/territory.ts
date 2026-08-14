@@ -2,6 +2,11 @@ import { z } from "zod";
 
 const positionSchema = z.tuple([z.number(), z.number()]).rest(z.number());
 
+export const lineStringGeometrySchema = z.object({
+  type: z.literal("LineString"),
+  coordinates: z.array(positionSchema).min(2),
+});
+
 export const polygonGeometrySchema = z.object({
   type: z.literal("Polygon"),
   coordinates: z.array(z.array(positionSchema).min(4)).min(1),
@@ -107,6 +112,42 @@ export const coverageEventSchema = createCoverageEventSchema.extend({
   recordedAt: z.iso.datetime({ offset: true }),
 });
 
+export const fieldVisitResultSchema = z.enum([
+  "completed",
+  "partial",
+  "inaccessible",
+  "revisit_required",
+]);
+
+export const createFieldVisitSchema = z.object({
+  teamId: z.uuid().nullable().default(null),
+  deviceId: z.string().trim().min(3).max(120),
+  clientMutationId: z.uuid(),
+  startedAt: z.iso.datetime({ offset: true }),
+  accessNotes: z.string().trim().max(2_000).nullable().default(null),
+});
+
+export const completeFieldVisitSchema = z.object({
+  clientMutationId: z.uuid(),
+  result: fieldVisitResultSchema,
+  completedAt: z.iso.datetime({ offset: true }),
+  track: lineStringGeometrySchema.nullable().default(null),
+  accessNotes: z.string().trim().max(2_000).nullable().default(null),
+});
+
+export const fieldVisitSchema = createFieldVisitSchema.extend({
+  id: z.uuid(),
+  incidentId: z.uuid(),
+  zoneId: z.uuid(),
+  status: z.enum(["in_progress", "completed"]),
+  result: fieldVisitResultSchema.nullable(),
+  completedAt: z.iso.datetime({ offset: true }).nullable(),
+  track: lineStringGeometrySchema.nullable(),
+  createdAt: z.iso.datetime({ offset: true }),
+  updatedAt: z.iso.datetime({ offset: true }),
+  revision: z.int().positive(),
+});
+
 export type AreaGeometry = z.infer<typeof areaGeometrySchema>;
 export type TerritoryDto = z.infer<typeof territorySchema>;
 export type TerritoryImportInput = z.infer<typeof territoryImportSchema>;
@@ -115,3 +156,6 @@ export type CreateOperationalZoneInput = z.infer<typeof createOperationalZoneSch
 export type OperationalZoneDto = z.infer<typeof operationalZoneSchema>;
 export type CreateCoverageEventInput = z.infer<typeof createCoverageEventSchema>;
 export type CoverageEventDto = z.infer<typeof coverageEventSchema>;
+export type CreateFieldVisitInput = z.infer<typeof createFieldVisitSchema>;
+export type CompleteFieldVisitInput = z.infer<typeof completeFieldVisitSchema>;
+export type FieldVisitDto = z.infer<typeof fieldVisitSchema>;

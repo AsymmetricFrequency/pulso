@@ -157,4 +157,89 @@ describe("territory and coverage API", () => {
     });
     expect(history.json()).toHaveLength(1);
   });
+
+  it("creates an idempotent field visit and closes it into coverage", async () => {
+    const app = await buildApp();
+    apps.push(app);
+    const incident = await app.inject({
+      method: "POST",
+      url: "/v1/incidents",
+      payload: {
+        code: "field-offline",
+        name: "Prueba de brigada offline",
+        disasterType: "flood",
+        countryCode: "CO",
+        timezone: "America/Bogota",
+        startedAt: "2026-08-13T08:00:00-05:00",
+      },
+    });
+    const incidentId = incident.json().id as string;
+    const geometry = {
+      type: "Polygon",
+      coordinates: [
+        [
+          [-76.7, 5.7],
+          [-76.6, 5.7],
+          [-76.6, 5.8],
+          [-76.7, 5.7],
+        ],
+      ],
+    };
+    const zone = await app.inject({
+      method: "POST",
+      url: `/v1/incidents/${incidentId}/operational-zones`,
+      payload: { name: "Zona de visita 01", geometry, priority: 5 },
+    });
+    const zoneId = zone.json().id as string;
+    const mutationId = "0198a03d-c08f-7e4a-91ee-102c68bff001";
+    const visitPayload = {
+      deviceId: "brigada-tablet-01",
+      clientMutationId: mutationId,
+      startedAt: "2026-08-13T09:00:00-05:00",
+      accessNotes: "Ingreso por vía secundaria.",
+    };
+
+    const first = await app.inject({
+      method: "POST",
+      url: `/v1/operational-zones/${zoneId}/field-visits`,
+      payload: visitPayload,
+    });
+    const retried = await app.inject({
+      method: "POST",
+      url: `/v1/operational-zones/${zoneId}/field-visits`,
+      payload: visitPayload,
+    });
+    expect(first.statusCode).toBe(201);
+    expect(retried.json().id).toBe(first.json().id);
+
+    const completed = await app.inject({
+      method: "POST",
+      url: `/v1/field-visits/${first.json().id}/complete`,
+      payload: {
+        clientMutationId: "0198a03d-c08f-7e4a-91ee-102c68bff002",
+        result: "partial",
+        completedAt: "2026-08-13T10:15:00-05:00",
+        track: {
+          type: "LineString",
+          coordinates: [
+            [-76.7, 5.7],
+            [-76.65, 5.75],
+          ],
+        },
+        accessNotes: "Dos viviendas requieren nueva evaluación.",
+      },
+    });
+    expect(completed.json()).toMatchObject({ status: "completed", result: "partial", revision: 2 });
+
+    const visits = await app.inject({
+      method: "GET",
+      url: `/v1/operational-zones/${zoneId}/field-visits`,
+    });
+    expect(visits.json()).toHaveLength(1);
+    const coverage = await app.inject({
+      method: "GET",
+      url: `/v1/incidents/${incidentId}/coverage`,
+    });
+    expect(coverage.json()[0]).toMatchObject({ coverageStatus: "partial", revision: 3 });
+  });
 });
