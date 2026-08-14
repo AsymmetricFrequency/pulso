@@ -140,7 +140,127 @@ describe("Cali official public source API", () => {
   });
 });
 
+describe("SGC official public source API", () => {
+  it("exposes only the fixed public seismic projection", async () => {
+    const app = await buildApp({
+      sgcPublicSourceRepository: {
+        async findSnapshot() {
+          return {
+            source: {
+              id: "sgc-realtime-earthquakes",
+              name: "Servicio Geológico Colombiano",
+              url: "https://archive.sgc.gov.co/feed/v1.0.1/summary/five_days_all.json",
+              authority: "official",
+            },
+            fetchedAt: "2026-08-14T21:26:07.133Z",
+            events: [
+              {
+                id: "SGC2026abcd",
+                magnitude: 3.2,
+                magnitudeType: "ML",
+                depthKm: 12.4,
+                latitude: 3.45,
+                longitude: -76.53,
+                localTime: "2026-08-14 10:30:00",
+                utcTime: "2026-08-14 15:30:00",
+                updatedAt: "2026-08-14 10:31:00",
+                place: "Cali - Valle del Cauca",
+                status: "manual",
+                agency: "SGC",
+                closerTowns: "Cali",
+                feltReports: 2,
+                instrumentalIntensity: 1,
+                communityIntensity: 1,
+              },
+            ],
+          };
+        },
+      },
+    });
+    apps.push(app);
+
+    const response = await app.inject({
+      method: "GET",
+      url: "/v1/public/sources/sgc-realtime-earthquakes/snapshot",
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.headers["cache-control"]).toContain("stale-while-revalidate");
+    expect(response.json()).toMatchObject({
+      source: { authority: "official" },
+      events: [{ agency: "SGC", longitude: -76.53, latitude: 3.45 }],
+    });
+    expect(JSON.stringify(response.json())).not.toMatch(/phone|email|documentNumber|displayName/i);
+  });
+});
+
 describe("territory and coverage API", () => {
+  it("publishes imported DANE departments as a stable GeoJSON projection", async () => {
+    const app = await buildApp();
+    apps.push(app);
+    const incident = await app.inject({
+      method: "POST",
+      url: "/v1/incidents",
+      payload: {
+        code: "public-dane",
+        name: "Territorio público DANE",
+        disasterType: "earthquake",
+        countryCode: "CO",
+        timezone: "America/Bogota",
+        startedAt: "2026-08-10T07:34:00-05:00",
+      },
+    });
+    const geometry = {
+      type: "Polygon",
+      coordinates: [
+        [
+          [-77, 3],
+          [-76, 3],
+          [-76, 4],
+          [-77, 3],
+        ],
+      ],
+    };
+    await app.inject({
+      method: "POST",
+      url: `/v1/incidents/${incident.json().id}/territories/import`,
+      payload: {
+        source: "dane_departments",
+        territoryType: "department",
+        codeProperty: "dpto_ccdgo",
+        nameProperty: "dpto_cnmbre",
+        featureCollection: {
+          type: "FeatureCollection",
+          features: [
+            {
+              type: "Feature",
+              properties: { dpto_ccdgo: "76", dpto_cnmbre: "VALLE DEL CAUCA" },
+              geometry,
+            },
+          ],
+        },
+      },
+    });
+
+    const response = await app.inject({
+      method: "GET",
+      url: "/v1/public/incidents/public-dane/territories?level=department",
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.headers["cache-control"]).toContain("stale-while-revalidate");
+    expect(response.json()).toMatchObject({
+      type: "FeatureCollection",
+      source: "DANE MGN 2023",
+      features: [
+        {
+          id: "76",
+          properties: { dpto_ccdgo: "76", dpto_cnmbre: "VALLE DEL CAUCA" },
+        },
+      ],
+    });
+  });
+
   it("imports territory, creates a zone, and records its coverage history", async () => {
     const app = await buildApp();
     apps.push(app);

@@ -409,6 +409,18 @@ h2 {
   stroke-width: 3;
 }
 
+.sgcEvent {
+  fill: var(--signal);
+  pointer-events: none;
+  stroke: rgba(255, 253, 247, 0.95);
+  stroke-width: 1.4;
+}
+
+.sgcEvent.automatic {
+  fill: #d87246;
+  opacity: 0.78;
+}
+
 .status-unknown {
   fill: #d9d2c2;
 }
@@ -463,10 +475,15 @@ h2 {
   fill: #8b739d;
 }
 
+.statusDot.seismic {
+  background: var(--signal);
+  box-shadow: 0 0 0 2px rgba(255, 253, 247, 0.95);
+}
+
 .mapSelection {
   position: absolute;
   right: 18px;
-  bottom: 18px;
+  bottom: 86px;
   display: grid;
   min-width: 190px;
   gap: 5px;

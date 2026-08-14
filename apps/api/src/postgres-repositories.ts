@@ -44,6 +44,7 @@ import { PostgresMissionAccessRepository } from "./mission-access-repositories.j
 import { PostgresOperationsAccessRepository } from "./operations-access-repositories.js";
 import { PostgresIdentityTrustRepository } from "./postgres-identity-trust-repository.js";
 import { PostgresPublicReportRepository } from "./postgres-public-report-repository.js";
+import { PostgresSgcPublicSourceRepository } from "./sgc-public-source-repositories.js";
 
 type DbRow = Record<string, unknown>;
 
@@ -771,6 +772,7 @@ export function createPostgresRepositories(
     operations: new PostgresOperationsRepository(sql),
     publicReports: new PostgresPublicReportRepository(sql),
     caliPublicSource: new PostgresCaliPublicSourceRepository(sql),
+    sgcPublicSource: new PostgresSgcPublicSourceRepository(sql),
     territories: new PostgresTerritoryRepository(sql),
     close: () => sql.end({ timeout: 5 }),
   };

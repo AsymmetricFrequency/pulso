@@ -9,8 +9,8 @@ Ingerir no significa publicar. Cada adaptador escribe primero en el registro ver
 | Fuente | Datos aprovechables | Método | Estado | Condición |
 | --- | --- | --- | --- | --- |
 | Repositorio oficial de Cali | Balance, fecha de corte, acopios, albergues y bancos de sangre | HTML identificado y versionado | Implementado | Una petición condicional; `crawl-delay` de 5 segundos |
-| SGC Geoportal | Catálogo de sismos, geometría, magnitud, profundidad y tiempo | ArcGIS REST en JSON/GeoJSON | Siguiente adaptador | Conservar atribución y parámetros de consulta |
-| DANE MGN | Departamentos, municipios, códigos y límites | Descarga/servicio geográfico oficial | Siguiente adaptador | Fijar versión del marco y no mezclar vigencias |
+| SGC, sismos de los últimos cinco días | Identificador, magnitud, profundidad, ubicación, tiempo y estado de revisión | Feed JSON oficial, petición condicional | Implementado | El feed usa `[latitud, longitud, profundidad]`; el adaptador normaliza el orden explícitamente |
+| DANE MGN 2023 | 33 departamentos, 1.121 municipios, códigos y límites | ArcGIS FeatureServer oficial en GeoJSON | Implementado | Vigencia 2023 fijada; la carga falla cerrada si el conjunto está incompleto |
 | Alcaldía de Cali, comunicados | Títulos, fecha, URL y categoría | Sitemap/publicaciones | Candidato | Indexar metadatos; revisión editorial para afirmaciones |
 | Aquí Hace Falta | Necesidades y estados comunitarios | Convex/API del propietario | Requiere acuerdo | No consumir el backend descubierto en el cliente sin permiso |
 | SUMA | Necesidades, albergues, acopios, sangre y personal | Supabase/API del propietario | Requiere acuerdo | Solicitar exportación, API key y términos de uso |
@@ -39,12 +39,22 @@ El importador no recoge los nombres, teléfonos o fotografías de personas desap
 6. Resolver territorio y posibles duplicados sin perder el identificador de origen.
 7. Publicar solo una proyección segura con fuente y fecha de corte.
 
+## SGC y DANE
+
+La vista previa verificada el 14 de agosto de 2026 recuperó 689 eventos del SGC ocurridos desde el inicio configurado de la emergencia (`10 ago, 07:34 COT`), además de los 33 departamentos y 1.121 municipios del MGN 2023. Estas cantidades son controles de ingestión, no cifras de afectación.
+
+Los eventos del SGC se publican como **eventos sísmicos**. PULSO VIDA no los presenta automáticamente como réplicas: atribuir una relación con el evento principal exige análisis del SGC. El mapa público limita la visualización regional a eventos de magnitud 2 o superior y conserva la atribución oficial.
+
+Las geometrías DANE se incorporan primero al registro versionado y, cuando existe `PULSO_INCIDENT_CODE`, también actualizan la jerarquía operacional `departamento → municipio`. La portada intenta cargar esta proyección oficial y conserva una capa local como respaldo de disponibilidad.
+
 ## Operación
 
 Vista previa sin persistencia:
 
 ```bash
 pnpm --filter @pulso/worker ingest:cali
+pnpm --filter @pulso/worker ingest:sgc
+pnpm --filter @pulso/worker ingest:dane
 ```
 
 Persistencia después de aplicar las migraciones:
@@ -52,23 +62,34 @@ Persistencia después de aplicar las migraciones:
 ```bash
 DATABASE_URL=postgres://pulso:pulso@localhost:5432/pulso \
   pnpm --filter @pulso/worker ingest:cali
+
+DATABASE_URL=postgres://pulso:pulso@localhost:5432/pulso \
+PULSO_INCIDENT_STARTED_AT=2026-08-10T07:34:00-05:00 \
+  pnpm --filter @pulso/worker ingest:sgc
+
+DATABASE_URL=postgres://pulso:pulso@localhost:5432/pulso \
+PULSO_INCIDENT_CODE=colombia-2026 \
+  pnpm --filter @pulso/worker ingest:dane
 ```
 
 Consulta pública, limitada a la proyección oficial validada:
 
 ```text
 GET /v1/public/sources/cali-official-earthquake-repository/snapshot
+GET /v1/public/sources/sgc-realtime-earthquakes/snapshot
+GET /v1/public/incidents/colombia-2026/territories?level=department
+GET /v1/public/incidents/colombia-2026/territories?level=municipality&departmentCode=76
 ```
 
 ## Próximos adaptadores
 
-1. SGC ArcGIS REST para eventos sísmicos y réplicas.
-2. DANE MGN para geometrías oficiales y códigos territoriales.
-3. Importador CSV/JSON firmado para organizaciones aliadas.
-4. Webhook de necesidades y resolución para plataformas comunitarias con convenio.
+1. Importador CSV/JSON firmado para organizaciones aliadas.
+2. Webhook de necesidades y resolución para plataformas comunitarias con convenio.
+3. Automatización programada de SGC, DANE y Cali con alertas de cambio de contrato.
 
 Referencias técnicas:
 
-- SGC, catálogo de sismos ArcGIS REST: <https://geoportal.sgc.gov.co/arcgis/rest/services/catalogo_sismos/catalogo_de_sismos_2/MapServer>
-- DANE, Marco Geoestadístico Nacional: <https://geoportal.dane.gov.co/descargas/mgn_2023/MGN2023_ManualDeUso.pdf>
+- SGC, feed oficial de los últimos cinco días: <https://archive.sgc.gov.co/feed/v1.0.1/summary/five_days_all.json>
+- SGC, visor de sismicidad: <https://www.sgc.gov.co/sismos>
+- DANE, FeatureServer MGN 2023: <https://geoportal.dane.gov.co/mparcgis/rest/services/MGN2023/Serv_CapasMGN_2023/FeatureServer>
 - Alcaldía de Cali, repositorio oficial: <https://www.cali.gov.co/gobierno/publicaciones/193607/terremoto-de-cali-repositorio-oficial-de-informacion/>

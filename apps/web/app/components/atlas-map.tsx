@@ -1,12 +1,23 @@
 "use client";
 
-import { geoMercator, geoPath } from "d3-geo";
+import { geoIdentity, geoPath } from "d3-geo";
 import type { Feature, FeatureCollection, Geometry } from "geojson";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type DepartmentProperties = {
   dpto_ccdgo: string;
   dpto_cnmbre: string;
+};
+
+type SgcEvent = {
+  id: string;
+  magnitude: number;
+  depthKm: number;
+  latitude: number;
+  longitude: number;
+  localTime: string;
+  place: string;
+  status: "manual" | "automatic" | "unknown";
 };
 
 export type PublicMapLayer = "coverage" | "damage" | "supplies" | "donations" | "teams";
@@ -137,6 +148,7 @@ export function AtlasMap({
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(720);
   const [data, setData] = useState<FeatureCollection<Geometry, DepartmentProperties> | null>(null);
+  const [sgcEvents, setSgcEvents] = useState<SgcEvent[]>([]);
   const [internalCode, setInternalCode] = useState("27");
   const [error, setError] = useState(false);
   const selectedCode = controlledCode ?? internalCode;
@@ -144,15 +156,60 @@ export function AtlasMap({
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch("/data/colombia-departamentos.geojson", { signal: controller.signal })
-      .then((response) => {
-        if (!response.ok) throw new Error("No fue posible cargar la capa territorial");
-        return response.json();
-      })
-      .then((collection: FeatureCollection<Geometry, DepartmentProperties>) => setData(collection))
-      .catch((reason: unknown) => {
-        if (!(reason instanceof DOMException && reason.name === "AbortError")) setError(true);
-      });
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+    const loadTerritories = async () => {
+      try {
+        const response = await fetch(
+          `${apiUrl}/v1/public/incidents/colombia-2026/territories?level=department`,
+          { signal: controller.signal },
+        );
+        if (!response.ok) throw new Error("La capa DANE todavía no está importada");
+        const collection = (await response.json()) as FeatureCollection<
+          Geometry,
+          DepartmentProperties
+        >;
+        if (collection.features.length !== 33) throw new Error("La capa DANE está incompleta");
+        setData(collection);
+      } catch (reason) {
+        if (reason instanceof DOMException && reason.name === "AbortError") return;
+        try {
+          const fallback = await fetch("/data/colombia-departamentos.geojson", {
+            signal: controller.signal,
+          });
+          if (!fallback.ok) throw new Error("No fue posible cargar la capa territorial");
+          setData((await fallback.json()) as FeatureCollection<Geometry, DepartmentProperties>);
+        } catch (fallbackReason) {
+          if (!(fallbackReason instanceof DOMException && fallbackReason.name === "AbortError")) {
+            setError(true);
+          }
+        }
+      }
+    };
+    const loadSgcEvents = async () => {
+      try {
+        const response = await fetch(
+          `${apiUrl}/v1/public/sources/sgc-realtime-earthquakes/snapshot`,
+          { signal: controller.signal },
+        );
+        if (!response.ok) return;
+        const snapshot = (await response.json()) as { events?: SgcEvent[] };
+        setSgcEvents(
+          (snapshot.events ?? [])
+            .filter(
+              (event) =>
+                event.magnitude >= 2 &&
+                event.latitude >= 2.5 &&
+                event.latitude <= 7.5 &&
+                event.longitude >= -79.5 &&
+                event.longitude <= -73.5,
+            )
+            .slice(0, 150),
+        );
+      } catch (reason) {
+        if (!(reason instanceof DOMException && reason.name === "AbortError")) setSgcEvents([]);
+      }
+    };
+    void Promise.all([loadTerritories(), loadSgcEvents()]);
     return () => controller.abort();
   }, []);
 
@@ -167,18 +224,26 @@ export function AtlasMap({
   }, []);
 
   const height = Math.max(430, Math.min(620, width * 0.78));
-  const paths = useMemo(() => {
-    if (!data) return [];
-    const projection = geoMercator().fitExtent(
-      [
-        [24, 22],
-        [width - 24, height - 22],
-      ],
-      data,
-    );
+  const projected = useMemo(() => {
+    if (!data) return { paths: [], events: [] };
+    const projection = geoIdentity()
+      .reflectY(true)
+      .fitExtent(
+        [
+          [24, 22],
+          [width - 24, height - 22],
+        ],
+        data,
+      );
     const path = geoPath(projection);
-    return data.features.map((feature) => ({ feature, d: path(feature) ?? "" }));
-  }, [data, height, width]);
+    return {
+      paths: data.features.map((feature) => ({ feature, d: path(feature) ?? "" })),
+      events: sgcEvents.flatMap((event) => {
+        const point = projection([event.longitude, event.latitude]);
+        return point ? [{ event, x: point[0], y: point[1] }] : [];
+      }),
+    };
+  }, [data, height, sgcEvents, width]);
 
   const departments = useMemo(
     () =>
@@ -229,10 +294,10 @@ export function AtlasMap({
         <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-labelledby="map-title map-desc">
           <title id="map-title">{definition.title} por departamento</title>
           <desc id="map-desc">
-            Mapa público demostrativo de Colombia. Seleccione un departamento para consultar su
-            resumen territorial.
+            Límites departamentales oficiales de Colombia y eventos sísmicos publicados por el
+            Servicio Geológico Colombiano. Los estados operacionales permanecen demostrativos.
           </desc>
-          {paths.map(({ feature, d }) => {
+          {projected.paths.map(({ feature, d }) => {
             const code = feature.properties.dpto_ccdgo;
             const departmentStatus = definition.statuses[code] ?? definition.defaultStatus;
             return (
@@ -252,6 +317,17 @@ export function AtlasMap({
               </path>
             );
           })}
+          {projected.events.map(({ event, x, y }) => (
+            <circle
+              className={`sgcEvent ${event.status}`}
+              cx={x}
+              cy={y}
+              key={event.id}
+              r={Math.max(2.5, Math.min(7, event.magnitude * 1.25))}
+            >
+              <title>{`SGC · M ${event.magnitude.toFixed(1)} · ${event.place} · profundidad ${event.depthKm.toFixed(1)} km · ${event.localTime}`}</title>
+            </circle>
+          ))}
         </svg>
       ) : (
         <div className="mapLoading" role="status">
@@ -271,6 +347,11 @@ export function AtlasMap({
             <i className={`statusDot ${item.token}`} /> {item.label}
           </li>
         ))}
+        {sgcEvents.length > 0 ? (
+          <li>
+            <i className="statusDot seismic" /> {sgcEvents.length} eventos SGC ≥ M 2 en la región
+          </li>
+        ) : null}
       </ul>
     </div>
   );

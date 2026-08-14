@@ -82,7 +82,7 @@ PostgreSQL/PostGIS es la fuente de verdad operacional. Solana no almacena person
 | --- | --- |
 | Landing e informe público | Implementados con cinco capas y datos sintéticos |
 | API pública de solo lectura | Implementada, cacheable y con contrato `demo / live` |
-| Mapa departamental | Implementado; geometrías municipales oficiales pendientes |
+| Mapa territorial | DANE MGN 2023 conectado: 33 departamentos y 1.121 municipios |
 | Territorios, zonas y cobertura | API, historial y adaptadores PostgreSQL implementados |
 | Captura de campo offline | Visitas, evaluaciones, evidencia y cola IndexedDB implementadas |
 | Identidad operacional | Invitaciones, sesiones, passkeys y perfiles de confianza implementados |
@@ -90,7 +90,9 @@ PostgreSQL/PostGIS es la fuente de verdad operacional. Solana no almacena person
 | Donaciones e inventario | Catálogo, necesidades, lotes, inspecciones, movimientos y entregas modelados |
 | Personas y hogares afectados | Modelo relacional, fuentes externas y cola de posibles duplicados implementados en migración |
 | Ingesta oficial Cali | Importador de cifras, acopios, albergues y bancos de sangre implementado |
-| PostgreSQL/PostGIS | Doce migraciones; validación en contenedor pendiente |
+| Sismicidad oficial SGC | Feed versionado y proyección pública de eventos implementados |
+| Geografía oficial DANE | Importador jerárquico y API GeoJSON pública implementados |
+| PostgreSQL/PostGIS | Trece migraciones; validación en contenedor pendiente |
 | Solana | Programa Anchor y pruebas locales aprobadas; Devnet pendiente |
 | Program ID | `PuLsRBUdu4JxfP9tPU4WyNvWx7Vu2dS7NfCipm8YBmh` |
 
@@ -163,6 +165,8 @@ pnpm dev
 | Salud | `GET http://localhost:3001/health` |
 | Corte público | `GET http://localhost:3001/v1/public/incidents/colombia-2026/report` |
 | Fuente oficial Cali | `GET http://localhost:3001/v1/public/sources/cali-official-earthquake-repository/snapshot` |
+| Eventos SGC | `GET http://localhost:3001/v1/public/sources/sgc-realtime-earthquakes/snapshot` |
+| Geometrías DANE | `GET http://localhost:3001/v1/public/incidents/colombia-2026/territories?level=department` |
 
 La API utiliza memoria para demostración. PostgreSQL se activa explícitamente después de aplicar las migraciones:
 

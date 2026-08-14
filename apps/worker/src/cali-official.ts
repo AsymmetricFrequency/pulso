@@ -238,6 +238,7 @@ export class SourceIngestionRepository {
           await transaction`
             INSERT INTO source_record_versions (id, source_record_id, ingestion_run_id, payload, content_hash)
             VALUES (${randomUUID()}, ${id}, ${runId}, ${transaction.json(record.payload)}, ${recordHash})
+            ON CONFLICT (source_record_id, content_hash) DO NOTHING
           `;
         } else if (current.content_hash !== recordHash) {
           await transaction`
@@ -249,6 +250,7 @@ export class SourceIngestionRepository {
           await transaction`
             INSERT INTO source_record_versions (id, source_record_id, ingestion_run_id, payload, content_hash)
             VALUES (${randomUUID()}, ${current.id}, ${runId}, ${transaction.json(record.payload)}, ${recordHash})
+            ON CONFLICT (source_record_id, content_hash) DO NOTHING
           `;
         } else {
           await transaction`UPDATE source_records SET last_seen_at = now(), active = true WHERE id = ${current.id}`;

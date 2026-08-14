@@ -101,6 +101,10 @@ import { MemoryPublicReportRepository } from "./memory-public-report-repository.
 import { MemoryTerritoryRepository } from "./memory-territory-repository.js";
 import { MemoryMissionAccessRepository } from "./mission-access-repositories.js";
 import { MemoryOperationsAccessRepository } from "./operations-access-repositories.js";
+import {
+  EmptySgcPublicSourceRepository,
+  type SgcPublicSourceRepository,
+} from "./sgc-public-source-repositories.js";
 
 export type BuildAppOptions = {
   incidentRepository?: IncidentRepository;
@@ -113,6 +117,7 @@ export type BuildAppOptions = {
   evidenceRepository?: EvidenceRepository;
   publicReportRepository?: PublicReportRepository;
   caliPublicSourceRepository?: CaliPublicSourceRepository;
+  sgcPublicSourceRepository?: SgcPublicSourceRepository;
   persistence?: "memory" | "postgres";
   logger?: boolean;
   missionInvitationSecret?: string;
@@ -159,6 +164,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
   const publicReports = options.publicReportRepository ?? new MemoryPublicReportRepository();
   const caliPublicSource =
     options.caliPublicSourceRepository ?? new EmptyCaliPublicSourceRepository();
+  const sgcPublicSource = options.sgcPublicSourceRepository ?? new EmptySgcPublicSourceRepository();
   const siteUrl = options.siteUrl ?? "http://localhost:3000";
   const rpID = options.webauthnRpId ?? "localhost";
   const origin = options.webauthnOrigin ?? "http://localhost:3000";
@@ -373,6 +379,72 @@ export async function buildApp(options: BuildAppOptions = {}) {
         .send(snapshot);
     },
   );
+
+  app.get("/v1/public/sources/sgc-realtime-earthquakes/snapshot", async (_request, reply) => {
+    const snapshot = await sgcPublicSource.findSnapshot();
+    if (!snapshot) {
+      return reply.status(404).send({
+        error: "public_source_not_found",
+        message: "La fuente SGC todavía no tiene datos importados.",
+      });
+    }
+    return reply
+      .header("Cache-Control", "public, max-age=60, s-maxage=300, stale-while-revalidate=900")
+      .send(snapshot);
+  });
+
+  app.get<{
+    Params: { incidentCode: string };
+    Querystring: { level?: string; departmentCode?: string };
+  }>("/v1/public/incidents/:incidentCode/territories", async (request, reply) => {
+    const incident = await incidents.findByCode(request.params.incidentCode);
+    if (!incident) {
+      return reply
+        .status(404)
+        .send({ error: "incident_not_found", message: "La emergencia no existe." });
+    }
+    const level = request.query.level ?? "department";
+    if (level !== "department" && level !== "municipality") {
+      return reply
+        .status(400)
+        .send({ error: "validation_error", message: "Nivel territorial inválido." });
+    }
+    const all = await territories.listTerritories(incident.id);
+    const byId = new Map(all.map((territory) => [territory.id, territory]));
+    const filtered = all.filter((territory) => {
+      if (territory.type !== level) return false;
+      if (level === "department") return true;
+      if (!request.query.departmentCode) return false;
+      return territory.parentId
+        ? byId.get(territory.parentId)?.externalCode === request.query.departmentCode
+        : false;
+    });
+    return reply
+      .header(
+        "Cache-Control",
+        "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800",
+      )
+      .send({
+        type: "FeatureCollection",
+        source: "DANE MGN 2023",
+        features: filtered.map((territory) => {
+          const parent = territory.parentId ? byId.get(territory.parentId) : undefined;
+          return {
+            type: "Feature",
+            id: territory.externalCode,
+            geometry: territory.geometry,
+            properties: {
+              dpto_ccdgo:
+                territory.type === "department" ? territory.externalCode : parent?.externalCode,
+              dpto_cnmbre: territory.type === "department" ? territory.name : parent?.name,
+              mpio_cdpmp: territory.type === "municipality" ? territory.externalCode : null,
+              mpio_cnmbre: territory.type === "municipality" ? territory.name : null,
+              source_version: 2023,
+            },
+          };
+        }),
+      });
+  });
 
   app.get("/v1/incidents", async () => incidentListSchema.parse(await incidents.list()));
 

@@ -9,7 +9,9 @@
     "start": "node dist/index.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --passWithNoTests",
-    "ingest:cali": "tsx src/ingest-cali.ts"
+    "ingest:cali": "tsx src/ingest-cali.ts",
+    "ingest:sgc": "tsx src/ingest-sgc.ts",
+    "ingest:dane": "tsx src/ingest-dane.ts"
   },
   "dependencies": {
     "bullmq": "6.1.0",
