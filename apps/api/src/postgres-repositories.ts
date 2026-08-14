@@ -38,6 +38,7 @@ import type {
 import postgres from "postgres";
 import { v7 as uuidv7 } from "uuid";
 import { PostgresAssessmentRepository } from "./assessment-repositories.js";
+import { PostgresCaliPublicSourceRepository } from "./cali-public-source-repositories.js";
 import { PostgresEvidenceRepository } from "./evidence-repositories.js";
 import { PostgresMissionAccessRepository } from "./mission-access-repositories.js";
 import { PostgresOperationsAccessRepository } from "./operations-access-repositories.js";
@@ -769,6 +770,7 @@ export function createPostgresRepositories(
     operationsAccess: new PostgresOperationsAccessRepository(missionInvitationSecret, sql),
     operations: new PostgresOperationsRepository(sql),
     publicReports: new PostgresPublicReportRepository(sql),
+    caliPublicSource: new PostgresCaliPublicSourceRepository(sql),
     territories: new PostgresTerritoryRepository(sql),
     close: () => sql.end({ timeout: 5 }),
   };

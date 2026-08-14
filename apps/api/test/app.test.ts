@@ -102,6 +102,44 @@ describe("public situation report API", () => {
   });
 });
 
+describe("Cali official public source API", () => {
+  it("exposes a fixed, privacy-safe projection", async () => {
+    const app = await buildApp({
+      caliPublicSourceRepository: {
+        async findSnapshot() {
+          return {
+            source: {
+              id: "cali-official-earthquake-repository",
+              name: "Repositorio oficial de Cali",
+              url: "https://www.cali.gov.co/",
+              authority: "official",
+            },
+            fetchedAt: "2026-08-14T21:26:07.133Z",
+            metrics: [
+              {
+                key: "injured",
+                value: 1410,
+                label: "Personas lesionadas",
+                sourceUpdatedLabel: "Última actualización: 14 de agosto",
+              },
+            ],
+            servicePoints: [],
+          };
+        },
+      },
+    });
+    apps.push(app);
+    const response = await app.inject({
+      method: "GET",
+      url: "/v1/public/sources/cali-official-earthquake-repository/snapshot",
+    });
+    expect(response.statusCode).toBe(200);
+    expect(response.headers["cache-control"]).toContain("stale-while-revalidate");
+    expect(response.json()).toMatchObject({ source: { authority: "official" } });
+    expect(JSON.stringify(response.json())).not.toMatch(/phone|document|displayName/i);
+  });
+});
+
 describe("territory and coverage API", () => {
   it("imports territory, creates a zone, and records its coverage history", async () => {
     const app = await buildApp();

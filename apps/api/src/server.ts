@@ -49,6 +49,7 @@ const app = await buildApp({
         operationsAccessRepository: postgresRepositories.operationsAccess,
         operationsRepository: postgresRepositories.operations,
         publicReportRepository: postgresRepositories.publicReports,
+        caliPublicSourceRepository: postgresRepositories.caliPublicSource,
         territoryRepository: postgresRepositories.territories,
       }
     : {}),

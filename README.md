@@ -88,7 +88,9 @@ PostgreSQL/PostGIS es la fuente de verdad operacional. Solana no almacena person
 | Identidad operacional | Invitaciones, sesiones, passkeys y perfiles de confianza implementados |
 | Equipos y asignaciones | Creación, membresías, aceptación e idempotencia implementadas |
 | Donaciones e inventario | Catálogo, necesidades, lotes, inspecciones, movimientos y entregas modelados |
-| PostgreSQL/PostGIS | Once migraciones; validación en contenedor pendiente |
+| Personas y hogares afectados | Modelo relacional, fuentes externas y cola de posibles duplicados implementados en migración |
+| Ingesta oficial Cali | Importador de cifras, acopios, albergues y bancos de sangre implementado |
+| PostgreSQL/PostGIS | Doce migraciones; validación en contenedor pendiente |
 | Solana | Programa Anchor y pruebas locales aprobadas; Devnet pendiente |
 | Program ID | `PuLsRBUdu4JxfP9tPU4WyNvWx7Vu2dS7NfCipm8YBmh` |
 
@@ -160,6 +162,7 @@ pnpm dev
 | API | `http://localhost:3001` |
 | Salud | `GET http://localhost:3001/health` |
 | Corte público | `GET http://localhost:3001/v1/public/incidents/colombia-2026/report` |
+| Fuente oficial Cali | `GET http://localhost:3001/v1/public/sources/cali-official-earthquake-repository/snapshot` |
 
 La API utiliza memoria para demostración. PostgreSQL se activa explícitamente después de aplicar las migraciones:
 
@@ -202,6 +205,7 @@ research/              Investigación territorial con fuentes
 - [Experiencia de campo sin fricción](docs/16-zero-friction-field-ux.md)
 - [Informe público territorial](docs/24-public-situation-report.md)
 - [Día 4: personas afectadas, coordinación y ayuda trazable](docs/25-day-four-affected-people.md)
+- [Fuentes e ingesta de datos públicos](docs/26-source-ingestion.md)
 
 ### Ingeniería y confianza
 

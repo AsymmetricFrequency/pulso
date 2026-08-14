@@ -89,6 +89,10 @@ import {
 import Fastify from "fastify";
 import { ZodError } from "zod";
 import { MemoryAssessmentRepository } from "./assessment-repositories.js";
+import {
+  type CaliPublicSourceRepository,
+  EmptyCaliPublicSourceRepository,
+} from "./cali-public-source-repositories.js";
 import { MemoryEvidenceRepository } from "./evidence-repositories.js";
 import { MemoryIdentityTrustRepository } from "./memory-identity-trust-repository.js";
 import { MemoryIncidentRepository } from "./memory-incident-repository.js";
@@ -108,6 +112,7 @@ export type BuildAppOptions = {
   assessmentRepository?: AssessmentRepository;
   evidenceRepository?: EvidenceRepository;
   publicReportRepository?: PublicReportRepository;
+  caliPublicSourceRepository?: CaliPublicSourceRepository;
   persistence?: "memory" | "postgres";
   logger?: boolean;
   missionInvitationSecret?: string;
@@ -152,6 +157,8 @@ export async function buildApp(options: BuildAppOptions = {}) {
   const assessments = options.assessmentRepository ?? new MemoryAssessmentRepository(territories);
   const evidence = options.evidenceRepository ?? new MemoryEvidenceRepository(assessments);
   const publicReports = options.publicReportRepository ?? new MemoryPublicReportRepository();
+  const caliPublicSource =
+    options.caliPublicSourceRepository ?? new EmptyCaliPublicSourceRepository();
   const siteUrl = options.siteUrl ?? "http://localhost:3000";
   const rpID = options.webauthnRpId ?? "localhost";
   const origin = options.webauthnOrigin ?? "http://localhost:3000";
@@ -348,6 +355,22 @@ export async function buildApp(options: BuildAppOptions = {}) {
         .header("Cache-Control", "public, max-age=60, s-maxage=300, stale-while-revalidate=900")
         .header("X-Pulso-Data-Mode", report.incident.dataMode)
         .send(publicSituationReportSchema.parse(report));
+    },
+  );
+
+  app.get(
+    "/v1/public/sources/cali-official-earthquake-repository/snapshot",
+    async (_request, reply) => {
+      const snapshot = await caliPublicSource.findSnapshot();
+      if (!snapshot) {
+        return reply.status(404).send({
+          error: "public_source_not_found",
+          message: "La fuente oficial todavía no tiene datos importados.",
+        });
+      }
+      return reply
+        .header("Cache-Control", "public, max-age=60, s-maxage=300, stale-while-revalidate=900")
+        .send(snapshot);
     },
   );
 

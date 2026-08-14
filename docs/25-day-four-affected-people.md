@@ -162,6 +162,18 @@ El inventario es de iniciativas públicamente localizables al 14 de agosto de 20
 - recepción de WhatsApp como referencia no verificada, con mensajes de seguridad;
 - flujo de necesidad → asignación → entrega conectado al inventario existente.
 
+### Primer importador implementado
+
+El comando `pnpm --filter @pulso/worker ingest:cali` consulta una sola vez el repositorio oficial de Cali y extrae exclusivamente información pública operacional:
+
+- balance de fallecidos, lesionados, edificaciones con colapso total, desaparecidos y rescatados;
+- fecha visible de actualización y enlace al último reporte oficial;
+- centros de acopio y su estado abierto/cerrado;
+- albergues temporales;
+- bancos de sangre, dirección, horario publicado y enlace cartográfico.
+
+Sin `DATABASE_URL`, el comando produce una vista previa JSON. Con `DATABASE_URL`, conserva la fuente, ejecución, registro vigente y versiones históricas. Usa `ETag` y `Last-Modified` cuando el servidor los ofrece, identifica el agente como PULSO VIDA y respeta el `crawl-delay` publicado. No extrae listados nominales de personas, teléfonos privados, fotografías ni expedientes individuales.
+
 ### P0 — operación segura
 
 - roles separados para capturar, corroborar, caracterizar, asignar y confirmar;
