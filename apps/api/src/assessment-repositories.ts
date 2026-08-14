@@ -60,6 +60,12 @@ export class MemoryAssessmentRepository implements AssessmentRepository {
       .filter((item) => item.assignmentId === assignmentId)
       .sort((a, b) => b.observedAt.localeCompare(a.observedAt));
   }
+
+  async findByMutation(incidentId: string, clientMutationId: string) {
+    return [...this.#assessments.values()].find(
+      (item) => item.incidentId === incidentId && item.clientMutationId === clientMutationId,
+    );
+  }
 }
 
 export class PostgresAssessmentRepository implements AssessmentRepository {
@@ -117,5 +123,13 @@ export class PostgresAssessmentRepository implements AssessmentRepository {
       WHERE assignment_id = ${assignmentId} ORDER BY observed_at DESC
     `;
     return rows.map(fromRow);
+  }
+
+  async findByMutation(incidentId: string, clientMutationId: string) {
+    const [row] = await this.sql<DbRow[]>`
+      SELECT * FROM rapid_assessments
+      WHERE incident_id = ${incidentId} AND client_mutation_id = ${clientMutationId} LIMIT 1
+    `;
+    return row ? fromRow(row) : undefined;
   }
 }

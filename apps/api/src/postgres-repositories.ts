@@ -38,6 +38,7 @@ import type {
 import postgres from "postgres";
 import { v7 as uuidv7 } from "uuid";
 import { PostgresAssessmentRepository } from "./assessment-repositories.js";
+import { PostgresEvidenceRepository } from "./evidence-repositories.js";
 import { PostgresMissionAccessRepository } from "./mission-access-repositories.js";
 import { PostgresIdentityTrustRepository } from "./postgres-identity-trust-repository.js";
 
@@ -759,6 +760,7 @@ export function createPostgresRepositories(
   const sql = postgres(databaseUrl, { max: 10, idle_timeout: 20, connect_timeout: 10 });
   return {
     assessments: new PostgresAssessmentRepository(sql),
+    evidence: new PostgresEvidenceRepository(sql),
     identityTrust: new PostgresIdentityTrustRepository(identityFingerprintSecret, sql),
     incidents: new PostgresIncidentRepository(sql),
     missionAccess: new PostgresMissionAccessRepository(missionInvitationSecret, sql),

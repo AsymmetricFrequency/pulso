@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { afterEach, describe, expect, it } from "vitest";
 import { buildApp } from "../src/app.js";
 
@@ -456,6 +457,57 @@ describe("teams and field assignments API", () => {
       headers: { authorization: `Bearer ${redeemed.json().sessionToken}` },
     });
     expect(assignmentAssessments.json()).toHaveLength(1);
+
+    const jpegBytes = Buffer.from([0xff, 0xd8, 0xff, 0xd9]);
+    const evidencePayload = {
+      clientMutationId: "0198a03d-c08f-7e4a-91ee-102c68bff301",
+      assessmentClientMutationId: assessmentPayload.clientMutationId,
+      fileName: "evidencia-campo.jpg",
+      contentType: "image/jpeg",
+      byteSize: jpegBytes.byteLength,
+      sha256: createHash("sha256").update(jpegBytes).digest("hex"),
+      capturedAt: "2026-08-13T12:20:00-05:00",
+      dataBase64: jpegBytes.toString("base64"),
+    };
+    const storedEvidence = await app.inject({
+      method: "POST",
+      url: "/v1/field-evidence",
+      headers: { authorization: `Bearer ${redeemed.json().sessionToken}` },
+      payload: evidencePayload,
+    });
+    const retriedEvidence = await app.inject({
+      method: "POST",
+      url: "/v1/field-evidence",
+      headers: { authorization: `Bearer ${redeemed.json().sessionToken}` },
+      payload: evidencePayload,
+    });
+    expect(storedEvidence.statusCode).toBe(201);
+    expect(storedEvidence.json()).toMatchObject({
+      assessmentId: recordedAssessment.json().id,
+      byteSize: 4,
+      status: "stored",
+    });
+    expect(storedEvidence.body).not.toContain(evidencePayload.dataBase64);
+    expect(retriedEvidence.json().id).toBe(storedEvidence.json().id);
+
+    const corruptedEvidence = await app.inject({
+      method: "POST",
+      url: "/v1/field-evidence",
+      headers: { authorization: `Bearer ${redeemed.json().sessionToken}` },
+      payload: {
+        ...evidencePayload,
+        clientMutationId: "0198a03d-c08f-7e4a-91ee-102c68bff302",
+        sha256: "0".repeat(64),
+      },
+    });
+    expect(corruptedEvidence.statusCode).toBe(400);
+
+    const assignmentEvidence = await app.inject({
+      method: "GET",
+      url: "/v1/field-evidence",
+      headers: { authorization: `Bearer ${redeemed.json().sessionToken}` },
+    });
+    expect(assignmentEvidence.json()).toHaveLength(1);
 
     const reused = await app.inject({
       method: "POST",

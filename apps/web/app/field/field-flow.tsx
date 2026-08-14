@@ -10,13 +10,16 @@ import {
   startAuthentication,
   startRegistration,
 } from "@simplewebauthn/browser";
-import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { type ChangeEvent, type FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { prepareFieldEvidence } from "../lib/field-evidence";
 import {
   cacheMissionPackage,
   getLatestCachedMission,
+  queueFieldEvidence,
   queueFieldVisit,
   queueRapidAssessment,
   syncQueuedAssessments,
+  syncQueuedEvidence,
 } from "../lib/offline-visit-queue";
 import styles from "./field.module.css";
 
@@ -128,6 +131,8 @@ export function FieldFlow() {
   const [affectedPeople, setAffectedPeople] = useState(0);
   const [assessmentNotes, setAssessmentNotes] = useState("");
   const [assessmentMessage, setAssessmentMessage] = useState("");
+  const [lastAssessmentMutationId, setLastAssessmentMutationId] = useState<string | null>(null);
+  const [evidenceMessage, setEvidenceMessage] = useState("");
   const invitationOpened = useRef(false);
   const mission = session?.mission ?? null;
 
@@ -205,12 +210,13 @@ export function FieldFlow() {
   useEffect(() => {
     if (!session || !isOnline) return;
     void syncQueuedAssessments(apiUrl, session.sessionToken)
-      .then((result) => {
+      .then(async (result) => {
         if (result.synced > 0) {
           setAssessmentMessage(
             `${result.synced} reporte${result.synced === 1 ? " fue enviado" : "s fueron enviados"}.`,
           );
         }
+        await syncQueuedEvidence(apiUrl, session.sessionToken);
       })
       .catch(() => undefined);
   }, [isOnline, session]);
@@ -408,8 +414,9 @@ export function FieldFlow() {
     setBusy(true);
     setAssessmentMessage("");
     try {
+      const assessmentClientMutationId = crypto.randomUUID();
       await queueRapidAssessment({
-        clientMutationId: crypto.randomUUID(),
+        clientMutationId: assessmentClientMutationId,
         deviceId: getDeviceId(),
         observedAt: new Date().toISOString(),
         damageTypes,
@@ -428,6 +435,7 @@ export function FieldFlow() {
           ? "Reporte enviado. Puedes registrar otro hallazgo."
           : "Reporte guardado en este dispositivo. Se enviará al recuperar señal.",
       );
+      setLastAssessmentMutationId(assessmentClientMutationId);
       setAssessmentOpen(false);
       setDamageTypes([]);
       setNeedTypes([]);
@@ -436,6 +444,30 @@ export function FieldFlow() {
       setAssessmentNotes("");
     } catch {
       setAssessmentMessage("No pudimos guardar el reporte en este dispositivo.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const addEvidence = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || !session || !lastAssessmentMutationId) return;
+    setBusy(true);
+    setEvidenceMessage("Preparando imagen…");
+    try {
+      const prepared = await prepareFieldEvidence(file, lastAssessmentMutationId);
+      await queueFieldEvidence(prepared);
+      const result = isOnline
+        ? await syncQueuedEvidence(apiUrl, session.sessionToken)
+        : { synced: 0, pending: 1 };
+      setEvidenceMessage(
+        result.pending === 0
+          ? "Foto verificada y enviada."
+          : "Foto guardada aquí. Se enviará al recuperar señal.",
+      );
+    } catch {
+      setEvidenceMessage("No pudimos preparar esta foto. Intenta con otra imagen.");
     } finally {
       setBusy(false);
     }
@@ -777,9 +809,24 @@ export function FieldFlow() {
               </form>
             )}
             {!assessmentOpen && assessmentMessage && (
-              <p className={styles.savedMessage} role="status">
-                ✓ {assessmentMessage}
-              </p>
+              <div className={styles.savedBlock}>
+                <p className={styles.savedMessage} role="status">
+                  ✓ {assessmentMessage}
+                </p>
+                {lastAssessmentMutationId && (
+                  <label className={styles.photoButton}>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      capture="environment"
+                      onChange={addEvidence}
+                      disabled={busy}
+                    />
+                    {busy ? "Preparando foto…" : "Añadir foto del hallazgo"}
+                  </label>
+                )}
+                {evidenceMessage && <p className={styles.evidenceMessage}>{evidenceMessage}</p>}
+              </div>
             )}
           </section>
           <div className={styles.activeFooter}>

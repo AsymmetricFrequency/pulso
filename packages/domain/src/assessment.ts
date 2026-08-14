@@ -14,6 +14,10 @@ export interface AssessmentRepository {
     input: CreateRapidAssessmentInput,
   ): Promise<RapidAssessmentDto>;
   listByAssignment(assignmentId: string): Promise<RapidAssessmentDto[]>;
+  findByMutation(
+    incidentId: string,
+    clientMutationId: string,
+  ): Promise<RapidAssessmentDto | undefined>;
 }
 
 export class AssessmentNotFoundError extends Error {

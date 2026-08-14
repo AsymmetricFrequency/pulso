@@ -176,6 +176,7 @@ La [guía de desarrollo](docs/08-development.md) explica la estructura, los coma
 - [Invitaciones de misión y passkeys](docs/17-mission-access-passkeys.md)
 - [Identidad y confianza operacional](docs/18-identity-trust-p0.md)
 - [Evaluación rápida offline](docs/19-rapid-assessments-offline.md)
+- [Evidencia fotográfica offline](docs/20-offline-photo-evidence.md)
 
 ### Confianza y decisiones
 

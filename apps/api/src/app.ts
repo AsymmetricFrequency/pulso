@@ -2,6 +2,9 @@ import cors from "@fastify/cors";
 import {
   AssessmentNotFoundError,
   type AssessmentRepository,
+  EvidenceAssessmentNotFoundError,
+  EvidenceIntegrityError,
+  type EvidenceRepository,
   FieldVisitConflictError,
   FieldVisitNotFoundError,
   IdentityTrustConflictError,
@@ -32,6 +35,7 @@ import {
   createActorSchema,
   createCoverageEventSchema,
   createFieldAssignmentSchema,
+  createFieldEvidenceSchema,
   createFieldVisitSchema,
   createIdentityClaimSchema,
   createIncidentSchema,
@@ -43,6 +47,7 @@ import {
   createTeamMembershipSchema,
   createTeamSchema,
   fieldAssignmentSchema,
+  fieldEvidenceSchema,
   fieldSessionSchema,
   fieldVisitSchema,
   identityClaimSchema,
@@ -76,6 +81,7 @@ import {
 import Fastify from "fastify";
 import { ZodError } from "zod";
 import { MemoryAssessmentRepository } from "./assessment-repositories.js";
+import { MemoryEvidenceRepository } from "./evidence-repositories.js";
 import { MemoryIdentityTrustRepository } from "./memory-identity-trust-repository.js";
 import { MemoryIncidentRepository } from "./memory-incident-repository.js";
 import { MemoryOperationsRepository } from "./memory-operations-repository.js";
@@ -89,6 +95,7 @@ export type BuildAppOptions = {
   missionAccessRepository?: MissionAccessRepository;
   identityTrustRepository?: IdentityTrustRepository;
   assessmentRepository?: AssessmentRepository;
+  evidenceRepository?: EvidenceRepository;
   persistence?: "memory" | "postgres";
   logger?: boolean;
   missionInvitationSecret?: string;
@@ -121,6 +128,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
       operations,
     );
   const assessments = options.assessmentRepository ?? new MemoryAssessmentRepository();
+  const evidence = options.evidenceRepository ?? new MemoryEvidenceRepository(assessments);
   const siteUrl = options.siteUrl ?? "http://localhost:3000";
   const rpID = options.webauthnRpId ?? "localhost";
   const origin = options.webauthnOrigin ?? "http://localhost:3000";
@@ -213,6 +221,10 @@ export async function buildApp(options: BuildAppOptions = {}) {
       });
     }
 
+    if (error instanceof EvidenceIntegrityError) {
+      return reply.status(400).send({ error: "evidence_integrity_error", message: error.message });
+    }
+
     if (error instanceof IncidentCodeAlreadyExistsError) {
       return reply.status(409).send({
         error: "incident_code_conflict",
@@ -225,6 +237,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
       error instanceof OperationalZoneNotFoundError ||
       error instanceof FieldVisitNotFoundError ||
       error instanceof AssessmentNotFoundError ||
+      error instanceof EvidenceAssessmentNotFoundError ||
       error instanceof IdentityTrustNotFoundError ||
       error instanceof OperationsResourceNotFoundError
     ) {
@@ -599,6 +612,29 @@ export async function buildApp(options: BuildAppOptions = {}) {
     return rapidAssessmentSchema
       .array()
       .parse(await assessments.listByAssignment(session.mission.assignmentId));
+  });
+
+  app.post("/v1/field-evidence", async (request, reply) => {
+    const session = await missionAccess.resolveSession(bearerToken(request.headers.authorization));
+    const input = createFieldEvidenceSchema.parse(request.body);
+    const stored = await evidence.create(
+      {
+        incidentId: session.mission.incidentId,
+        assignmentId: session.mission.assignmentId,
+        zoneId: session.mission.zoneId,
+        teamId: session.mission.teamId,
+        actorId: session.actorId,
+      },
+      input,
+    );
+    return reply.status(201).send(fieldEvidenceSchema.parse(stored));
+  });
+
+  app.get("/v1/field-evidence", async (request) => {
+    const session = await missionAccess.resolveSession(bearerToken(request.headers.authorization));
+    return fieldEvidenceSchema
+      .array()
+      .parse(await evidence.listByAssignment(session.mission.assignmentId));
   });
 
   app.post("/v1/field-access/passkeys/authentication/options", async (request) => {
