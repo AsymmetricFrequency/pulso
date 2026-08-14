@@ -1,14 +1,26 @@
+<div align="center">
+
 # PULSO ATLAS
 
-**Infraestructura abierta para convertir señales del territorio en acción verificable durante emergencias y recuperación.**
+### Del territorio a la acción verificable
 
-PULSO ATLAS es una plataforma local-first para coordinar cobertura territorial, brigadas, casos, necesidades, evidencia y validaciones cuando la conectividad es limitada y la información cambia rápidamente.
+Infraestructura local-first para coordinar cobertura, brigadas, necesidades y evidencia durante emergencias, incluso cuando la conectividad es limitada.
 
-La primera implementación está enfocada en Colombia. El protocolo y el modelo de datos se diseñan para adaptarse posteriormente a terremotos, inundaciones, incendios, huracanes y otras emergencias en cualquier país.
+[**pulso.my**](https://pulso.my) · [Visión](docs/00-vision.md) · [Arquitectura](docs/02-technical-architecture.md) · [Construir el proyecto](docs/08-development.md)
 
-## Decisión central
+![Estado P0](https://img.shields.io/badge/estado-P0%20en%20construcci%C3%B3n-d08b25)
+![Implementación Colombia](https://img.shields.io/badge/implementaci%C3%B3n-Colombia-006a4e)
+![Offline first](https://img.shields.io/badge/dise%C3%B1o-offline--first-39779c)
 
-El MVP no comienza con blockchain, tokenización ni distribución de dinero. Comienza resolviendo cinco preguntas operacionales:
+</div>
+
+---
+
+## Qué es PULSO ATLAS
+
+PULSO ATLAS convierte reportes dispersos del territorio en información operacional trazable. La primera implementación está enfocada en Colombia; el protocolo y el modelo de datos están diseñados para adaptarse a distintos países y a terremotos, inundaciones, incendios, huracanes y otras emergencias.
+
+El MVP comienza por responder cinco preguntas:
 
 1. ¿Qué zonas fueron visitadas?
 2. ¿Qué zonas siguen sin verificar?
@@ -16,55 +28,71 @@ El MVP no comienza con blockchain, tokenización ni distribución de dinero. Com
 4. ¿Quién produjo o validó cada dato?
 5. ¿Qué evidencia respalda cada decisión?
 
+> **Decisión de alcance:** el P0 prioriza mapa, cobertura, brigadas y evidencia. Blockchain, tokenización y distribución de dinero no forman parte del MVP inicial.
+
+## Cómo funciona
+
+```mermaid
+flowchart LR
+    A[Señal territorial] --> B[Zona operativa]
+    B --> C[Brigada asignada]
+    C --> D[Visita offline]
+    D --> E[Evidencia y validación]
+    E --> F[Decisión auditable]
+```
+
+Los eventos se registran sin sobrescribir el historial. Una visita conserva el momento en que ocurrió en campo y el momento en que fue sincronizada, permitiendo operar con conectividad intermitente sin perder trazabilidad.
+
 ## Componentes
 
-- **Atlas Field:** aplicación PWA offline para brigadas.
-- **Atlas Operations:** consola privada de coordinación y revisión.
-- **Atlas Map:** mapa de cobertura, daño, acceso y necesidades.
-- **Recovery Passport:** expediente versionado de cada caso o activo.
-- **Atlas Verify:** identidad, certificaciones, evidencia y revisión.
-- **Pulso Atlas Protocol:** contratos abiertos de datos, sincronización y auditoría.
+| Componente | Responsabilidad |
+| --- | --- |
+| **Atlas Field** | Aplicación PWA offline para brigadas y captura en terreno. |
+| **Atlas Operations** | Consola privada de coordinación, priorización y revisión. |
+| **Atlas Map** | Cobertura, acceso, daño y necesidades sobre el territorio. |
+| **Recovery Passport** | Expediente versionado de cada caso, vivienda o activo. |
+| **Atlas Verify** | Identidad, certificaciones, evidencia y validación. |
+| **Pulso Atlas Protocol** | Contratos abiertos de datos, sincronización y auditoría. |
 
-## Arquitectura propuesta
+## Estado actual
 
-- Next.js + TypeScript para las experiencias web y de campo.
-- IndexedDB para captura offline.
-- Fastify + TypeScript para la API modular.
-- PostgreSQL + PostGIS como fuente de verdad territorial.
-- Almacenamiento compatible con S3 para fotografías y documentos.
-- Redis + BullMQ para procesamiento asíncrono.
-- OIDC para autenticación portable.
-- OpenAPI para interoperabilidad.
+| Área | Estado |
+| --- | --- |
+| Mapa departamental de Colombia | Implementado con geometrías derivadas del DANE |
+| Territorios, zonas y cobertura | API y contratos implementados |
+| Visitas de campo | Inicio, cierre e idempotencia implementados |
+| Captura offline | Cola durable en IndexedDB; sincronización automática pendiente |
+| PostgreSQL/PostGIS | Migraciones y adaptador implementados; integración real pendiente |
+| Evidencia, actores y certificaciones | Diseñados; implementación pendiente |
+| Donaciones de materiales | Modelo y trazabilidad documentados |
 
-La implementación inicial será un **monolito modular con workers**, desplegado en contenedores. Los módulos podrán separarse posteriormente si el volumen o las necesidades operacionales lo justifican.
+Los estados y cifras visibles en la interfaz actual son **sintéticos**. La investigación de emergencia conserva fecha, fuente y nivel de confianza; no debe interpretarse como un reporte oficial en tiempo real.
 
-## Documentación
+## Arquitectura
 
-- [Visión y principios](docs/00-vision.md)
-- [MVP de emergencia](docs/01-emergency-mvp.md)
-- [Arquitectura técnica](docs/02-technical-architecture.md)
-- [Modelo de datos](docs/03-data-model.md)
-- [Sincronización offline](docs/04-offline-sync.md)
-- [Confianza, fraude y privacidad](docs/05-trust-fraud-privacy.md)
-- [Investigación y despliegue Colombia](docs/06-colombia-response.md)
-- [Plan de construcción](docs/07-roadmap.md)
-- [Cobertura completa de arquitectura](docs/09-architecture-coverage.md)
-- [Donaciones de materiales de construcción](docs/10-material-donations.md)
-- [Flujos, eventos y contratos de API](docs/11-operational-events-api.md)
-- [Seguridad, confiabilidad y preparación de producción](docs/12-production-readiness.md)
-- [Vertical territorial y de cobertura](docs/13-territory-coverage-vertical.md)
-- [Persistencia y visitas offline](docs/14-persistence-field-offline.md)
-- [Decisiones de arquitectura](docs/decisions/)
-- [Documento fundacional v0.2](docs/foundation/RecoveryChain_Protocol_v0.2.docx)
-- [Mapa preliminar de afectación](research/colombia-2026/mapa-impacto-terremoto.html)
+El P0 utiliza un **monolito modular con workers**: mantiene transacciones simples y despliegue rápido sin perder límites claros entre dominios.
 
-## Estado
+| Capa | Tecnología |
+| --- | --- |
+| Web y campo | Next.js, React y TypeScript |
+| Captura offline | IndexedDB y mutaciones idempotentes |
+| API | Fastify y contratos Zod |
+| Datos territoriales | PostgreSQL + PostGIS |
+| Procesamiento asíncrono | Redis + BullMQ |
+| Evidencia | Almacenamiento compatible con S3 |
+| Identidad e interoperabilidad | OIDC y OpenAPI |
 
-El proyecto se encuentra en construcción del P0. Las cifras de emergencia incluidas en la investigación son preliminares y deben conservar su fecha, fuente y nivel de confianza.
+Consulta la [arquitectura técnica](docs/02-technical-architecture.md), el [modelo de datos](docs/03-data-model.md) y las [decisiones ADR](docs/decisions/) para el detalle completo.
 
-## Desarrollo
+## Inicio rápido
 
-Requisitos: Node.js 22 o superior y pnpm 10. Docker es opcional para levantar PostgreSQL/PostGIS y Redis localmente.
+### Requisitos
+
+- Node.js 22 o superior.
+- pnpm 10.
+- PostgreSQL/PostGIS y Redis son opcionales para el desarrollo inicial.
+
+### Ejecutar localmente
 
 ```bash
 pnpm install
@@ -72,33 +100,81 @@ cp .env.example .env
 pnpm dev
 ```
 
-- Web: `http://localhost:3000`
-- API: `http://localhost:3001`
-- Salud de API: `GET /health`
-- Incidentes: `GET|POST /v1/incidents`
-- Territorios: `GET /v1/incidents/:incidentId/territories` e importación en `POST /v1/incidents/:incidentId/territories/import`
-- Zonas operativas y cobertura: `GET|POST /v1/incidents/:incidentId/operational-zones`
+| Servicio | Dirección |
+| --- | --- |
+| Web | `http://localhost:3000` |
+| API | `http://localhost:3001` |
+| Salud de la API | `GET http://localhost:3001/health` |
 
-Para verificar todo el repositorio:
-
-```bash
-pnpm check
-```
-
-Más información en [la guía de desarrollo](docs/08-development.md).
-
-La API usa memoria por defecto. Para activar PostgreSQL/PostGIS después de ejecutar las migraciones:
+La API usa memoria por defecto. Después de ejecutar las migraciones, PostgreSQL/PostGIS se activa explícitamente:
 
 ```bash
 PERSISTENCE_DRIVER=postgres pnpm --filter @pulso/api dev
 ```
 
-## Marca
+Verificación completa del repositorio:
 
-- Marca de trabajo: **PULSO ATLAS**
+```bash
+pnpm check
+```
+
+La [guía de desarrollo](docs/08-development.md) explica la estructura, los comandos y las reglas de contribución técnica.
+
+<details>
+<summary><strong>Endpoints implementados</strong></summary>
+
+- `GET|POST /v1/incidents`
+- `GET /v1/incidents/:incidentId/territories`
+- `POST /v1/incidents/:incidentId/territories/import`
+- `GET|POST /v1/incidents/:incidentId/operational-zones`
+- `GET /v1/incidents/:incidentId/coverage`
+- `GET|POST /v1/operational-zones/:zoneId/coverage-events`
+- `GET|POST /v1/operational-zones/:zoneId/field-visits`
+- `POST /v1/field-visits/:visitId/complete`
+
+</details>
+
+## Documentación
+
+### Producto y operación
+
+- [Visión y principios](docs/00-vision.md)
+- [MVP de emergencia](docs/01-emergency-mvp.md)
+- [Investigación y despliegue en Colombia](docs/06-colombia-response.md)
+- [Plan de construcción](docs/07-roadmap.md)
+- [Donaciones de materiales de construcción](docs/10-material-donations.md)
+- [Mapa preliminar de afectación](research/colombia-2026/mapa-impacto-terremoto.html)
+
+### Ingeniería
+
+- [Arquitectura técnica](docs/02-technical-architecture.md)
+- [Modelo de datos](docs/03-data-model.md)
+- [Sincronización offline](docs/04-offline-sync.md)
+- [Cobertura completa de arquitectura](docs/09-architecture-coverage.md)
+- [Flujos, eventos y contratos de API](docs/11-operational-events-api.md)
+- [Seguridad y preparación de producción](docs/12-production-readiness.md)
+- [Vertical territorial y de cobertura](docs/13-territory-coverage-vertical.md)
+- [Persistencia y visitas offline](docs/14-persistence-field-offline.md)
+
+### Confianza y decisiones
+
+- [Confianza, fraude y privacidad](docs/05-trust-fraud-privacy.md)
+- [Decisiones de arquitectura](docs/decisions/)
+- [Documento fundacional v0.2](docs/foundation/RecoveryChain_Protocol_v0.2.docx)
+
+## Principios
+
+- **Offline-first:** el trabajo de campo no depende de una conexión continua.
+- **Evidencia antes que afirmaciones:** toda decisión importante debe poder justificarse.
+- **Historial antes que sobrescritura:** corregir agrega una nueva versión o evento.
+- **Privacidad por diseño:** transparencia operacional no significa exposición de datos sensibles.
+- **Estándares abiertos:** los datos deben poder migrarse e interoperar.
+- **Infraestructura proporcional:** la complejidad se incorpora cuando una necesidad real la justifica.
+
+## Dominio y licencia
+
+- Dominio oficial: [**pulso.my**](https://pulso.my)
 - Implementación inicial: **PULSO ATLAS Colombia**
-- Dominio oficial: [`pulso.my`](https://pulso.my)
-
-## Licencia
+- Estado: **P0 en construcción**
 
 La licencia del código y la licencia de datos se definirán antes de aceptar contribuciones externas. No debe asumirse una licencia hasta que exista un archivo `LICENSE` aprobado.
