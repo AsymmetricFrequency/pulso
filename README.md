@@ -61,6 +61,8 @@ Los eventos se registran sin sobrescribir el historial. Una visita conserva el m
 | Mapa departamental de Colombia | Implementado con geometrías derivadas del DANE |
 | Territorios, zonas y cobertura | API y contratos implementados |
 | Visitas de campo | Inicio, cierre e idempotencia implementados |
+| Organizaciones, actores y equipos | API, membresías y validación de alcance implementadas |
+| Asignaciones de campo | Creación, aceptación e idempotencia implementadas |
 | Captura offline | Cola durable en IndexedDB; sincronización automática pendiente |
 | PostgreSQL/PostGIS | Migraciones y adaptador implementados; integración real pendiente |
 | Evidencia, actores y certificaciones | Diseñados; implementación pendiente |
@@ -131,6 +133,12 @@ La [guía de desarrollo](docs/08-development.md) explica la estructura, los coma
 - `GET|POST /v1/operational-zones/:zoneId/coverage-events`
 - `GET|POST /v1/operational-zones/:zoneId/field-visits`
 - `POST /v1/field-visits/:visitId/complete`
+- `GET|POST /v1/incidents/:incidentId/organizations`
+- `GET|POST /v1/incidents/:incidentId/actors`
+- `GET|POST /v1/incidents/:incidentId/teams`
+- `GET|POST /v1/teams/:teamId/memberships`
+- `GET|POST /v1/incidents/:incidentId/assignments`
+- `POST /v1/assignments/:assignmentId/accept`
 
 </details>
 
@@ -155,6 +163,7 @@ La [guía de desarrollo](docs/08-development.md) explica la estructura, los coma
 - [Seguridad y preparación de producción](docs/12-production-readiness.md)
 - [Vertical territorial y de cobertura](docs/13-territory-coverage-vertical.md)
 - [Persistencia y visitas offline](docs/14-persistence-field-offline.md)
+- [Equipos y asignaciones de campo](docs/15-teams-field-assignments.md)
 
 ### Confianza y decisiones
 

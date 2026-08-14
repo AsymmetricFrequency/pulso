@@ -243,3 +243,119 @@ describe("territory and coverage API", () => {
     expect(coverage.json()[0]).toMatchObject({ coverageStatus: "partial", revision: 3 });
   });
 });
+
+describe("teams and field assignments API", () => {
+  it("assigns a zone idempotently and only lets a team member accept it", async () => {
+    const app = await buildApp();
+    apps.push(app);
+    const incident = await app.inject({
+      method: "POST",
+      url: "/v1/incidents",
+      payload: {
+        code: "mission-control",
+        name: "Control de misiones de campo",
+        disasterType: "landslide",
+        countryCode: "CO",
+        timezone: "America/Bogota",
+        startedAt: "2026-08-13T07:00:00-05:00",
+      },
+    });
+    const incidentId = incident.json().id as string;
+    const geometry = {
+      type: "Polygon",
+      coordinates: [
+        [
+          [-76.7, 5.7],
+          [-76.6, 5.7],
+          [-76.6, 5.8],
+          [-76.7, 5.7],
+        ],
+      ],
+    };
+    const zone = await app.inject({
+      method: "POST",
+      url: `/v1/incidents/${incidentId}/operational-zones`,
+      payload: { name: "Zona misión 01", geometry, priority: 5 },
+    });
+    const organization = await app.inject({
+      method: "POST",
+      url: `/v1/incidents/${incidentId}/organizations`,
+      payload: { name: "Brigadas Comunitarias", type: "volunteer_group", externalCode: "BC-01" },
+    });
+    const organizationId = organization.json().id as string;
+    const leader = await app.inject({
+      method: "POST",
+      url: `/v1/incidents/${incidentId}/actors`,
+      payload: { organizationId, displayName: "Líder de prueba", role: "field_worker" },
+    });
+    const outsider = await app.inject({
+      method: "POST",
+      url: `/v1/incidents/${incidentId}/actors`,
+      payload: { organizationId, displayName: "Actor externo", role: "field_worker" },
+    });
+    const team = await app.inject({
+      method: "POST",
+      url: `/v1/incidents/${incidentId}/teams`,
+      payload: { organizationId, name: "Brigada Norte" },
+    });
+    const teamId = team.json().id as string;
+    await app.inject({
+      method: "POST",
+      url: `/v1/teams/${teamId}/memberships`,
+      payload: { actorId: leader.json().id, responsibility: "leader" },
+    });
+
+    const assignmentPayload = {
+      zoneId: zone.json().id,
+      teamId,
+      objective: "Evaluar acceso y habitabilidad inicial.",
+      startsAt: "2026-08-13T11:00:00-05:00",
+      dueAt: "2026-08-13T17:00:00-05:00",
+      clientMutationId: "0198a03d-c08f-7e4a-91ee-102c68bff101",
+    };
+    const assigned = await app.inject({
+      method: "POST",
+      url: `/v1/incidents/${incidentId}/assignments`,
+      payload: assignmentPayload,
+    });
+    const retried = await app.inject({
+      method: "POST",
+      url: `/v1/incidents/${incidentId}/assignments`,
+      payload: assignmentPayload,
+    });
+    expect(assigned.statusCode).toBe(201);
+    expect(retried.json().id).toBe(assigned.json().id);
+
+    const rejected = await app.inject({
+      method: "POST",
+      url: `/v1/assignments/${assigned.json().id}/accept`,
+      payload: {
+        actorId: outsider.json().id,
+        occurredAt: "2026-08-13T10:55:00-05:00",
+        clientMutationId: "0198a03d-c08f-7e4a-91ee-102c68bff102",
+      },
+    });
+    expect(rejected.statusCode).toBe(409);
+
+    const accepted = await app.inject({
+      method: "POST",
+      url: `/v1/assignments/${assigned.json().id}/accept`,
+      payload: {
+        actorId: leader.json().id,
+        occurredAt: "2026-08-13T10:56:00-05:00",
+        clientMutationId: "0198a03d-c08f-7e4a-91ee-102c68bff103",
+      },
+    });
+    expect(accepted.json()).toMatchObject({
+      status: "accepted",
+      acceptedBy: leader.json().id,
+      revision: 2,
+    });
+
+    const coverage = await app.inject({
+      method: "GET",
+      url: `/v1/incidents/${incidentId}/coverage`,
+    });
+    expect(coverage.json()[0]).toMatchObject({ coverageStatus: "assigned", revision: 2 });
+  });
+});

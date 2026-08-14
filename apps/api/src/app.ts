@@ -6,19 +6,33 @@ import {
   IncidentNotFoundError,
   type IncidentRepository,
   OperationalZoneNotFoundError,
+  OperationsConflictError,
+  type OperationsRepository,
+  OperationsResourceNotFoundError,
   type TerritoryRepository,
 } from "@pulso/domain";
 import {
+  acceptFieldAssignmentSchema,
+  actorSchema,
   completeFieldVisitSchema,
   coverageEventSchema,
+  createActorSchema,
   createCoverageEventSchema,
+  createFieldAssignmentSchema,
   createFieldVisitSchema,
   createIncidentSchema,
   createOperationalZoneSchema,
+  createOrganizationSchema,
+  createTeamMembershipSchema,
+  createTeamSchema,
+  fieldAssignmentSchema,
   fieldVisitSchema,
   incidentListSchema,
   incidentSchema,
   operationalZoneSchema,
+  organizationSchema,
+  teamMembershipSchema,
+  teamSchema,
   territoryImportResultSchema,
   territoryImportSchema,
   territorySchema,
@@ -26,11 +40,13 @@ import {
 import Fastify from "fastify";
 import { ZodError } from "zod";
 import { MemoryIncidentRepository } from "./memory-incident-repository.js";
+import { MemoryOperationsRepository } from "./memory-operations-repository.js";
 import { MemoryTerritoryRepository } from "./memory-territory-repository.js";
 
 export type BuildAppOptions = {
   incidentRepository?: IncidentRepository;
   territoryRepository?: TerritoryRepository;
+  operationsRepository?: OperationsRepository;
   persistence?: "memory" | "postgres";
   logger?: boolean;
 };
@@ -39,6 +55,8 @@ export async function buildApp(options: BuildAppOptions = {}) {
   const app = Fastify({ logger: options.logger ?? false, bodyLimit: 15 * 1024 * 1024 });
   const incidents = options.incidentRepository ?? new MemoryIncidentRepository();
   const territories = options.territoryRepository ?? new MemoryTerritoryRepository(incidents);
+  const operations =
+    options.operationsRepository ?? new MemoryOperationsRepository(incidents, territories);
 
   await app.register(cors, {
     origin: process.env.NODE_ENV !== "production",
@@ -63,7 +81,8 @@ export async function buildApp(options: BuildAppOptions = {}) {
     if (
       error instanceof IncidentNotFoundError ||
       error instanceof OperationalZoneNotFoundError ||
-      error instanceof FieldVisitNotFoundError
+      error instanceof FieldVisitNotFoundError ||
+      error instanceof OperationsResourceNotFoundError
     ) {
       return reply.status(404).send({
         error: "resource_not_found",
@@ -71,9 +90,9 @@ export async function buildApp(options: BuildAppOptions = {}) {
       });
     }
 
-    if (error instanceof FieldVisitConflictError) {
+    if (error instanceof FieldVisitConflictError || error instanceof OperationsConflictError) {
       return reply.status(409).send({
-        error: "field_visit_conflict",
+        error: "operation_conflict",
         message: error.message,
       });
     }
@@ -111,6 +130,106 @@ export async function buildApp(options: BuildAppOptions = {}) {
     const incident = incidentSchema.parse(await incidents.create(input));
     return reply.status(201).send(incident);
   });
+
+  app.post<{ Params: { incidentId: string } }>(
+    "/v1/incidents/:incidentId/organizations",
+    async (request, reply) => {
+      const input = createOrganizationSchema.parse(request.body);
+      return reply
+        .status(201)
+        .send(
+          organizationSchema.parse(
+            await operations.createOrganization(request.params.incidentId, input),
+          ),
+        );
+    },
+  );
+
+  app.get<{ Params: { incidentId: string } }>(
+    "/v1/incidents/:incidentId/organizations",
+    async (request) =>
+      organizationSchema
+        .array()
+        .parse(await operations.listOrganizations(request.params.incidentId)),
+  );
+
+  app.post<{ Params: { incidentId: string } }>(
+    "/v1/incidents/:incidentId/actors",
+    async (request, reply) => {
+      const input = createActorSchema.parse(request.body);
+      return reply
+        .status(201)
+        .send(actorSchema.parse(await operations.createActor(request.params.incidentId, input)));
+    },
+  );
+
+  app.get<{ Params: { incidentId: string } }>("/v1/incidents/:incidentId/actors", async (request) =>
+    actorSchema.array().parse(await operations.listActors(request.params.incidentId)),
+  );
+
+  app.post<{ Params: { incidentId: string } }>(
+    "/v1/incidents/:incidentId/teams",
+    async (request, reply) => {
+      const input = createTeamSchema.parse(request.body);
+      return reply
+        .status(201)
+        .send(teamSchema.parse(await operations.createTeam(request.params.incidentId, input)));
+    },
+  );
+
+  app.get<{ Params: { incidentId: string } }>("/v1/incidents/:incidentId/teams", async (request) =>
+    teamSchema.array().parse(await operations.listTeams(request.params.incidentId)),
+  );
+
+  app.post<{ Params: { teamId: string } }>(
+    "/v1/teams/:teamId/memberships",
+    async (request, reply) => {
+      const input = createTeamMembershipSchema.parse(request.body);
+      return reply
+        .status(201)
+        .send(
+          teamMembershipSchema.parse(
+            await operations.addTeamMembership(request.params.teamId, input),
+          ),
+        );
+    },
+  );
+
+  app.get<{ Params: { teamId: string } }>("/v1/teams/:teamId/memberships", async (request) =>
+    teamMembershipSchema.array().parse(await operations.listTeamMemberships(request.params.teamId)),
+  );
+
+  app.post<{ Params: { incidentId: string } }>(
+    "/v1/incidents/:incidentId/assignments",
+    async (request, reply) => {
+      const input = createFieldAssignmentSchema.parse(request.body);
+      return reply
+        .status(201)
+        .send(
+          fieldAssignmentSchema.parse(
+            await operations.createFieldAssignment(request.params.incidentId, input),
+          ),
+        );
+    },
+  );
+
+  app.get<{ Params: { incidentId: string } }>(
+    "/v1/incidents/:incidentId/assignments",
+    async (request) =>
+      fieldAssignmentSchema
+        .array()
+        .parse(await operations.listFieldAssignments(request.params.incidentId)),
+  );
+
+  app.post<{ Params: { assignmentId: string } }>(
+    "/v1/assignments/:assignmentId/accept",
+    async (request) => {
+      const input = acceptFieldAssignmentSchema.parse(request.body);
+      return fieldAssignmentSchema.parse(
+        await operations.acceptFieldAssignment(request.params.assignmentId, input),
+      );
+    },
+  );
 
   app.post<{ Params: { incidentId: string } }>(
     "/v1/incidents/:incidentId/territories/import",

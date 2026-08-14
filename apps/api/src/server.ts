@@ -19,6 +19,7 @@ const app = await buildApp({
   ...(postgresRepositories
     ? {
         incidentRepository: postgresRepositories.incidents,
+        operationsRepository: postgresRepositories.operations,
         territoryRepository: postgresRepositories.territories,
       }
     : {}),
