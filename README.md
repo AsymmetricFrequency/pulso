@@ -179,6 +179,7 @@ La [guía de desarrollo](docs/08-development.md) explica la estructura, los coma
 - [Evidencia fotográfica offline](docs/20-offline-photo-evidence.md)
 - [Resumen operacional por misión](docs/21-mission-operational-summary.md)
 - [Acceso y tablero operacional](docs/22-operations-access-dashboard.md)
+- [Programa de auditoría en Solana](docs/23-solana-anchor-program.md)
 
 ### Confianza y decisiones
 

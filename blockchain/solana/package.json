@@ -1,0 +1,21 @@
+{
+  "name": "@pulso/solana",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "anchor build",
+    "test": "cargo test --workspace",
+    "test:integration": "anchor test --skip-build",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "0.31.1",
+    "@solana/web3.js": "1.98.4"
+  },
+  "devDependencies": {
+    "@types/mocha": "10.0.10",
+    "@types/node": "26.2.0",
+    "ts-mocha": "11.1.0",
+    "typescript": "6.0.3"
+  }
+}

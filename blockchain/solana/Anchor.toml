@@ -1,0 +1,19 @@
+[toolchain]
+package_manager = "pnpm"
+
+[features]
+resolution = false
+skip-lint = false
+
+[programs.localnet]
+pulso_anchor = "DBfKewHG6MgNjuiRhUhMUZrgq2Qh3ZRjwbCVxBbBodHx"
+
+[programs.devnet]
+pulso_anchor = "DBfKewHG6MgNjuiRhUhMUZrgq2Qh3ZRjwbCVxBbBodHx"
+
+[provider]
+cluster = "Localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "pnpm exec ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"

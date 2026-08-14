@@ -12,6 +12,7 @@
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
+    "test:solana:integration": "pnpm --filter @pulso/solana test:integration",
     "lint": "biome check .",
     "format": "biome format --write .",
     "check": "pnpm lint && pnpm build && pnpm typecheck && pnpm test"

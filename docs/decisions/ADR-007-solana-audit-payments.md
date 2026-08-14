@@ -2,7 +2,7 @@
 
 ## Estado
 
-Aceptada para implementación posterior al P0. PostgreSQL continúa como fuente de verdad y ninguna función de emergencia depende de Solana.
+Aceptada y con programa mínimo implementado para validación local y Devnet. PostgreSQL continúa como fuente de verdad y ninguna función de emergencia depende de Solana.
 
 ## Decisión
 
@@ -41,7 +41,7 @@ El programa `pulso_anchor` será pequeño y append-only. Tendrá tres instruccio
 2. `append_batch`: acepta exactamente la siguiente secuencia, valida el hash anterior y agrega el compromiso.
 3. `rotate_authority`: cambia la autoridad mediante una multisig y deja el evento correspondiente.
 
-No tendrá instrucciones para editar o borrar lotes. Los registros se segmentarán cuando alcancen el tamaño máximo definido, enlazando cada segmento con el anterior. El programa no custodiará USDC ni donaciones.
+No tendrá instrucciones para editar o borrar lotes. Cada lote se conserva en una cuenta PDA inmutable y enlazada criptográficamente con el lote anterior; el registro del incidente solo mantiene la siguiente secuencia y la última raíz. El programa no custodiará USDC ni donaciones.
 
 ## Flujo de anclaje
 
