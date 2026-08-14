@@ -97,7 +97,7 @@ PERSISTENCE_DRIVER=postgres pnpm --filter @pulso/api dev
 
 - Marca de trabajo: **PULSO ATLAS**
 - Implementación inicial: **PULSO ATLAS Colombia**
-- Dominio candidato: `pulsoatlas.org` — pendiente de registro y validación jurídica.
+- Dominio oficial: [`pulso.my`](https://pulso.my)
 
 ## Licencia
 
