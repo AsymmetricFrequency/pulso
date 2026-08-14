@@ -40,7 +40,7 @@ packages/
 
 ## Módulos de API
 
-`incidents`, `territories`, `coverage`, `actors`, `teams`, `assignments`, `cases`, `households`, `evidence`, `assessments`, `needs`, `certifications`, `aid`, `deduplication`, `reviews`, `sync` y `audit`.
+`incidents`, `territories`, `coverage`, `actors`, `teams`, `assignments`, `cases`, `households`, `evidence`, `assessments`, `needs`, `certifications`, `materials`, `inventory`, `logistics`, `recovery`, `aid`, `deduplication`, `reviews`, `sync` y `audit`.
 
 ## Fronteras
 
@@ -49,6 +49,23 @@ packages/
 - Redis no contiene la única copia de información operacional.
 - La API aplica autorización; la interfaz no es una frontera de seguridad.
 - El mapa público consume agregaciones, nunca tablas privadas directamente.
+- El inventario se deriva de movimientos append-only; las proyecciones de stock son reconstruibles.
+- Las integraciones y workers reciben eventos mediante una outbox transaccional.
+
+## Procesamiento asíncrono
+
+Los comandos guardan el cambio y un evento outbox en una sola transacción. Workers independientes procesan evidencias, similitud, notificaciones, agregaciones, exportaciones y webhooks. Cada consumidor es idempotente y conserva reintentos y cola de fallos.
+
+## Observabilidad y continuidad
+
+- Logs estructurados con `requestId`, `incidentId` y `correlationId`, sin información personal.
+- Métricas de latencia, errores, sincronización, colas y antigüedad de datos.
+- Trazas entre API, outbox y workers.
+- Respaldos cifrados y restauraciones ensayadas.
+- Objetivos RPO/RTO definidos por entorno antes de producción.
+- Procedimiento para operar en modo degradado cuando fallen mapas, colas o proveedores externos.
+
+La matriz completa de dominios y requisitos se mantiene en [Cobertura completa de arquitectura](09-architecture-coverage.md).
 
 ## Despliegue inicial
 

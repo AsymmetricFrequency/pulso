@@ -34,3 +34,14 @@ Permisos por emergencia, organización, rol y territorio. Teléfono, documento, 
 ## Auditoría
 
 Cada mutación relevante produce un evento con `beforeHash`, `afterHash` y `previousEventHash`. Una raíz periódica podrá anclarse externamente en una fase posterior sin publicar información personal.
+
+## Controles sobre materiales
+
+- Oferta, recepción, inspección, ajuste y entrega son funciones separadas.
+- Lotes de riesgo mantienen procedencia, fabricante y documentos.
+- Recepción registra instrumento o método de medición.
+- Diferencias entre cantidad declarada, medida y aceptada se conservan.
+- Entregas requieren confirmación en destino.
+- Ajustes de alto impacto necesitan una segunda aprobación.
+- Conteos físicos periódicos se concilian contra el libro de movimientos.
+- Reglas detectan movimientos retroactivos, duplicados, rutas imposibles y pérdidas anómalas.

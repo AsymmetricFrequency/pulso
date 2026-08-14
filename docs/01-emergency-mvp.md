@@ -27,6 +27,10 @@ Dos brigadas deben poder descargar una misión, trabajar simultáneamente sin co
 - Aplicaciones móviles nativas separadas.
 - Integraciones gubernamentales profundas.
 
+## Vertical P1 crítico: materiales
+
+La logística de materiales se diseña antes de producción, aunque se implemente después del flujo territorial P0. Debe separar oferta, compromiso, recepción, inspección, disponibilidad, reserva, despacho, entrega e instalación. Ver [Donaciones de materiales de construcción](10-material-donations.md).
+
 ## Estados de cobertura
 
 - `unknown`: no existe evidencia suficiente.

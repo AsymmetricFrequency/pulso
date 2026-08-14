@@ -23,6 +23,10 @@
 - Profesionales y certificaciones.
 - Mapa público agregado.
 - Seguridad, respaldos, auditoría y pruebas de campo.
+- Catálogo de materiales, unidades y especificaciones.
+- Ofertas, compromisos, lotes, recepción e inspección.
+- Libro de inventario, bodegas, reservas y despachos.
+- Confirmación de entrega y trazabilidad por lote.
 
 ## Posteriormente
 
@@ -31,6 +35,15 @@
 - Credenciales verificables.
 - Anclaje criptográfico externo.
 - Contratos inteligentes solo cuando exista un flujo financiero validado.
+
+## Puertas antes de producción
+
+- Arquitectura de dominios y eventos aprobada.
+- Modelo de amenazas y permisos aprobado.
+- Reglas de unidades, conversiones e inventario aprobadas.
+- Política de datos públicos, personales y comerciales aprobada.
+- Respaldo y restauración probados.
+- Procedimientos de recepción, inspección y ajuste asignados a responsables reales.
 
 ## Criterio de salida P0
 
