@@ -8,16 +8,28 @@ export type QueuedFieldVisit = {
   attempts: number;
 };
 
+export type CachedMissionPackage = {
+  code: string;
+  zoneReference: string;
+  teamName: string;
+  objective: string;
+  downloadedAt: string;
+};
+
 const databaseName = "pulso-atlas-field";
 const storeName = "mutations";
+const missionStoreName = "missions";
 
 const openDatabase = () =>
   new Promise<IDBDatabase>((resolve, reject) => {
-    const request = indexedDB.open(databaseName, 1);
+    const request = indexedDB.open(databaseName, 2);
     request.onupgradeneeded = () => {
       const database = request.result;
       if (!database.objectStoreNames.contains(storeName)) {
         database.createObjectStore(storeName, { keyPath: "clientMutationId" });
+      }
+      if (!database.objectStoreNames.contains(missionStoreName)) {
+        database.createObjectStore(missionStoreName, { keyPath: "code" });
       }
     };
     request.onsuccess = () => resolve(request.result);
@@ -56,4 +68,19 @@ export async function countQueuedVisits(): Promise<number> {
   });
   database.close();
   return count;
+}
+
+export async function cacheMissionPackage(
+  mission: Omit<CachedMissionPackage, "downloadedAt">,
+): Promise<CachedMissionPackage> {
+  const database = await openDatabase();
+  const cached = { ...mission, downloadedAt: new Date().toISOString() };
+  await new Promise<void>((resolve, reject) => {
+    const transaction = database.transaction(missionStoreName, "readwrite");
+    transaction.objectStore(missionStoreName).put(cached);
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error);
+  });
+  database.close();
+  return cached;
 }

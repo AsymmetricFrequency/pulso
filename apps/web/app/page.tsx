@@ -1,5 +1,5 @@
 import { AtlasMap } from "./components/atlas-map";
-import { OfflineVisitButton } from "./components/offline-visit-button";
+import { FieldEntryLink } from "./components/offline-visit-button";
 
 const coverage = [
   { label: "Sin verificar", value: 18, className: "unknown" },
@@ -49,7 +49,7 @@ export default function OperationsHome() {
           <button type="button" className="button secondary">
             Crear zona
           </button>
-          <OfflineVisitButton />
+          <FieldEntryLink />
         </div>
       </section>
 

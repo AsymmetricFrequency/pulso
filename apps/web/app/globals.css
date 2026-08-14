@@ -149,12 +149,16 @@ h2 {
 }
 
 .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 44px;
   border: 1px solid var(--primary);
   border-radius: 8px;
   padding: 0 17px;
   cursor: pointer;
   font-weight: 700;
+  text-decoration: none;
 }
 
 .button.primary {

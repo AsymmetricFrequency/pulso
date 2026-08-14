@@ -1,0 +1,415 @@
+.shell {
+  width: min(100% - 28px, 680px);
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding: 0 0 24px;
+}
+
+.header {
+  display: flex;
+  min-height: 68px;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #d8d8cd;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #10231c;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-decoration: none;
+}
+
+.brandMark {
+  width: 24px;
+  height: 24px;
+  border: 6px solid #006a4e;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px #f4f2e9;
+}
+
+.connection {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #5f6f68;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.connection i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.online i {
+  background: #2a7d57;
+}
+.offline i {
+  background: #d08b25;
+}
+
+.progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 38px;
+  margin: 34px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.progress li {
+  position: relative;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid #c8ccc4;
+  border-radius: 50%;
+  background: #f4f2e9;
+  color: #7a867f;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.progress li:not(:last-child)::after {
+  position: absolute;
+  top: 14px;
+  left: 29px;
+  width: 40px;
+  height: 1px;
+  background: #c8ccc4;
+  content: "";
+}
+
+.progress .current {
+  border-color: #006a4e;
+  background: #006a4e;
+  color: white;
+}
+
+.progress .done {
+  border-color: #2a7d57;
+  color: #006a4e;
+}
+
+.card {
+  margin: 28px auto 0;
+  border: 1px solid #d8d8cd;
+  border-radius: 20px;
+  background: #fffdf7;
+  padding: clamp(24px, 7vw, 48px);
+  box-shadow: 0 18px 45px rgba(16, 35, 28, 0.08);
+}
+
+.eyebrow {
+  margin: 0 0 9px;
+  color: #006a4e;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.card h1,
+.activeVisit h1 {
+  margin: 0 0 14px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(34px, 8vw, 50px);
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+}
+
+.lead {
+  margin: 0;
+  color: #5f6f68;
+  font-size: 17px;
+  line-height: 1.55;
+}
+
+.form {
+  display: grid;
+  gap: 9px;
+  margin-top: 30px;
+}
+
+.form label {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.form input {
+  width: 100%;
+  min-height: 62px;
+  border: 2px solid #aeb8b2;
+  border-radius: 12px;
+  background: white;
+  padding: 0 16px;
+  color: #10231c;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.form input:focus {
+  border-color: #006a4e;
+  outline: 3px solid rgba(0, 106, 78, 0.15);
+}
+
+.help,
+.safetyNote {
+  color: #68766f;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.error {
+  margin: 4px 0;
+  border-left: 3px solid #e0523f;
+  background: rgba(224, 82, 63, 0.08);
+  padding: 10px 12px;
+  color: #8d3025;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.primaryButton,
+.secondaryButton,
+.textButton {
+  display: inline-flex;
+  min-height: 54px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.primaryButton {
+  width: 100%;
+  margin-top: 16px;
+  border: 1px solid #006a4e;
+  background: #006a4e;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.primaryButton:hover {
+  background: #004d39;
+}
+.primaryButton:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.textButton {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: #006a4e;
+  cursor: pointer;
+}
+
+.missionIdentity {
+  margin: 26px 0 20px;
+  border-left: 4px solid #d08b25;
+  background: #f6f1e5;
+  padding: 16px 18px;
+}
+
+.missionIdentity span,
+.missionIdentity strong {
+  display: block;
+}
+.missionIdentity span {
+  color: #5f6f68;
+  font-size: 12px;
+  font-weight: 700;
+}
+.missionIdentity strong {
+  margin-top: 4px;
+  font-size: 22px;
+}
+.missionIdentity p {
+  margin: 5px 0 0;
+  color: #5f6f68;
+  font-size: 14px;
+}
+
+.details {
+  margin: 0;
+}
+.details div {
+  border-top: 1px solid #e1e0d5;
+  padding: 15px 0;
+}
+.details dt {
+  color: #68766f;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.details dd {
+  margin: 5px 0 0;
+  line-height: 1.5;
+}
+
+.centered {
+  text-align: center;
+}
+.successMark {
+  display: grid;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 20px;
+  place-items: center;
+  border-radius: 50%;
+  background: #006a4e;
+  color: white;
+  font-size: 32px;
+}
+.centered .lead {
+  max-width: 440px;
+  margin: 0 auto;
+}
+.safetyNote {
+  margin: 14px 0 0;
+}
+
+.activeVisit {
+  padding-top: 44px;
+}
+.activeHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.activeHeader p:last-child {
+  margin: 0;
+  color: #5f6f68;
+}
+.localBadge {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: rgba(0, 106, 78, 0.09);
+  padding: 7px 10px;
+  color: #004d39;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.taskCard {
+  margin-top: 28px;
+  border: 1px solid #d8d8cd;
+  border-radius: 16px;
+  background: #fffdf7;
+  padding: 22px;
+}
+.taskCard h2 {
+  margin: 0;
+  font-size: 22px;
+}
+.taskCard > p {
+  margin: 5px 0 18px;
+  color: #5f6f68;
+}
+.taskCard ul {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.taskCard button {
+  display: grid;
+  width: 100%;
+  min-height: 58px;
+  grid-template-columns: 30px 1fr;
+  align-items: center;
+  border: 1px solid #cfd3cc;
+  border-radius: 11px;
+  background: white;
+  padding: 9px 12px;
+  color: #10231c;
+  cursor: pointer;
+  font-weight: 700;
+  text-align: left;
+}
+.taskCard button span {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border: 2px solid #9aa79f;
+  border-radius: 50%;
+}
+.taskCard .taskDone {
+  border-color: #2a7d57;
+  background: #f2f8f4;
+  color: #1b6341;
+}
+.taskCard .taskDone span {
+  border-color: #2a7d57;
+  background: #2a7d57;
+  color: white;
+}
+
+.activeFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 18px;
+  color: #5f6f68;
+  font-size: 13px;
+}
+.secondaryButton {
+  border: 1px solid #006a4e;
+  padding: 0 16px;
+  color: #006a4e;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 28px;
+  color: #7a867f;
+  font-size: 11px;
+}
+.footer a {
+  color: #006a4e;
+}
+
+@media (max-width: 520px) {
+  .shell {
+    width: min(100% - 20px, 680px);
+  }
+  .card {
+    margin-top: 22px;
+    border-radius: 16px;
+    padding: 26px 20px;
+  }
+  .activeHeader {
+    display: grid;
+  }
+  .localBadge {
+    width: fit-content;
+  }
+  .activeFooter {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .secondaryButton {
+    width: 100%;
+  }
+}

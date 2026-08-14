@@ -64,6 +64,7 @@ Los eventos se registran sin sobrescribir el historial. Una visita conserva el m
 | Organizaciones, actores y equipos | API, membresías y validación de alcance implementadas |
 | Asignaciones de campo | Creación, aceptación e idempotencia implementadas |
 | Captura offline | Cola durable en IndexedDB; sincronización automática pendiente |
+| Experiencia móvil de brigada | Activación en tres pasos y guardado offline implementados |
 | PostgreSQL/PostGIS | Migraciones y adaptador implementados; integración real pendiente |
 | Evidencia, actores y certificaciones | Diseñados; implementación pendiente |
 | Donaciones de materiales | Modelo y trazabilidad documentados |
@@ -105,6 +106,7 @@ pnpm dev
 | Servicio | Dirección |
 | --- | --- |
 | Web | `http://localhost:3000` |
+| Vista móvil de brigada | `http://localhost:3000/field` |
 | API | `http://localhost:3001` |
 | Salud de la API | `GET http://localhost:3001/health` |
 
@@ -164,6 +166,7 @@ La [guía de desarrollo](docs/08-development.md) explica la estructura, los coma
 - [Vertical territorial y de cobertura](docs/13-territory-coverage-vertical.md)
 - [Persistencia y visitas offline](docs/14-persistence-field-offline.md)
 - [Equipos y asignaciones de campo](docs/15-teams-field-assignments.md)
+- [Experiencia de campo con cero fricción](docs/16-zero-friction-field-ux.md)
 
 ### Confianza y decisiones
 
