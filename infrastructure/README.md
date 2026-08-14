@@ -1,3 +1,6 @@
 # Infraestructura
 
-Directorio reservado para contenedores, migraciones, despliegue, respaldos y observabilidad. No deben almacenarse secretos ni datos personales.
+- `postgres/migrations`: migraciones SQL para PostgreSQL/PostGIS.
+- `compose.yaml` en la raíz: servicios locales de PostgreSQL y Redis.
+
+No deben almacenarse secretos ni datos personales en este directorio.

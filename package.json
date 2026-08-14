@@ -1,0 +1,23 @@
+{
+  "name": "pulso-atlas",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Infraestructura local-first para coordinación territorial durante emergencias",
+  "packageManager": "pnpm@10.4.1",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @pulso/web --filter @pulso/api --filter @pulso/worker dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "check": "pnpm lint && pnpm build && pnpm typecheck && pnpm test"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.8",
+    "typescript": "6.0.3"
+  }
+}

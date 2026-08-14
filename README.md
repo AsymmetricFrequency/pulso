@@ -54,7 +54,30 @@ La implementación inicial será un **monolito modular con workers**, desplegado
 
 ## Estado
 
-El proyecto se encuentra en etapa fundacional y de definición del P0. Las cifras de emergencia incluidas en la investigación son preliminares y deben conservar su fecha, fuente y nivel de confianza.
+El proyecto se encuentra en construcción del P0. Las cifras de emergencia incluidas en la investigación son preliminares y deben conservar su fecha, fuente y nivel de confianza.
+
+## Desarrollo
+
+Requisitos: Node.js 22 o superior y pnpm 10. Docker es opcional para levantar PostgreSQL/PostGIS y Redis localmente.
+
+```bash
+pnpm install
+cp .env.example .env
+pnpm dev
+```
+
+- Web: `http://localhost:3000`
+- API: `http://localhost:3001`
+- Salud de API: `GET /health`
+- Incidentes: `GET|POST /v1/incidents`
+
+Para verificar todo el repositorio:
+
+```bash
+pnpm check
+```
+
+Más información en [la guía de desarrollo](docs/08-development.md).
 
 ## Marca
 
