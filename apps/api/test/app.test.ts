@@ -458,6 +458,32 @@ describe("teams and field assignments API", () => {
     });
     expect(assignmentAssessments.json()).toHaveLength(1);
 
+    const unauthorizedSummary = await app.inject({
+      method: "GET",
+      url: "/v1/field-assessment-summary",
+    });
+    expect(unauthorizedSummary.statusCode).toBe(401);
+    const missionSummary = await app.inject({
+      method: "GET",
+      url: "/v1/field-assessment-summary",
+      headers: { authorization: `Bearer ${redeemed.json().sessionToken}` },
+    });
+    expect(missionSummary.json()).toMatchObject({
+      totalAssessments: 1,
+      affectedHouseholds: 4,
+      affectedPeople: 13,
+      severity: { high: 1 },
+      urgency: { urgent: 1 },
+      damages: [
+        { type: "housing", count: 1 },
+        { type: "utilities", count: 1 },
+      ],
+      needs: [
+        { type: "shelter", count: 1 },
+        { type: "construction_materials", count: 1 },
+      ],
+    });
+
     const jpegBytes = Buffer.from([0xff, 0xd8, 0xff, 0xd9]);
     const evidencePayload = {
       clientMutationId: "0198a03d-c08f-7e4a-91ee-102c68bff301",

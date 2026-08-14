@@ -54,5 +54,39 @@ export const rapidAssessmentSchema = createRapidAssessmentSchema.extend({
   revision: z.int().positive(),
 });
 
+export const assessmentSummarySchema = z.object({
+  incidentId: z.uuid(),
+  totalAssessments: z.int().nonnegative(),
+  affectedHouseholds: z.int().nonnegative(),
+  affectedPeople: z.int().nonnegative(),
+  severity: z.object({
+    low: z.int().nonnegative(),
+    medium: z.int().nonnegative(),
+    high: z.int().nonnegative(),
+    critical: z.int().nonnegative(),
+  }),
+  urgency: z.object({
+    routine: z.int().nonnegative(),
+    priority: z.int().nonnegative(),
+    urgent: z.int().nonnegative(),
+    immediate: z.int().nonnegative(),
+  }),
+  damages: z.array(z.object({ type: damageTypeSchema, count: z.int().positive() })),
+  needs: z.array(z.object({ type: needTypeSchema, count: z.int().positive() })),
+  zones: z.array(
+    z.object({
+      zoneId: z.uuid(),
+      zoneName: z.string(),
+      assessments: z.int().positive(),
+      critical: z.int().nonnegative(),
+      urgent: z.int().nonnegative(),
+      affectedPeople: z.int().nonnegative(),
+      lastObservedAt: z.iso.datetime({ offset: true }),
+    }),
+  ),
+  calculatedAt: z.iso.datetime({ offset: true }),
+});
+
 export type CreateRapidAssessmentInput = z.infer<typeof createRapidAssessmentSchema>;
 export type RapidAssessmentDto = z.infer<typeof rapidAssessmentSchema>;
+export type AssessmentSummaryDto = z.infer<typeof assessmentSummarySchema>;

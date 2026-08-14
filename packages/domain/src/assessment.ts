@@ -1,4 +1,8 @@
-import type { CreateRapidAssessmentInput, RapidAssessmentDto } from "@pulso/schemas";
+import type {
+  AssessmentSummaryDto,
+  CreateRapidAssessmentInput,
+  RapidAssessmentDto,
+} from "@pulso/schemas";
 
 export type AssessmentMissionContext = {
   incidentId: string;
@@ -18,6 +22,7 @@ export interface AssessmentRepository {
     incidentId: string,
     clientMutationId: string,
   ): Promise<RapidAssessmentDto | undefined>;
+  summarizeAssignment(incidentId: string, assignmentId: string): Promise<AssessmentSummaryDto>;
 }
 
 export class AssessmentNotFoundError extends Error {

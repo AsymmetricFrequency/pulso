@@ -177,6 +177,7 @@ La [guía de desarrollo](docs/08-development.md) explica la estructura, los coma
 - [Identidad y confianza operacional](docs/18-identity-trust-p0.md)
 - [Evaluación rápida offline](docs/19-rapid-assessments-offline.md)
 - [Evidencia fotográfica offline](docs/20-offline-photo-evidence.md)
+- [Resumen operacional por misión](docs/21-mission-operational-summary.md)
 
 ### Confianza y decisiones
 

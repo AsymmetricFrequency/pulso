@@ -28,6 +28,7 @@ import {
   actorEndorsementSchema,
   actorSchema,
   actorTrustProfileSchema,
+  assessmentSummarySchema,
   beginPasskeyAuthenticationSchema,
   completeFieldVisitSchema,
   coverageEventSchema,
@@ -127,7 +128,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
         "pulso-test-identity-fingerprint-secret-2026",
       operations,
     );
-  const assessments = options.assessmentRepository ?? new MemoryAssessmentRepository();
+  const assessments = options.assessmentRepository ?? new MemoryAssessmentRepository(territories);
   const evidence = options.evidenceRepository ?? new MemoryEvidenceRepository(assessments);
   const siteUrl = options.siteUrl ?? "http://localhost:3000";
   const rpID = options.webauthnRpId ?? "localhost";
@@ -612,6 +613,16 @@ export async function buildApp(options: BuildAppOptions = {}) {
     return rapidAssessmentSchema
       .array()
       .parse(await assessments.listByAssignment(session.mission.assignmentId));
+  });
+
+  app.get("/v1/field-assessment-summary", async (request) => {
+    const session = await missionAccess.resolveSession(bearerToken(request.headers.authorization));
+    return assessmentSummarySchema.parse(
+      await assessments.summarizeAssignment(
+        session.mission.incidentId,
+        session.mission.assignmentId,
+      ),
+    );
   });
 
   app.post("/v1/field-evidence", async (request, reply) => {

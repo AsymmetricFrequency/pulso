@@ -53,6 +53,15 @@ type TrustProfile = {
   badges: string[];
 };
 
+type AssessmentSummary = {
+  totalAssessments: number;
+  affectedHouseholds: number;
+  affectedPeople: number;
+  urgency: { urgent: number; immediate: number };
+  damages: Array<{ type: string; count: number }>;
+  needs: Array<{ type: string; count: number }>;
+};
+
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 const fieldTasks = [
   "Confirmar acceso a la zona",
@@ -89,6 +98,9 @@ const needOptions = [
   ["communications", "Comunicación"],
   ["transport", "Transporte"],
 ] as const;
+
+const optionLabel = (value: string) =>
+  [...damageOptions, ...needOptions].find(([key]) => key === value)?.[1] ?? value;
 
 const getDeviceId = () => {
   const existing = localStorage.getItem("pulso-device-id");
@@ -133,6 +145,7 @@ export function FieldFlow() {
   const [assessmentMessage, setAssessmentMessage] = useState("");
   const [lastAssessmentMutationId, setLastAssessmentMutationId] = useState<string | null>(null);
   const [evidenceMessage, setEvidenceMessage] = useState("");
+  const [assessmentSummary, setAssessmentSummary] = useState<AssessmentSummary | null>(null);
   const invitationOpened = useRef(false);
   const mission = session?.mission ?? null;
 
@@ -206,6 +219,18 @@ export function FieldFlow() {
       .catch(() => undefined);
     return () => controller.abort();
   }, [isOnline, session]);
+
+  const refreshAssessmentSummary = useCallback(async (currentSession: FieldSession) => {
+    const response = await fetch(`${apiUrl}/v1/field-assessment-summary`, {
+      headers: { Authorization: `Bearer ${currentSession.sessionToken}` },
+    });
+    if (response.ok) setAssessmentSummary((await response.json()) as AssessmentSummary);
+  }, []);
+
+  useEffect(() => {
+    if (!session || !isOnline) return;
+    void refreshAssessmentSummary(session).catch(() => undefined);
+  }, [isOnline, refreshAssessmentSummary, session]);
 
   useEffect(() => {
     if (!session || !isOnline) return;
@@ -436,6 +461,7 @@ export function FieldFlow() {
           : "Reporte guardado en este dispositivo. Se enviará al recuperar señal.",
       );
       setLastAssessmentMutationId(assessmentClientMutationId);
+      if (isOnline) await refreshAssessmentSummary(session);
       setAssessmentOpen(false);
       setDamageTypes([]);
       setNeedTypes([]);
@@ -690,6 +716,57 @@ export function FieldFlow() {
               })}
             </ul>
           </div>
+          {assessmentSummary && assessmentSummary.totalAssessments > 0 && (
+            <section className={styles.missionSummary} aria-labelledby="summary-title">
+              <div className={styles.summaryHeading}>
+                <div>
+                  <p className={styles.eyebrow}>Esta misión</p>
+                  <h2 id="summary-title">Resumen de hallazgos</h2>
+                </div>
+                <span>Actualizado</span>
+              </div>
+              <div className={styles.summaryMetrics}>
+                <div>
+                  <strong>{assessmentSummary.totalAssessments}</strong>
+                  <span>Reportes</span>
+                </div>
+                <div>
+                  <strong>{assessmentSummary.affectedHouseholds}</strong>
+                  <span>Hogares</span>
+                </div>
+                <div>
+                  <strong>{assessmentSummary.affectedPeople}</strong>
+                  <span>Personas</span>
+                </div>
+                <div>
+                  <strong>
+                    {assessmentSummary.urgency.urgent + assessmentSummary.urgency.immediate}
+                  </strong>
+                  <span>Urgentes</span>
+                </div>
+              </div>
+              <div className={styles.summaryRanks}>
+                <div>
+                  <span>Daños principales</span>
+                  <p>
+                    {assessmentSummary.damages
+                      .slice(0, 3)
+                      .map((item) => `${optionLabel(item.type)} (${item.count})`)
+                      .join(" · ") || "Sin daños"}
+                  </p>
+                </div>
+                <div>
+                  <span>Necesidades principales</span>
+                  <p>
+                    {assessmentSummary.needs
+                      .slice(0, 3)
+                      .map((item) => `${optionLabel(item.type)} (${item.count})`)
+                      .join(" · ") || "Sin necesidades"}
+                  </p>
+                </div>
+              </div>
+            </section>
+          )}
           <section className={styles.assessmentPanel} aria-labelledby="assessment-title">
             <div>
               <p className={styles.eyebrow}>Hallazgos</p>

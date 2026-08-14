@@ -466,6 +466,83 @@
   color: white;
 }
 
+.missionSummary {
+  margin-top: 18px;
+  border: 1px solid #c9d7cf;
+  border-radius: 16px;
+  background: #eef5f1;
+  padding: 22px;
+}
+
+.summaryHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.summaryHeading h2 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.summaryHeading > span {
+  border-radius: 999px;
+  background: white;
+  padding: 5px 8px;
+  color: #2a7d57;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.summaryMetrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin-top: 18px;
+  border-top: 1px solid #c9d7cf;
+  border-bottom: 1px solid #c9d7cf;
+}
+
+.summaryMetrics div {
+  display: grid;
+  gap: 3px;
+  padding: 14px 8px;
+  border-right: 1px solid #c9d7cf;
+  text-align: center;
+}
+
+.summaryMetrics div:last-child {
+  border-right: 0;
+}
+
+.summaryMetrics strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 26px;
+  font-weight: 400;
+}
+
+.summaryMetrics span,
+.summaryRanks span {
+  color: #5f6f68;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.summaryRanks {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.summaryRanks p {
+  margin: 4px 0 0;
+  color: #394b44;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .assessmentPanel {
   margin-top: 18px;
   border: 1px solid #d8d8cd;
@@ -704,6 +781,15 @@
   .twoColumns,
   .formActions {
     grid-template-columns: 1fr;
+  }
+  .summaryMetrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .summaryMetrics div:nth-child(2) {
+    border-right: 0;
+  }
+  .summaryMetrics div:nth-child(-n + 2) {
+    border-bottom: 1px solid #c9d7cf;
   }
   .secondaryButton {
     width: 100%;
