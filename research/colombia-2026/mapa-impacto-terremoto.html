@@ -1,0 +1,1291 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src 'unsafe-inline' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Colombia Earthquake Impact Map</title>
+<style>:root{color-scheme:light dark;background:light-dark(rgb(255 255 255), rgb(24 24 24))}html,body{margin:0}body{box-sizing:border-box;padding:1rem;background:inherit}iframe{display:block;width:100%;height:calc(100vh - 2rem);margin:0 auto;border:0}</style>
+</head>
+<body>
+<iframe sandbox="allow-scripts" referrerpolicy="no-referrer" title="Colombia Earthquake Impact Map" srcdoc="&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;meta name=&quot;referrer&quot; content=&quot;no-referrer&quot;&gt;
+&lt;meta http-equiv=&quot;Content-Security-Policy&quot; content=&quot;default-src &#x27;none&#x27;; script-src &#x27;unsafe-inline&#x27; &#x27;unsafe-eval&#x27; &#x27;wasm-unsafe-eval&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src &#x27;unsafe-inline&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src &#x27;none&#x27;; object-src &#x27;none&#x27;; base-uri &#x27;none&#x27;; form-action &#x27;none&#x27;&quot;&gt;
+&lt;title&gt;Colombia Earthquake Impact Map&lt;/title&gt;
+&lt;style&gt;:root {
+  color-scheme: light dark;
+  background-color: var(
+    --background,
+    var(--color-background-primary, light-dark(rgb(255 255 255), rgb(24 24 24)))
+  ) !important;
+
+  /* Agent-facing contract; keep in sync with SKILL.md. */
+  --background: var(
+    --color-background-primary,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --card: color-mix(in oklab, var(--foreground) 5%, var(--background));
+  --card-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --popover: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255), rgb(45 45 45))
+  );
+  --popover-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --primary: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --primary-foreground: var(
+    --color-text-inverse,
+    light-dark(rgb(255 255 255), rgb(13 13 13))
+  );
+  --secondary: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255 / 96%), rgb(54 54 54 / 96%))
+  );
+  --secondary-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --muted: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --muted-foreground: var(
+    --color-text-secondary,
+    light-dark(rgb(26 28 31 / 49.4%), rgb(255 255 255 / 49.8%))
+  );
+  --accent: var(
+    --color-background-info,
+    light-dark(rgb(229 242 255), rgb(13 39 63))
+  );
+  --accent-foreground: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --destructive: var(
+    --color-text-warning,
+    light-dark(rgb(226 85 7), rgb(255 133 73))
+  );
+  --border: var(
+    --color-border-secondary,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+  --input: var(
+    --color-border-primary,
+    light-dark(
+      rgb(26 28 31 / 11.8%),
+      color-mix(in oklab, rgb(0 0 0) 10%, transparent)
+    )
+  );
+  --ring: var(
+    --color-ring-primary,
+    light-dark(rgb(51 156 255), rgb(131 195 255 / 76%))
+  );
+  --font-size-base: var(--font-text-md-size, 14px);
+  --blue: light-dark(rgb(51 156 255), rgb(51 156 255));
+  --orange: light-dark(rgb(226 85 7), rgb(251 106 34));
+  --green: light-dark(rgb(0 162 64), rgb(64 201 119));
+  --red: light-dark(rgb(224 46 42), rgb(255 103 100));
+  --purple: light-dark(rgb(146 79 247), rgb(173 123 249));
+  --yellow: light-dark(rgb(255 195 0), rgb(255 210 64));
+  --viz-series-1: var(--primary);
+  --viz-series-2: light-dark(rgb(243 136 59), rgb(245 154 86));
+  --viz-series-3: light-dark(rgb(93 201 119), rgb(116 213 139));
+  --viz-series-4: light-dark(rgb(235 119 177), rgb(240 143 192));
+  --viz-series-5: light-dark(rgb(155 121 236), rgb(170 145 239));
+  --viz-series-6: light-dark(rgb(58 185 177), rgb(90 203 194));
+
+  /* Internal implementation variables; not part of the agent contract. */
+  --font-sans: -apple-system, system-ui, &quot;Segoe UI&quot;, sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, &quot;SF Mono&quot;, Menlo, Consolas, &quot;Liberation Mono&quot;,
+    monospace;
+  --font-size-normal: max(11px, var(--font-size-base));
+  --font-size-tooltip: calc(var(--font-size-base) - 1px);
+  --font-size-small: max(11px, calc(var(--font-size-base) - 2px));
+  --font-size-h1: calc(var(--font-size-normal) * 1.7142857143);
+  --font-size-h2: calc(var(--font-size-normal) * 1.4285714286);
+  --font-size-h3: calc(var(--font-size-normal) * 1.2857142857);
+  --font-weight-normal: 430;
+  --font-weight-medium: 500;
+  --line-height-normal: calc(var(--font-size-normal) * 1.5);
+  --line-height-tooltip: calc(var(--font-size-tooltip) * 1.4285714286);
+  --line-height-small: calc(var(--font-size-small) + 4px);
+  --radius: var(--border-radius-lg, 12.5px);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-2xl: calc(var(--radius) * 1.6);
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px -1px rgb(0 0 0 / 8%);
+  --checkmark-image: url(&quot;data:image/svg+xml,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; viewBox=&#x27;0 0 17 17&#x27;%3E%3Cpath d=&#x27;M12.8961 3.64101C13.1297 3.41418 13.4984 3.37523 13.7779 3.56581C14.0571 3.75635 14.1554 4.11331 14.0299 4.41347L13.9615 4.53847L7.71151 13.7045C7.59411 13.8767 7.4063 13.9877 7.19881 14.0072C6.99136 14.0267 6.78564 13.9533 6.63826 13.806L2.88826 10.056L2.79842 9.9457C2.6192 9.67407 2.64927 9.30496 2.88826 9.06581C3.12738 8.82669 3.49647 8.79676 3.76815 8.97597L3.8785 9.06581L7.03084 12.2182L12.8053 3.74941L12.8961 3.64101Z&#x27;/%3E%3C/svg%3E&quot;);
+
+  /* Legacy aliases; not part of the current agent contract. */
+  --viz-bg: transparent;
+  --viz-panel: var(--card);
+  --viz-border: var(--border);
+  --viz-text: var(--foreground);
+  --viz-muted: var(--muted-foreground);
+  --viz-accent: var(--primary);
+  --viz-accent-text: var(--primary-foreground);
+  --viz-accent-bg: var(--accent);
+  --viz-font-size: var(--font-size-base);
+  --viz-warning: var(--destructive);
+}
+
+:root[data-theme=&quot;light&quot;] {
+  color-scheme: light;
+}
+
+:root[data-theme=&quot;dark&quot;] {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html &gt; body {
+  /* Preserve MCP aliases for older inline renderers without creating :root cycles. */
+  --color-background-primary: var(
+    --background,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --color-text-primary: var(
+    --foreground,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --color-border-secondary: var(
+    --border,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+
+  margin: 0;
+  padding: 5px;
+  color: var(--foreground);
+  background: transparent !important;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-normal);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+}
+
+a {
+  color: color-mix(in srgb, var(--viz-accent) 80%, var(--viz-text) 20%);
+  cursor: pointer;
+  font-weight: var(--font-weight-medium, 500);
+  text-decoration: none;
+  text-underline-offset: 2px;
+}
+
+a:is(:hover, :focus-visible) {
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 0.5px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin-block: 0;
+}
+
+h1 {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h2 {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h3,
+h4,
+h5,
+h6 {
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+}
+
+b,
+strong,
+th {
+  font-weight: var(--font-weight-medium);
+}
+
+code:not(pre code) {
+  display: inline;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  corner-shape: superellipse(1.5);
+  background: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  word-break: break-word;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--foreground);
+  font: inherit;
+  text-align: start;
+}
+
+.table :is(th, td) {
+  padding-block: 10px;
+  padding-inline: 0 24px;
+  overflow-wrap: anywhere;
+  border-bottom: 1px solid var(--border);
+  text-align: start;
+  vertical-align: top;
+}
+
+.table-responsive &gt; .table :is(th, td) {
+  overflow-wrap: break-word;
+}
+
+.table :is(th, td):last-child {
+  padding-inline-end: 0;
+}
+
+.table :is(caption, thead th) {
+  font-weight: 600;
+}
+
+.table thead th {
+  padding-block: 8px;
+  border-bottom-color: color-mix(in srgb, var(--foreground) 16%, transparent);
+}
+
+.table tbody tr:last-child :is(th, td) {
+  border-bottom: 0;
+}
+
+.table.table-sm :is(th, td) {
+  padding-block: 6px;
+}
+
+.table.table-sm :is(th, td):not(:last-child) {
+  padding-inline-end: 16px;
+}
+
+.table :is(.text-end, [align=&quot;right&quot;]) {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.table :is(.text-center, [align=&quot;center&quot;]) {
+  text-align: center;
+}
+
+.table .text-nowrap {
+  white-space: nowrap;
+}
+
+#widget {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  background: transparent !important;
+}
+
+.card {
+  min-width: 0;
+  padding: 12px;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  border-radius: var(--radius-2xl);
+  corner-shape: superellipse(1.5);
+  color: var(--card-foreground);
+  background: var(--card);
+}
+
+#widget &gt; :not(.card) {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  width: max-content;
+  max-width: min(
+    20rem,
+    var(--tooltip-available-width, calc(100vw - 10px)),
+    calc(100vw - 10px)
+  );
+  max-height: min(
+    var(--tooltip-available-height, calc(100vh - 10px)),
+    calc(100vh - 10px)
+  );
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--popover-foreground);
+  background: var(--popover);
+  box-shadow: none;
+  font-size: var(--font-size-tooltip);
+  line-height: var(--line-height-tooltip);
+  overflow-wrap: break-word;
+  white-space: normal;
+  pointer-events: none;
+  user-select: none;
+}
+
+.viz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(max(180px, 24%), 1fr));
+  gap: 10px;
+}
+
+.viz-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.viz-stat-value {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+.viz-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.viz-badge {
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  color: var(--accent-foreground);
+  background: var(--accent);
+  font-weight: var(--font-weight-medium);
+}
+
+small,
+.text-small,
+.viz-badge {
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
+}
+
+.text-muted {
+  color: var(--muted-foreground);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.viz-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.viz-controls &gt; .form-label {
+  display: grid;
+  min-width: min(100%, 260px);
+  flex: 1 1 280px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 2px 12px;
+  margin-bottom: 0;
+}
+
+.viz-controls &gt; .form-label &gt; :is(.form-control, .form-range, .form-select) {
+  grid-column: 1 / -1;
+}
+
+.btn,
+.form-check-input,
+.form-control,
+.form-range,
+.form-select {
+  font: inherit;
+}
+
+.btn {
+  appearance: button;
+  display: inline-flex;
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0 8px;
+  -webkit-app-region: no-drag;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: var(--cursor-interaction, pointer);
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+.btn:is(.btn-block, .viz-tile) {
+  inline-size: 100%;
+}
+
+.btn.viz-tile {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+a.btn {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn-primary {
+  border-color: transparent;
+  color: var(--primary-foreground);
+  background: var(--foreground);
+  background-clip: padding-box;
+}
+
+.btn-primary .text-muted {
+  color: color-mix(in srgb, var(--primary-foreground) 50%, transparent);
+}
+
+.btn-primary:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 80%, transparent);
+  background-clip: padding-box;
+}
+
+.btn-ghost {
+  border-color: transparent;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.btn-ghost:not(:disabled):hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+[data-lucide] {
+  stroke-width: 1.6;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--foreground);
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  padding: 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--foreground);
+  background: var(--secondary);
+}
+
+.form-control::placeholder {
+  color: var(--muted-foreground);
+}
+
+.form-control[type=&quot;file&quot;] {
+  padding: 0;
+  overflow: hidden;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control[type=&quot;file&quot;]::file-selector-button {
+  min-height: 26px;
+  margin-right: 8px;
+  padding: 0 8px;
+  border: 0;
+  border-right: 1px solid var(--input);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: inherit;
+  font: inherit;
+}
+
+.form-control[type=&quot;file&quot;]:not(:disabled):hover::file-selector-button {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-control-color[type=&quot;color&quot;] {
+  width: 40px;
+  height: 28px;
+  padding: 3px;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch {
+  border: 0;
+  border-radius: calc(var(--radius-lg) - 4px);
+  corner-shape: superellipse(1.5);
+}
+
+textarea.form-control {
+  height: auto;
+  min-height: 72px;
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+.form-control:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-control:disabled,
+.form-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.form-select {
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  margin: 0;
+  padding: 0 32px 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--foreground);
+  background-color: var(--secondary);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted-foreground) 50%),
+    linear-gradient(135deg, var(--muted-foreground) 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) 50%,
+    calc(100% - 10px) 50%;
+  background-repeat: no-repeat;
+  background-size: 4px 4px;
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-select:not(:disabled):hover {
+  background-color: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-select:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-check {
+  display: flex;
+  min-height: 20px;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-check-input {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  margin: 0;
+  border: 1px solid var(--input);
+  color: var(--primary-foreground);
+  background-color: transparent;
+  cursor: var(--cursor-interaction, default);
+  transition:
+    background-color 150ms,
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;] {
+  border-color: var(--input);
+  border-radius: var(--radius-sm);
+  corner-shape: superellipse(1.5);
+  background-color: var(--secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input:not(:disabled):not(:checked):hover {
+  background-color: var(--card);
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;]:checked {
+  border-color: var(--primary);
+  background-color: var(--primary);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input[type=&quot;checkbox&quot;]:checked::before {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--primary-foreground);
+  content: &quot;&quot;;
+  mask: var(--checkmark-image) center / 12px 12px no-repeat;
+}
+
+.form-check-input[type=&quot;radio&quot;] {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full);
+}
+
+.form-check-input[type=&quot;radio&quot;]:checked {
+  border: 2px solid var(--primary);
+  background:
+    radial-gradient(circle, var(--primary-foreground) 0 2.5px, transparent 3px),
+    var(--primary);
+}
+
+.form-check:not(.form-switch) .form-check-input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+}
+
+.form-switch .form-check-input:disabled,
+.form-switch .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-check-label {
+  color: var(--foreground);
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-switch .form-check-input {
+  position: relative;
+  width: 32px;
+  height: 20px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+  box-shadow: none;
+  transition: background-color 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 1px solid light-dark(var(--primary-foreground), var(--foreground));
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+  box-shadow: var(--shadow-sm);
+  content: &quot;&quot;;
+  transform: translate(2px, -50%);
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input:checked {
+  background: var(--primary);
+}
+
+.form-switch .form-check-input:checked::before {
+  transform: translate(14px, -50%);
+}
+
+.form-switch .form-check-input:focus-visible {
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+.form-range {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 28px;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  outline: none;
+  border: 0;
+  accent-color: var(--primary);
+  background: linear-gradient(
+      color-mix(in srgb, var(--foreground) 7%, transparent),
+      color-mix(in srgb, var(--foreground) 7%, transparent)
+    )
+    center / 100% 2px no-repeat;
+}
+
+.form-range::-webkit-slider-runnable-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-webkit-slider-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range::-moz-range-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-moz-range-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.btn:not(.btn-primary, .viz-tile):is(
+    [aria-pressed=&quot;true&quot;],
+    [aria-selected=&quot;true&quot;],
+    .is-selected
+  ) {
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+  background: var(--primary);
+}
+
+.btn.viz-tile:is([aria-pressed=&quot;true&quot;], [aria-selected=&quot;true&quot;], .is-selected) {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+#widget &gt; svg {
+  width: 100%;
+}
+
+/* Model-authored chart rules can otherwise stretch icons after these styles load. */
+svg.lucide {
+  display: block;
+  width: 16px !important;
+  height: 16px !important;
+  flex: none;
+  margin: 0 !important;
+  stroke-width: 1.6;
+}
+
+.text-warning,
+.text-destructive {
+  color: var(--destructive);
+}
+
+html&gt;body{padding:0}&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;rc-colombia-impact-map&quot;&gt;
+  &lt;style&gt;
+    #rc-colombia-impact-map{width:100%;color:var(--foreground);font-family:inherit}
+    #rc-colombia-impact-map *{box-sizing:border-box}
+    #rc-colombia-impact-map .rc-head{display:flex;gap:12px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;margin-bottom:8px}
+    #rc-colombia-impact-map .rc-title{margin:0;font-weight:500}
+    #rc-colombia-impact-map .rc-cut{color:var(--muted-foreground)}
+    #rc-colombia-impact-map .rc-national{border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:7px 0;margin-bottom:8px}
+    #rc-colombia-impact-map .rc-control{display:flex;align-items:center;gap:7px}
+    #rc-colombia-impact-map select{font:inherit;color:var(--foreground);background:var(--background);border:1px solid var(--input);border-radius:6px;padding:5px 8px}
+    #rc-colombia-impact-map .rc-layout{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:12px;align-items:start}
+    #rc-colombia-impact-map .rc-map-wrap{min-width:0;position:relative;border:1px solid var(--border);border-radius:8px;background:color-mix(in srgb,var(--muted) 25%,transparent)}
+    #rc-colombia-impact-map svg{display:block;width:100%;height:auto;min-height:520px;max-height:690px}
+    #rc-colombia-impact-map .rc-dept{stroke:var(--border);stroke-width:.7;vector-effect:non-scaling-stroke;cursor:pointer}
+    #rc-colombia-impact-map .rc-dept:hover{stroke:var(--foreground);stroke-width:1.5}
+    #rc-colombia-impact-map .rc-point{cursor:pointer;stroke:var(--background);stroke-width:1.5;vector-effect:non-scaling-stroke}
+    #rc-colombia-impact-map .rc-label{fill:var(--foreground);paint-order:stroke;stroke:var(--background);stroke-width:3px;stroke-linejoin:round;font-size:11px;pointer-events:none}
+    #rc-colombia-impact-map .rc-detail{border-left:1px solid var(--border);padding-left:12px;min-height:300px}
+    #rc-colombia-impact-map .rc-detail h3{margin:0 0 5px;font-weight:500}
+    #rc-colombia-impact-map .rc-detail-line{padding:7px 0;border-bottom:1px solid var(--border)}
+    #rc-colombia-impact-map .rc-detail-label{display:block;color:var(--muted-foreground);margin-bottom:2px}
+    #rc-colombia-impact-map .rc-detail a{color:var(--primary)}
+    #rc-colombia-impact-map .rc-legend{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0;color:var(--foreground)}
+    #rc-colombia-impact-map .rc-legend span{display:inline-flex;align-items:center;gap:5px}
+    #rc-colombia-impact-map .rc-swatch{width:11px;height:11px;border-radius:50%;display:inline-block}
+    #rc-colombia-impact-map .critical{background:var(--red)}
+    #rc-colombia-impact-map .high{background:var(--orange)}
+    #rc-colombia-impact-map .reported{background:var(--yellow)}
+    #rc-colombia-impact-map .gap{background:var(--blue)}
+    #rc-colombia-impact-map .rc-note{color:var(--muted-foreground);padding-top:7px;border-top:1px solid var(--border)}
+    #rc-colombia-impact-map .rc-sources{display:flex;gap:9px;flex-wrap:wrap;margin-top:7px}
+    #rc-colombia-impact-map .rc-sources a{color:var(--primary)}
+    #rc-colombia-impact-map .rc-tooltip{position:absolute;pointer-events:none;display:none;z-index:4;max-width:220px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--popover);color:var(--popover-foreground)}
+    @media(max-width:620px){
+      #rc-colombia-impact-map .rc-layout{grid-template-columns:1fr}
+      #rc-colombia-impact-map .rc-detail{border-left:0;border-top:1px solid var(--border);padding:10px 0 0;min-height:0}
+      #rc-colombia-impact-map svg{min-height:480px}
+      #rc-colombia-impact-map .rc-label-secondary{display:none}
+    }
+  &lt;/style&gt;
+  &lt;div class=&quot;rc-head&quot;&gt;
+    &lt;div&gt;
+      &lt;h2 class=&quot;rc-title&quot;&gt;Terremoto del 10 de agosto: afectación verificada y brechas de información&lt;/h2&gt;
+      &lt;div class=&quot;rc-cut&quot;&gt;Corte de investigación: 13 ago 2026, 21:09 COT · información preliminar y cambiante&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;label class=&quot;rc-control&quot;&gt;Mostrar
+      &lt;select id=&quot;rc-impact-filter&quot;&gt;
+        &lt;option value=&quot;all&quot;&gt;Todas las zonas&lt;/option&gt;
+        &lt;option value=&quot;critical&quot;&gt;Afectación crítica&lt;/option&gt;
+        &lt;option value=&quot;high&quot;&gt;Afectación alta&lt;/option&gt;
+        &lt;option value=&quot;reported&quot;&gt;Afectación reportada&lt;/option&gt;
+        &lt;option value=&quot;gap&quot;&gt;Brecha de información/acceso&lt;/option&gt;
+      &lt;/select&gt;
+    &lt;/label&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;rc-national&quot;&gt;Balance nacional más reciente localizado: 281 fallecidos · 3.971 heridos · 379 desaparecidos · 65.841 viviendas averiadas · 10.677 destruidas · 127 edificios colapsados.&lt;/div&gt;
+  &lt;div class=&quot;rc-layout&quot;&gt;
+    &lt;div&gt;
+      &lt;div class=&quot;rc-map-wrap&quot;&gt;
+        &lt;svg role=&quot;img&quot; aria-label=&quot;Mapa de Colombia con departamentos y localidades donde fuentes públicas verifican afectación por el terremoto&quot;&gt;&lt;/svg&gt;
+        &lt;div class=&quot;rc-tooltip&quot; role=&quot;tooltip&quot;&gt;&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;rc-legend&quot; aria-label=&quot;Leyenda&quot;&gt;
+        &lt;span&gt;&lt;i class=&quot;rc-swatch critical&quot;&gt;&lt;/i&gt;Crítica&lt;/span&gt;
+        &lt;span&gt;&lt;i class=&quot;rc-swatch high&quot;&gt;&lt;/i&gt;Alta&lt;/span&gt;
+        &lt;span&gt;&lt;i class=&quot;rc-swatch reported&quot;&gt;&lt;/i&gt;Reportada, sin cifra comparable&lt;/span&gt;
+        &lt;span&gt;&lt;i class=&quot;rc-swatch gap&quot;&gt;&lt;/i&gt;Brecha de acceso o evaluación&lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;section class=&quot;rc-detail&quot; aria-live=&quot;polite&quot;&gt;
+      &lt;h3 id=&quot;rc-detail-name&quot;&gt;San José del Palmar&lt;/h3&gt;
+      &lt;div class=&quot;rc-detail-line&quot;&gt;&lt;span class=&quot;rc-detail-label&quot;&gt;Lectura operacional&lt;/span&gt;&lt;span id=&quot;rc-detail-priority&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+      &lt;div class=&quot;rc-detail-line&quot;&gt;&lt;span class=&quot;rc-detail-label&quot;&gt;Evidencia pública localizada&lt;/span&gt;&lt;span id=&quot;rc-detail-evidence&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+      &lt;div class=&quot;rc-detail-line&quot;&gt;&lt;span class=&quot;rc-detail-label&quot;&gt;Brecha o siguiente verificación&lt;/span&gt;&lt;span id=&quot;rc-detail-gap&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+      &lt;div class=&quot;rc-detail-line&quot;&gt;&lt;span class=&quot;rc-detail-label&quot;&gt;Confianza&lt;/span&gt;&lt;span id=&quot;rc-detail-confidence&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+      &lt;div class=&quot;rc-detail-line&quot;&gt;&lt;a id=&quot;rc-detail-source&quot; target=&quot;_blank&quot; rel=&quot;noreferrer&quot;&gt;Abrir fuente&lt;/a&gt;&lt;/div&gt;
+    &lt;/section&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;rc-note&quot;&gt;El mapa muestra solo lugares sustentados por las fuentes consultadas; no es un inventario exhaustivo. Un departamento sin color significa “sin evidencia localizada en este corte”, no “sin daño”. Las categorías son una priorización operacional inferida a partir de daños, víctimas, infraestructura y acceso, no una clasificación oficial.&lt;/div&gt;
+  &lt;div class=&quot;rc-sources&quot;&gt;
+    &lt;a href=&quot;https://www.sgc.gov.co/sismos&quot; target=&quot;_blank&quot; rel=&quot;noreferrer&quot;&gt;SGC&lt;/a&gt;
+    &lt;a href=&quot;https://geoportal.dane.gov.co/mparcgis/rest/services/Hosted/InventarioGestores/FeatureServer/2&quot; target=&quot;_blank&quot; rel=&quot;noreferrer&quot;&gt;Límites DANE&lt;/a&gt;
+    &lt;a href=&quot;https://apnews.com/article/colombia-ecuador-earthquake-26fd40f93272d834fced47a4a673edc9&quot; target=&quot;_blank&quot; rel=&quot;noreferrer&quot;&gt;AP&lt;/a&gt;
+    &lt;a href=&quot;https://elpais.com/america-colombia/2026-08-13/ultima-hora-del-terremoto-en-colombia-en-directo.html&quot; target=&quot;_blank&quot; rel=&quot;noreferrer&quot;&gt;Balance nacional&lt;/a&gt;
+    &lt;a href=&quot;https://elpais.com/america-colombia/2026-08-11/el-choco-epicentro-del-sismo-y-de-la-pobreza-en-colombia-el-municipio-no-tiene-con-que-atender-esta-calamidad.html&quot; target=&quot;_blank&quot; rel=&quot;noreferrer&quot;&gt;Chocó y acceso&lt;/a&gt;
+    &lt;a href=&quot;https://elpais.com/america-colombia/2026-08-10/colombia-revive-el-trauma-del-terremoto-que-arraso-el-eje-cafetero-hace-27-anos.html&quot; target=&quot;_blank&quot; rel=&quot;noreferrer&quot;&gt;Occidente y Eje Cafetero&lt;/a&gt;
+  &lt;/div&gt;
+  &lt;script src=&quot;https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js&quot;&gt;&lt;/script&gt;
+  &lt;script&gt;
+    (() =&gt; {
+      const root = document.getElementById(&#x27;rc-colombia-impact-map&#x27;);
+      const geo = {&quot;features&quot;:[{&quot;geometry&quot;:{&quot;type&quot;:&quot;Polygon&quot;,&quot;coordinates&quot;:[[[-70.1103,2.0801],[-70.1395,2.0623],[-70.1515,2.0716],[-70.181,2.0248],[-70.2505,2.0294],[-70.2607,2.0141],[-70.3176,2.0128],[-70.3511,1.983],[-70.3681,2.0036],[-70.3865,1.9852],[-70.4347,1.9997],[-70.4656,1.9829],[-70.4644,1.963],[-70.4853,1.9631],[-70.4866,1.9458],[-70.5111,1.9404],[-70.514,1.957],[-70.5309,1.9571],[-70.5791,1.9286],[-70.6209,1.93],[-70.6361,1.9033],[-70.6626,1.9139],[-70.6911,1.8977],[-70.7331,1.9239],[-70.7611,1.91],[-70.7705,1.9276],[-70.801,1.9056],[-70.847,1.9206],[-70.8661,1.9088],[-70.8796,1.9332],[-70.8947,1.9275],[-70.9026,1.8883],[-71.0001,1.8152],[-71.0934,1.8021],[-71.0926,1.7811],[-71.1258,1.7831],[-71.2586,1.668],[-71.3139,1.7139],[-71.3304,1.7051],[-71.3678,1.7389],[-71.3982,1.7337],[-71.3902,1.5982],[-71.4395,1.545],[-71.4399,1.508],[-71.4553,1.4648],[-71.4794,1.4462],[-71.4786,1.4048],[-71.5306,1.2958],[-71.5264,1.278],[-71.5525,1.2769],[-71.5389,1.2302],[-71.553,1.2074],[-71.5347,1.206],[-71.4851,1.1088],[-71.5027,1.1033],[-71.5355,1.1241],[-71.5316,1.1603],[-71.5562,1.1555],[-71.54,1.1146],[-71.5825,1.1269],[-71.5727,1.0912],[-71.5851,1.0447],[-71.6158,1.0371],[-71.6656,0.9729],[-71.6884,0.9703],[-71.7102,0.9905],[-71.7403,0.9848],[-71.7657,0.9616],[-71.7741,0.9061],[-72.0332,0.6643],[-71.9993,0.6588],[-71.995,0.6331],[-71.9815,0.632],[-72.0118,0.5977],[-71.9907,0.589],[-71.9898,0.563],[-71.9531,0.54],[-71.9414,0.571],[-71.9293,0.5534],[-71.9131,0.5145],[-71.929,0.4866],[-71.9015,0.472],[-71.9194,0.451],[-71.8898,0.4476],[-71.8871,0.4694],[-71.859,0.457],[-71.8469,0.4136],[-71.8234,0.4057],[-71.8531,0.3524],[-71.8235,0.3394],[-71.8019,0.3553],[-71.8148,0.3736],[-71.767,0.3696],[-71.7891,0.3357],[-71.7537,0.3324],[-71.7372,0.2857],[-71.705,0.3184],[-71.7009,0.2996],[-71.7263,0.281],[-71.6979,0.2375],[-71.6439,0.2096],[-71.6241,0.2159],[-71.6171,0.1929],[-71.6361,0.183],[-71.6058,0.1833],[-71.5608,0.2163],[-71.5899,0.1663],[-71.5315,0.1652],[-71.545,0.131],[-71.5297,0.1199],[-71.4952,0.1348],[-71.4735,0.185],[-71.4556,0.1741],[-71.4703,0.1526],[-71.4496,0.139],[-71.4088,0.1507],[-71.3996,0.1859],[-71.3731,0.1721],[-71.3654,0.1446],[-71.3419,0.1383],[-71.3352,0.155],[-71.321,0.1363],[-71.3285,0.1129],[-71.2903,0.0959],[-71.2927,0.0684],[-71.2349,0.0664],[-71.2258,0.0542],[-71.1843,0.0971],[-71.1454,0.0629],[-71.134,0.0042],[-71.1043,0.026],[-71.095,-0.0082],[-71.0395,-0.0045],[-71.0531,-0.0277],[-71.0311,-0.0474],[-71.0121,-0.0415],[-71.0186,-0.0183],[-71.0017,-0.0038],[-70.9689,-0.0093],[-70.9613,-0.0398],[-70.9273,-0.0518],[-70.925,-0.0916],[-70.8921,-0.1131],[-70.9016,-0.1325],[-70.9345,-0.1317],[-70.9447,-0.1595],[-70.9151,-0.2018],[-70.8831,-0.2139],[-70.8782,-0.28],[-70.8262,-0.3657],[-70.7621,-0.3311],[-70.7595,-0.3191],[-70.7801,-0.3123],[-70.7367,-0.2867],[-70.678,-0.3521],[-70.6304,-0.3199],[-70.5795,-0.392],[-70.5607,-0.3659],[-70.5312,-0.3747],[-70.5193,-0.3577],[-70.4526,-0.4397],[-70.4574,-0.4955],[-70.3996,-0.4629],[-70.3778,-0.4979],[-70.3346,-0.4993],[-70.3212,-0.4698],[-70.3512,-0.4725],[-70.3651,-0.454],[-70.3098,-0.4415],[-70.2883,-0.4129],[-70.2466,-0.4454],[-70.2116,-0.4401],[-70.2026,-0.4738],[-70.2445,-0.4699],[-70.3252,-0.5613],[-70.3097,-0.5903],[-70.2999,-0.5593],[-70.2822,-0.5582],[-70.2561,-0.6029],[-70.2619,-0.7115],[-70.2488,-0.7394],[-70.2902,-0.7525],[-70.2971,-0.7913],[-70.2213,-0.8863],[-70.2606,-0.938],[-70.2959,-0.9365],[-70.3071,-0.9646],[-70.2532,-1.0208],[-70.2321,-1.0146],[-70.2199,-0.9853],[-70.1975,-0.9851],[-70.2276,-1.0497],[-70.1776,-1.0749],[-70.1695,-1.1123],[-70.1283,-1.1111],[-70.0793,-1.0384],[-70.0874,-1.0126],[-70.1256,-1.0213],[-70.1381,-1.0099],[-70.1053,-0.9558],[-70.0732,-0.9482],[-70.0393,-0.9809],[-70.0231,-0.9715],[-70.0203,-0.9376],[-70.001,-0.9455],[-69.9968,-0.9765],[-69.9582,-0.9678],[-69.9393,-0.9467],[-69.9018,-0.9747],[-69.954,-0.9951],[-69.9412,-1.0331],[-69.971,-1.0687],[-69.9609,-1.0933],[-69.8764,-1.0786],[-69.8303,-1.0278],[-69.7809,-1.0894],[-69.7454,-1.0975],[-69.7348,-1.0813],[-69.7576,-1.0735],[-69.7747,-1.041],[-69.7495,-1.0276],[-69.7047,-1.0478],[-69.6497,-1.1158],[-69.6523,-1.1337],[-69.6615,-1.1165],[-69.6809,-1.1213],[-69.6804,-1.2007],[-69.6665,-1.2251],[-69.6385,-1.2149],[-69.6331,-1.1664],[-69.5925,-1.1458],[-69.5647,-1.1933],[-69.4904,-1.2169],[-69.465,-1.1893],[-69.4892,-1.1529],[-69.4596,-1.1342],[-69.4699,-1.0897],[-69.4521,-1.0708],[-69.4204,-1.0699],[-69.4306,-1.0608],[-69.4186,-1.0436],[-69.4451,-1.023],[-69.4182,-0.999],[-69.4591,-0.9938],[-69.4713,-0.9577],[-69.5283,-0.9245],[-69.5257,-0.8688],[-69.5733,-0.8387],[-69.5645,-0.8067],[-69.5834,-0.8005],[-69.5862,-0.7814],[-69.6016,-0.7842],[-69.6062,-0.755],[-69.6256,-0.7456],[-69.562,-0.6367],[-69.6035,-0.5957],[-69.5915,-0.561],[-69.6144,-0.5344],[-69.6085,-0.5006],[-69.7269,-0.446],[-69.7744,-0.3913],[-69.8291,-0.3755],[-69.8448,-0.3376],[-69.8896,-0.3418],[-69.9207,-0.3256],[-70.0652,-0.1645],[-70.0426,-0.1225],[-70.0465,0.5632],[-70.0054,0.5443],[-69.9917,0.5629],[-70.0004,0.5736],[-69.9783,0.578],[-69.9361,0.5529],[-69.9165,0.5902],[-69.8872,0.5771],[-69.8233,0.5914],[-69.8028,0.5719],[-69.7487,0.6198],[-69.7241,0.6151],[-69.7158,0.6411],[-69.6711,0.6679],[-69.6494,0.6637],[-69.6067,0.6133],[-69.6063,0.6346],[-69.5875,0.6399],[-69.5929,0.6565],[-69.5626,0.6842],[-69.5357,0.6795],[-69.5325,0.7024],[-69.4808,0.7356],[-69.4339,0.7126],[-69.4356,0.6986],[-69.3531,0.6143],[-69.3365,0.6433],[-69.3195,0.6263],[-69.291,0.6504],[-69.2948,0.6039],[-69.2001,0.6067],[-69.2043,0.6326],[-69.1833,0.6543],[-69.1206,0.6338],[-69.1456,0.6985],[-69.1878,0.733],[-69.1757,0.76],[-69.1476,0.7687],[-69.1674,0.8437],[-69.1417,0.8487],[-69.1366,0.8768],[-69.191,0.9159],[-69.188,0.9336],[-69.1657,0.9418],[-69.2177,0.9744],[-69.1981,1.0006],[-69.2442,1.0562],[-69.2878,1.0538],[-69.3209,1.0881],[-69.3762,1.089],[-69.4132,1.0412],[-69.4376,1.0741],[-69.5611,1.0719],[-69.6052,1.0979],[-69.6743,1.0706],[-69.7021,1.0758],[-69.7037,1.1186],[-69.7736,1.1006],[-69.8038,1.0653],[-69.8466,1.0778],[-69.8457,1.7139],[-69.859,1.7093],[-69.9028,1.7453],[-69.975,1.7432],[-70.0465,1.7722],[-70.1491,1.8676],[-70.1756,1.8701],[-70.1657,1.9337],[-70.1115,2.0028],[-70.1218,2.0322],[-70.1103,2.0801]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;VAUPÉS&quot;,&quot;dpto_ccdgo&quot;:&quot;97&quot;}},{&quot;geometry&quot;:{&quot;type&quot;:&quot;Polygon&quot;,&quot;coordinates&quot;:[[[-76.4135,8.8738],[-76.5103,8.8039],[-76.5241,8.7736],[-76.6318,8.7313],[-76.6497,8.6712],[-76.8852,8.6231],[-76.8914,8.5921],[-76.9383,8.5534],[-76.9273,8.5263],[-76.9073,8.5323],[-76.9226,8.5275],[-76.9349,8.5477],[-76.8251,8.4966],[-76.7881,8.4212],[-76.7586,8.395],[-76.7536,8.3249],[-76.7743,8.2665],[-76.7391,8.1666],[-76.7615,8.118],[-76.741,8.1012],[-76.7405,8.1134],[-76.743,8.063],[-76.736,8.0925],[-76.7148,8.0616],[-76.7196,8.0403],[-76.7382,8.0416],[-76.7293,8.0266],[-76.7474,8.0207],[-76.726,7.9835],[-76.7409,7.9456],[-76.7626,7.944],[-76.7484,7.9221],[-76.8625,7.9006],[-76.9222,7.9176],[-76.9248,8.0246],[-76.8905,8.0455],[-76.8745,8.0214],[-76.8342,8.0198],[-76.8716,8.0532],[-76.83,8.0504],[-76.8732,8.0681],[-76.8216,8.0944],[-76.8547,8.0913],[-76.8541,8.12],[-76.8127,8.1317],[-76.8936,8.1323],[-76.8886,8.1144],[-76.9319,8.0915],[-76.9503,8.1448],[-76.9432,8.1667],[-76.9325,8.1585],[-76.9317,8.1736],[-76.9094,8.1776],[-76.9269,8.1899],[-76.9103,8.1908],[-76.9437,8.2106],[-76.9347,8.1888],[-76.9574,8.1848],[-76.9685,8.2433],[-76.9558,8.2355],[-76.9418,8.2485],[-76.9802,8.2553],[-76.9493,8.1723],[-76.9556,8.1227],[-76.9391,8.0628],[-76.9957,8.0212],[-77.0001,7.9584],[-77.0214,7.9488],[-77.0123,7.9338],[-77.0314,7.8801],[-77.0952,7.8251],[-77.1277,7.827],[-77.1217,7.7874],[-76.9601,7.6398],[-76.9436,7.5892],[-76.801,7.5717],[-76.6619,7.4492],[-76.6187,7.3162],[-76.579,7.3042],[-76.5304,7.255],[-76.4842,7.1329],[-76.5083,7.1386],[-76.5478,7.002],[-76.5713,6.9797],[-76.5929,7.0116],[-76.6032,7.0005],[-76.6156,7.0168],[-76.6455,7.0084],[-76.6756,7.0299],[-76.8346,6.9993],[-76.8425,6.9883],[-76.8188,6.9738],[-76.8288,6.956],[-76.8134,6.9635],[-76.8001,6.9486],[-76.7855,6.8775],[-76.8306,6.8586],[-76.8179,6.8377],[-76.8353,6.8287],[-76.8777,6.8522],[-76.8999,6.829],[-76.9166,6.8455],[-76.9335,6.8118],[-76.9703,6.8127],[-76.9579,6.7925],[-76.9672,6.7431],[-76.9336,6.7109],[-76.9641,6.6809],[-76.939,6.6863],[-76.9248,6.6469],[-76.8981,6.6682],[-76.909,6.6294],[-76.858,6.6184],[-76.8897,6.6053],[-76.8945,6.5702],[-76.883,6.56],[-76.8639,6.5715],[-76.8411,6.5215],[-76.8194,6.5255],[-76.82,6.4872],[-76.8004,6.508],[-76.768,6.478],[-76.7958,6.4437],[-76.7618,6.4322],[-76.7953,6.42],[-76.7651,6.3893],[-76.7874,6.3779],[-76.7714,6.3632],[-76.789,6.3499],[-76.7777,6.3279],[-76.7902,6.3202],[-76.7819,6.2888],[-76.749,6.2796],[-76.7565,6.2522],[-76.7231,6.237],[-76.7169,6.1715],[-76.6439,6.1683],[-76.5835,6.1935],[-76.4755,6.1601],[-76.4687,6.1766],[-76.4199,6.1657],[-76.3898,6.1915],[-76.2852,6.1934],[-76.2589,6.2097],[-76.2095,6.1845],[-76.197,6.0802],[-76.1727,6.0174],[-76.1438,5.9976],[-76.1049,6.0184],[-76.0511,5.9513],[-76.0605,5.8863],[-76.0816,5.8828],[-76.099,5.8492],[-76.0709,5.7807],[-76.0811,5.767],[-76.0612,5.758],[-76.087,5.6886],[-76.0052,5.6219],[-76.0083,5.5637],[-75.9829,5.5189],[-75.9308,5.5089],[-75.905,5.4799],[-75.868,5.4902],[-75.8623,5.5063],[-75.8325,5.4888],[-75.7857,5.54],[-75.7303,5.5641],[-75.6895,5.5194],[-75.6166,5.5323],[-75.5782,5.5157],[-75.5691,5.5399],[-75.5898,5.643],[-75.5724,5.6647],[-75.5996,5.6809],[-75.5984,5.7375],[-75.5434,5.7201],[-75.5355,5.691],[-75.5199,5.6951],[-75.4782,5.6643],[-75.4289,5.6966],[-75.3769,5.6742],[-75.3684,5.6408],[-75.3831,5.6215],[-75.3653,5.6016],[-75.3402,5.603],[-75.3288,5.5246],[-75.3108,5.5087],[-75.3177,5.4625],[-75.2826,5.4757],[-75.2759,5.4186],[-75.2207,5.5029],[-75.1376,5.5272],[-75.1298,5.5532],[-75.0916,5.5852],[-75.0937,5.6554],[-75.009,5.682],[-74.9933,5.7153],[-74.8651,5.7472],[-74.8057,5.6986],[-74.7715,5.6898],[-74.7294,5.7065],[-74.7137,5.7724],[-74.665,5.7685],[-74.638,5.8664],[-74.5854,5.9031],[-74.6124,5.9699],[-74.5633,5.9976],[-74.5617,6.0783],[-74.6117,6.1266],[-74.5734,6.2157],[-74.5359,6.268],[-74.4504,6.3319],[-74.4235,6.39],[-74.3695,6.4122],[-74.4047,6.4709],[-74.3938,6.5005],[-74.4068,6.5914],[-74.3594,6.6328],[-74.3302,6.6296],[-74.3122,6.6543],[-74.259,6.6734],[-74.2292,6.7114],[-74.1773,6.7249],[-74.1151,6.7656],[-74.0772,6.8419],[-74.0106,6.9133],[-73.8857,7.002],[-73.8882,7.0702],[-73.9311,7.1191],[-73.9388,7.1768],[-73.9159,7.2956],[-74.2458,7.0027],[-74.2772,7.0122],[-74.3058,6.9992],[-74.3222,7.0189],[-74.3557,7.0099],[-74.3514,7.0816],[-74.372,7.0981],[-74.37,7.1252],[-74.4091,7.1941],[-74.387,7.2789],[-74.4029,7.3302],[-74.3199,7.4417],[-74.3701,7.48],[-74.4124,7.4604],[-74.4194,7.3886],[-74.491,7.3435],[-74.5887,7.4455],[-74.5985,7.4657],[-74.5898,7.5119],[-74.5684,7.5181],[-74.5641,7.6403],[-74.5306,7.6712],[-74.4765,7.6822],[-74.4753,7.7056],[-74.507,7.7226],[-74.5136,7.781],[-74.5253,7.7826],[-74.5205,7.9033],[-74.6026,8.0374],[-74.6677,8.06],[-74.7286,8.1184],[-74.7736,8.1218],[-74.8339,8.2019],[-74.8651,8.1998],[-74.8671,8.1592],[-74.9279,8.0746],[-74.9684,8.0906],[-75.0474,8.0424],[-75.093,8.0706],[-75.1255,8.0401],[-75.1335,8.0539],[-75.1877,8.0443],[-75.2268,8.063],[-75.2471,8.0421],[-75.2358,8.0291],[-75.244,8.0076],[-75.3093,7.9474],[-75.3367,7.9481],[-75.3291,7.9269],[-75.3468,7.875],[-75.4043,7.8575],[-75.4224,7.8194],[-75.4656,7.8277],[-75.4562,7.7928],[-75.4957,7.7217],[-75.5346,7.7217],[-75.5552,7.6243],[-75.6194,7.5827],[-75.6713,7.598],[-75.7119,7.5813],[-75.7486,7.6135],[-75.7653,7.6019],[-75.7878,7.4598],[-75.8251,7.4422],[-75.8177,7.4158],[-75.8455,7.3471],[-76.3861,7.3936],[-76.4163,7.4185],[-76.4525,7.5011],[-76.5145,7.5867],[-76.4856,7.6893],[-76.4966,7.7497],[-76.4835,7.758],[-76.4635,7.8731],[-76.4211,7.9118],[-76.4116,8.007],[-76.4276,8.0198],[-76.425,8.0743],[-76.4087,8.0739],[-76.4085,8.0997],[-76.3749,8.1115],[-76.3682,8.1529],[-76.3311,8.1515],[-76.3534,8.1942],[-76.3033,8.2845],[-76.3034,8.3112],[-76.2429,8.37],[-76.1804,8.3973],[-76.2187,8.4436],[-76.21,8.5229],[-76.2368,8.5544],[-76.2228,8.5733],[-76.2654,8.5842],[-76.2507,8.6103],[-76.2661,8.6388],[-76.314,8.6565],[-76.3456,8.6398],[-76.3679,8.7207],[-76.4196,8.755],[-76.3812,8.7942],[-76.4135,8.8738]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;ANTIOQUIA&quot;,&quot;dpto_ccdgo&quot;:&quot;05&quot;}},{&quot;geometry&quot;:{&quot;type&quot;:&quot;Polygon&quot;,&quot;coordinates&quot;:[[[-74.8495,11.0978],[-74.8469,11.0584],[-74.9213,11.0455],[-74.9631,10.9861],[-75.0088,10.9774],[-75.0507,10.9463],[-75.0584,10.9312],[-75.0261,10.9443],[-75.0508,10.8958],[-75.1308,10.8628],[-75.1572,10.8315],[-75.2091,10.8173],[-75.2495,10.723],[-75.242,10.6544],[-75.2236,10.6308],[-75.237,10.5697],[-75.223,10.5528],[-75.2412,10.5195],[-75.2337,10.4795],[-75.1683,10.4518],[-75.13,10.3976],[-75.0743,10.4094],[-75.046,10.3763],[-74.9832,10.3434],[-74.9081,10.2533],[-74.8612,10.3527],[-74.8619,10.3865],[-74.8181,10.4248],[-74.7984,10.4962],[-74.7389,10.5423],[-74.7242,10.6087],[-74.7471,10.6492],[-74.7228,10.6726],[-74.7416,10.8406],[-74.7365,10.8888],[-74.7184,10.9092],[-74.7538,10.9361],[-74.7632,10.9943],[-74.8364,11.0552],[-74.8495,11.0978]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;ATLÁNTICO&quot;,&quot;dpto_ccdgo&quot;:&quot;08&quot;}},{&quot;geometry&quot;:{&quot;type&quot;:&quot;Polygon&quot;,&quot;coordinates&quot;:[[[-74.0706,4.8286],[-74.0867,4.8324],[-74.0873,4.796],[-74.1129,4.7901],[-74.1261,4.7294],[-74.1581,4.7255],[-74.177,4.7029],[-74.1585,4.6628],[-74.2226,4.6294],[-74.2043,4.5997],[-74.1838,4.5965],[-74.1736,4.5409],[-74.1877,4.5292],[-74.1781,4.4863],[-74.218,4.3608],[-74.2219,4.2821],[-74.2055,4.2689],[-74.2043,4.2397],[-74.2318,4.2167],[-74.2456,4.1032],[-74.2657,4.0917],[-74.3299,4.1305],[-74.3746,3.9859],[-74.3569,3.971],[-74.3596,3.9137],[-74.3953,3.8238],[-74.4507,3.7499],[-74.4396,3.7306],[-74.4016,3.7374],[-74.3872,3.7527],[-74.3939,3.7699],[-74.3356,3.8217],[-74.2966,3.8189],[-74.3168,3.8813],[-74.2975,3.8833],[-74.2736,3.9249],[-74.2564,3.9279],[-74.2601,3.9483],[-74.2174,4.0109],[-74.1603,4.0178],[-74.1507,4.0048],[-74.1269,4.0485],[-74.1306,4.116],[-74.1096,4.1325],[-74.11,4.1819],[-74.1233,4.1811],[-74.1527,4.2546],[-74.0982,4.3456],[-74.1121,4.4331],[-74.0759,4.4632],[-74.0726,4.5131],[-74.0423,4.5124],[-74.0296,4.5579],[-74.0053,4.5606],[-73.9861,4.6291],[-74.0092,4.6262],[-74.0314,4.646],[-74.002,4.6746],[-74.0184,4.7681],[-74.0036,4.8186],[-74.0706,4.8286]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;BOGOTÁ, D.C.&quot;,&quot;dpto_ccdgo&quot;:&quot;11&quot;}},{&quot;geometry&quot;:{&quot;type&quot;:&quot;MultiPolygon&quot;,&quot;coordinates&quot;:[[[[-75.2555,10.7996],[-75.2712,10.7793],[-75.2777,10.7129],[-75.3942,10.6827],[-75.3986,10.6628],[-75.4515,10.6276],[-75.4615,10.5897],[-75.5127,10.5711],[-75.4922,10.4864],[-75.5664,10.3966],[-75.5448,10.3903],[-75.5491,10.4223],[-75.524,10.4049],[-75.5374,10.3939],[-75.509,10.3742],[-75.5031,10.3011],[-75.5305,10.3042],[-75.5445,10.2814],[-75.5319,10.2796],[-75.5615,10.2633],[-75.581,10.2791],[-75.5786,10.2999],[-75.5885,10.2961],[-75.5839,10.2616],[-75.6222,10.2514],[-75.5862,10.2262],[-75.6049,10.2366],[-75.6541,10.1638],[-75.7044,10.1416],[-75.669,10.1376],[-75.6372,10.188],[-75.6376,10.177],[-75.5433,10.2443],[-75.5232,10.237],[-75.5468,10.2288],[-75.5462,10.2168],[-75.5246,10.2211],[-75.5209,10.1734],[-75.5361,10.1728],[-75.5382,10.1877],[-75.5545,10.1783],[-75.5446,10.1597],[-75.5295,10.1664],[-75.5641,10.1236],[-75.5807,10.1255],[-75.5736,10.0864],[-75.4975,10.1455],[-75.5433,10.0401],[-75.5155,10.0251],[-75.4908,10.0383],[-75.4761,10.0186],[-75.4801,9.9784],[-75.4642,9.9614],[-75.4692,9.9247],[-75.482,9.9299],[-75.4655,9.8918],[-75.4309,9.9127],[-75.4276,9.8929],[-75.3967,9.8938],[-75.4218,9.8845],[-75.3936,9.8808],[-75.3768,9.8494],[-75.3383,9.8282],[-75.36,9.7375],[-75.378,9.7204],[-75.3744,9.6308],[-75.3562,9.6473],[-75.3271,9.6167],[-75.3147,9.6528],[-75.2765,9.6863],[-75.2327,9.6467],[-75.1645,9.6465],[-75.1893,9.6293],[-75.1811,9.6019],[-75.1672,9.6134],[-75.1334,9.5964],[-75.0779,9.5328],[-75.0399,9.5404],[-75.0124,9.5283],[-75.0289,9.5098],[-75.0322,9.4666],[-74.9669,9.4344],[-74.9357,9.4482],[-74.8908,9.431],[-74.9505,9.3479],[-74.9329,9.3284],[-74.9445,9.2958],[-74.9257,9.279],[-74.931,9.2548],[-74.9047,9.2296],[-74.903,9.1635],[-74.8633,9.1485],[-74.8238,9.0574],[-74.7819,9.0377],[-74.7505,9.0424],[-74.7369,9.0158],[-74.6838,9.0115],[-74.6394,8.9775],[-74.5794,8.8728],[-74.586,8.8412],[-74.5397,8.8053],[-74.6107,8.7559],[-74.5867,8.6308],[-74.5947,8.5923],[-74.5626,8.5691],[-74.5765,8.5442],[-74.5687,8.5076],[-74.5354,8.4806],[-74.5397,8.4264],[-74.5774,8.3856],[-74.6145,8.4065],[-74.614,8.347],[-74.6493,8.3135],[-74.6535,8.279],[-74.7127,8.3041],[-74.7275,8.281],[-74.7348,8.2982],[-74.7644,8.2945],[-74.7709,8.2794],[-74.8088,8.2743],[-74.7949,8.2466],[-74.8332,8.2123],[-74.7848,8.1315],[-74.7286,8.1184],[-74.6677,8.06],[-74.6031,8.0378],[-74.5741,7.9794],[-74.5389,7.9469],[-74.5198,7.9008],[-74.5253,7.7826],[-74.5136,7.781],[-74.507,7.7226],[-74.4753,7.7056],[-74.4765,7.6822],[-74.5306,7.6712],[-74.5611,7.6465],[-74.5684,7.5181],[-74.5902,7.511],[-74.5984,7.4619],[-74.491,7.3435],[-74.4194,7.3886],[-74.4124,7.4604],[-74.3701,7.48],[-74.3229,7.4468],[-74.3977,7.3479],[-74.387,7.2789],[-74.4091,7.1941],[-74.37,7.1252],[-74.372,7.0981],[-74.3514,7.0816],[-74.3557,7.0099],[-74.3222,7.0189],[-74.3058,6.9992],[-74.2772,7.0122],[-74.2473,7.002],[-73.9159,7.2956],[-73.8954,7.4314],[-73.9131,7.4936],[-73.8492,7.5347],[-73.8287,7.6024],[-73.8103,7.6166],[-73.8184,7.6428],[-73.7978,7.6509],[-73.8319,7.7298],[-73.7981,7.775],[-73.8216,7.823],[-73.8316,7.9359],[-73.8657,7.9769],[-73.8717,8.0188],[-73.8615,8.0785],[-73.7737,8.1472],[-73.7796,8.2081],[-73.7503,8.2719],[-73.7603,8.2999],[-73.7467,8.3169],[-73.7576,8.3342],[-73.746,8.4621],[-73.7743,8.4971],[-73.7749,8.5606],[-73.8198,8.653],[-73.8157,8.7215],[-73.7893,8.7492],[-73.7953,8.8168],[-73.8666,8.887],[-73.8663,8.9527],[-73.894,8.9779],[-73.9591,8.9959],[-73.9777,8.9839],[-74.0039,8.9988],[-73.9847,9.0097],[-74.0032,9.0296],[-74.027,9.0262],[-74.0356,9.0444],[-74.0571,9.0185],[-74.098,9.0158],[-74.1133,9.041],[-74.1375,9.0287],[-74.1407,9.0408],[-74.1179,9.0489],[-74.1347,9.0644],[-74.1573,9.0574],[-74.1766,9.0893],[-74.2284,9.124],[-74.2201,9.1361],[-74.2483,9.1647],[-74.2982,9.1598],[-74.2965,9.2027],[-74.3489,9.2333],[-74.403,9.2137],[-74.4356,9.2743],[-74.5168,9.2345],[-74.5657,9.3144],[-74.6153,9.341],[-74.6184,9.3715],[-74.6602,9.386],[-74.6724,9.4131],[-74.6989,9.4269],[-74.7321,9.4188],[-74.7633,9.4638],[-74.8057,9.4475],[-74.7758,9.5005],[-74.8071,9.5474],[-74.7736,9.5873],[-74.777,9.6262],[-74.8058,9.6755],[-74.7876,9.6969],[-74.8153,9.7312],[-74.8052,9.7618],[-74.8156,9.7899],[-74.8824,9.8729],[-74.8726,9.9367],[-74.8204,9.9673],[-74.7883,10.0113],[-74.8485,10.085],[-74.9437,10.1244],[-74.9107,10.2544],[-74.9646,10.3255],[-75.0743,10.4094],[-75.13,10.3976],[-75.1683,10.4518],[-75.2337,10.4795],[-75.2412,10.5195],[-75.223,10.5528],[-75.237,10.5697],[-75.2236,10.6308],[-75.242,10.6544],[-75.2495,10.723],[-75.2199,10.7772],[-75.2222,10.7966],[-75.2555,10.7996]]],[[[-76.1732,9.3878],[-76.1761,9.3989],[-76.1906,9.3849],[-76.1732,9.3878]]],[[[-75.7525,9.7389],[-75.7477,9.7344],[-75.7397,9.7376],[-75.7525,9.7389]]],[[[-75.8702,9.784],[-75.8761,9.7801],[-75.8689,9.7806],[-75.8702,9.784]]],[[[-75.8587,9.7863],[-75.8599,9.7863],[-75.8592,9.7853],[-75.8587,9.7863]]],[[[-75.8539,9.7952],[-75.8548,9.7949],[-75.8544,9.7941],[-75.8539,9.7952]]],[[[-75.857,9.7959],[-75.8575,9.7958],[-75.8572,9.7949],[-75.857,9.7959]]],[[[-75.8554,9.7963],[-75.8559,9.7954],[-75.8546,9.7959],[-75.8554,9.7963]]],[[[-75.8533,9.7969],[-75.854,9.7976],[-75.8538,9.7965],[-75.8533,9.7969]]],[[[-75.8512,9.8046],[-75.8561,9.7884],[-75.8278,9.7904],[-75.8512,9.8046]]],[[[-75.7276,10.1455],[-75.7281,10.1474],[-75.7288,10.1463],[-75.7276,10.1455]]],[[[-75.6908,10.1493],[-75.6909,10.1505],[-75.6911,10.1494],[-75.6908,10.1493]]],[[[-75.6901,10.1496],[-75.6901,10.1506],[-75.6905,10.1502],[-75.6901,10.1496]]],[[[-75.6912,10.1507],[-75.6916,10.1507],[-75.6917,10.1497],[-75.6912,10.1507]]],[[[-75.6895,10.1508],[-75.6892,10.1514],[-75.6897,10.1514],[-75.6895,10.1508]]],[[[-75.674,10.1611],[-75.6778,10.1608],[-75.6757,10.1607],[-75.674,10.1611]]],[[[-75.776,10.1625],[-75.776,10.1629],[-75.7763,10.1627],[-75.776,10.1625]]],[[[-75.6666,10.1634],[-75.6672,10.164],[-75.6672,10.1631],[-75.6666,10.1634]]],[[[-75.6599,10.1639],[-75.6598,10.1643],[-75.6601,10.1641],[-75.6599,10.1639]]],[[[-75.6707,10.1641],[-75.6724,10.1636],[-75.6724,10.161],[-75.6707,10.1641]]],[[[-75.6638,10.1651],[-75.6641,10.1646],[-75.6633,10.1648],[-75.6638,10.1651]]],[[[-75.6549,10.1646],[-75.6548,10.1651],[-75.6553,10.1651],[-75.6549,10.1646]]],[[[-75.6617,10.1656],[-75.6619,10.1654],[-75.6617,10.1652],[-75.6617,10.1656]]],[[[-75.6632,10.1664],[-75.6633,10.1672],[-75.6636,10.1666],[-75.6632,10.1664]]],[[[-75.6671,10.1667],[-75.6672,10.166],[-75.6661,10.1669],[-75.6671,10.1667]]],[[[-75.7961,10.1693],[-75.7902,10.1576],[-75.7834,10.1592],[-75.7961,10.1693]]],[[[-75.653,10.1713],[-75.6677,10.1687],[-75.6693,10.1636],[-75.653,10.1713]]],[[[-75.7675,10.1756],[-75.768,10.1739],[-75.7666,10.1743],[-75.7675,10.1756]]],[[[-75.7586,10.1763],[-75.7589,10.1764],[-75.7584,10.1761],[-75.7586,10.1763]]],[[[-75.7707,10.1783],[-75.7713,10.1779],[-75.771,10.1767],[-75.7707,10.1783]]],[[[-75.772,10.1783],[-75.7715,10.1772],[-75.7714,10.1782],[-75.772,10.1783]]],[[[-75.7702,10.1784],[-75.7701,10.1788],[-75.7703,10.1788],[-75.7702,10.1784]]],[[[-75.7656,10.1787],[-75.7656,10.179],[-75.7657,10.179],[-75.7656,10.1787]]],[[[-75.758,10.179],[-75.7591,10.1771],[-75.7583,10.1771],[-75.758,10.179]]],[[[-75.7542,10.1788],[-75.7548,10.1734],[-75.7511,10.1761],[-75.7542,10.1788]]],[[[-75.7773,10.1796],[-75.7782,10.18],[-75.7767,10.1791],[-75.7773,10.1796]]],[[[-75.7497,10.1802],[-75.7496,10.175],[-75.7486,10.1805],[-75.7497,10.1802]]],[[[-75.7756,10.1781],[-75.7769,10.1812],[-75.7763,10.1785],[-75.7756,10.1781]]],[[[-75.7749,10.1812],[-75.775,10.1811],[-75.7749,10.1811],[-75.7749,10.1812]]],[[[-75.7487,10.1815],[-75.749,10.1823],[-75.749,10.182],[-75.7487,10.1815]]],[[[-75.7172,10.1828],[-75.7186,10.1828],[-75.7164,10.1825],[-75.7172,10.1828]]],[[[-75.7217,10.1834],[-75.7229,10.1831],[-75.7226,10.1818],[-75.7217,10.1834]]],[[[-75.7372,10.1839],[-75.7475,10.1724],[-75.7237,10.1813],[-75.7372,10.1839]]],[[[-75.7177,10.1841],[-75.7177,10.1845],[-75.718,10.1842],[-75.7177,10.1841]]],[[[-75.7266,10.1843],[-75.7263,10.1845],[-75.7268,10.1847],[-75.7266,10.1843]]],[[[-75.7278,10.1846],[-75.7284,10.1847],[-75.7278,10.1842],[-75.7278,10.1846]]],[[[-75.7365,10.1853],[-75.7367,10.1853],[-75.7366,10.1852],[-75.7365,10.1853]]],[[[-75.7374,10.1852],[-75.7375,10.1854],[-75.7376,10.1853],[-75.7374,10.1852]]],[[[-75.5797,10.3099],[-75.5826,10.3097],[-75.5799,10.3049],[-75.5797,10.3099]]],[[[-75.5782,10.3147],[-75.5784,10.3121],[-75.5752,10.3127],[-75.5782,10.3147]]],[[[-75.5754,10.3814],[-75.5934,10.3477],[-75.5821,10.318],[-75.5745,10.3415],[-75.5489,10.3361],[-75.5383,10.3492],[-75.5516,10.3559],[-75.5375,10.357],[-75.5754,10.3814]]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;BOLÍVAR&quot;,&quot;dpto_ccdgo&quot;:&quot;13&quot;}},{&quot;geometry&quot;:{&quot;type&quot;:&quot;Polygon&quot;,&quot;coordinates&quot;:[[[-72.1737,7.0531],[-72.1997,7.0412],[-72.201,7.0067],[-72.2341,6.9793],[-72.2554,6.984],[-72.2525,7.0075],[-72.2814,7.0101],[-72.3134,6.9322],[-72.3873,6.8739],[-72.4972,6.9207],[-72.5016,6.8742],[-72.4771,6.8422],[-72.4989,6.7952],[-72.4855,6.6571],[-72.5427,6.5828],[-72.5392,6.488],[-72.6491,6.4364],[-72.7191,6.5527],[-72.7646,6.5828],[-72.8089,6.5592],[-72.8086,6.5388],[-72.7359,6.4907],[-72.7249,6.4567],[-72.738,6.4403],[-72.7256,6.3721],[-72.7579,6.3151],[-72.7447,6.2292],[-72.775,6.2105],[-72.8037,6.216],[-72.8313,6.1488],[-72.8684,6.1445],[-72.8725,6.1251],[-72.916,6.1074],[-73.0112,5.9631],[-73.032,6.023],[-73.0622,6.0111],[-73.0678,5.982],[-73.1008,5.9623],[-73.1426,5.9611],[-73.1993,6.0031],[-73.2247,5.9411],[-73.2083,5.9215],[-73.221,5.8907],[-73.184,5.8504],[-73.205,5.8266],[-73.2469,5.816],[-73.2705,5.8535],[-73.3292,5.8515],[-73.3515,5.8726],[-73.3457,5.8422],[-73.379,5.7634],[-73.3905,5.7511],[-73.4308,5.7671],[-73.4359,5.7982],[-73.4735,5.8168],[-73.4511,5.867],[-73.4569,5.8904],[-73.4445,5.902],[-73.4074,5.8895],[-73.3707,6.0052],[-73.4148,6.0731],[-73.4381,6.0714],[-73.4974,6.108],[-73.5152,6.0991],[-73.5396,6.0374],[-73.5848,6.0082],[-73.603,5.9375],[-73.6359,5.9112],[-73.6002,5.869],[-73.644,5.7152],[-73.7144,5.7817],[-73.7636,5.7729],[-73.8125,5.715],[-73.8244,5.7406],[-73.8743,5.708],[-73.8745,5.7279],[-73.9245,5.743],[-73.9624,5.7394],[-73.9826,5.7209],[-74.0251,5.7808],[-74.026,5.8068],[-74.0793,5.8185],[-74.1031,5.877],[-74.1333,5.8759],[-74.1804,5.9111],[-74.1973,5.8529],[-74.2661,5.8346],[-74.275,5.8685],[-74.2311,5.905],[-74.2245,5.9232],[-74.2389,5.9437],[-74.2222,5.9679],[-74.2601,6.0125],[-74.2587,6.0655],[-74.2981,6.0841],[-74.3373,6.065],[-74.3476,6.0385],[-74.3831,6.0403],[-74.408,6.0865],[-74.4517,6.0993],[-74.4526,6.1357],[-74.4795,6.1596],[-74.4696,6.2014],[-74.5084,6.2165],[-74.5266,6.2736],[-74.5734,6.2157],[-74.6107,6.1332],[-74.5845,6.0882],[-74.5617,6.0783],[-74.5627,6.0019],[-74.6124,5.9699],[-74.5854,5.9031],[-74.638,5.8664],[-74.661,5.7524],[-74.6429,5.7354],[-74.6271,5.7625],[-74.5974,5.7434],[-74.5164,5.7914],[-74.4309,5.758],[-74.3331,5.837],[-74.3168,5.797],[-74.301,5.7977],[-74.313,5.7822],[-74.2872,5.7465],[-74.304,5.7092],[-74.276,5.6922],[-74.315,5.6205],[-74.2978,5.575],[-74.2403,5.5392],[-74.2539,5.4876],[-74.244,5.4763],[-74.2019,5.497],[-74.1824,5.4637],[-74.1255,5.429],[-74.1173,5.473],[-74.0969,5.4706],[-74.0928,5.4289],[-74.0223,5.3869],[-74.021,5.3663],[-73.9914,5.3746],[-73.9727,5.4196],[-73.948,5.4176],[-73.9422,5.4341],[-73.9125,5.4322],[-73.9012,5.4477],[-73.9068,5.5282],[-73.8899,5.5124],[-73.8047,5.5714],[-73.7688,5.4866],[-73.7471,5.4896],[-73.7432,5.4686],[-73.7202,5.4781],[-73.7195,5.4588],[-73.6963,5.4466],[-73.6767,5.4595],[-73.6784,5.4343],[-73.5927,5.3988],[-73.5994,5.3188],[-73.5342,5.2823],[-73.5148,5.2327],[-73.5245,5.214],[-73.5119,5.1623],[-73.4772,5.1481],[-73.4945,5.1064],[-73.4799,5.0631],[-73.5224,5.0292],[-73.507,4.9964],[-73.5447,4.9442],[-73.5387,4.8966],[-73.5209,4.879],[-73.4696,4.8927],[-73.402,4.8799],[-73.3652,4.8248],[-73.3718,4.8008],[-73.3209,4.7793],[-73.304,4.7296],[-73.223,4.7333],[-73.2347,4.6952],[-73.2224,4.6774],[-73.149,4.6552],[-73.1217,4.6716],[-73.1042,4.6605],[-73.0718,4.7392],[-73.0621,4.7318],[-73.045,4.7505],[-73.0777,4.8107],[-73.0415,4.8783],[-73.0491,4.9223],[-73.0305,4.9823],[-73.0165,5.0027],[-72.9753,4.9748],[-72.9038,5.0679],[-72.9084,5.1025],[-72.9286,5.0997],[-72.9739,5.1504],[-72.8962,5.2621],[-72.8827,5.3632],[-72.8595,5.3404],[-72.7983,5.3801],[-72.7569,5.3314],[-72.7256,5.318],[-72.7006,5.2733],[-72.6203,5.3512],[-72.5798,5.3503],[-72.5672,5.3734],[-72.584,5.382],[-72.5034,5.443],[-72.4899,5.4818],[-72.4424,5.5193],[-72.4209,5.5632],[-72.3874,5.5634],[-72.3381,5.5008],[-72.3009,5.506],[-72.2875,5.6056],[-72.2627,5.6335],[-72.2721,5.6622],[-72.2219,5.6726],[-72.2497,5.6853],[-72.2804,5.7496],[-72.3005,5.7583],[-72.3076,5.7928],[-72.4631,5.8491],[-72.4155,5.904],[-72.3357,5.8896],[-72.3267,5.9066],[-72.3398,5.9985],[-72.3655,6.0367],[-72.318,6.0776],[-72.3212,6.0882],[-72.3666,6.0768],[-72.3754,6.0925],[-72.3641,6.0993],[-72.3892,6.1237],[-72.3739,6.1477],[-72.3931,6.1616],[-72.3925,6.1883],[-72.4186,6.1854],[-72.3872,6.261],[-72.3961,6.2742],[-72.354,6.3435],[-72.3216,6.3318],[-72.3155,6.3577],[-72.2827,6.3794],[-72.2679,6.4416],[-72.2351,6.422],[-72.2138,6.4655],[-72.1747,6.463],[-72.1779,6.4968],[-72.1309,6.5206],[-72.1128,6.6121],[-72.0914,6.646],[-72.1001,6.7472],[-72.0506,6.7689],[-71.9489,7.0113],[-72.0757,7.0454],[-72.1221,7.0277],[-72.1737,7.0531]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;BOYACÁ&quot;,&quot;dpto_ccdgo&quot;:&quot;15&quot;}},{&quot;geometry&quot;:{&quot;type&quot;:&quot;Polygon&quot;,&quot;coordinates&quot;:[[[-74.6715,5.7715],[-74.7139,5.7722],[-74.7294,5.7065],[-74.7715,5.6898],[-74.8734,5.7477],[-74.9933,5.7153],[-75.0106,5.6811],[-75.0871,5.6608],[-75.0992,5.6423],[-75.0916,5.5852],[-75.1298,5.5532],[-75.1376,5.5272],[-75.2207,5.5029],[-75.2759,5.4186],[-75.2826,5.4757],[-75.3177,5.4625],[-75.3108,5.5087],[-75.3288,5.5246],[-75.3402,5.603],[-75.3653,5.6016],[-75.3831,5.6215],[-75.3684,5.6408],[-75.3769,5.6742],[-75.4289,5.6966],[-75.4782,5.6643],[-75.5199,5.6951],[-75.5355,5.691],[-75.5434,5.7201],[-75.5993,5.7373],[-75.5996,5.6809],[-75.5724,5.6647],[-75.5898,5.6419],[-75.571,5.5206],[-75.6168,5.5323],[-75.6891,5.5193],[-75.7303,5.5641],[-75.7857,5.54],[-75.8325,5.4888],[-75.8654,5.5019],[-75.8506,5.4125],[-75.8607,5.3717],[-75.8092,5.3621],[-75.7252,5.3971],[-75.6662,5.354],[-75.6481,5.3076],[-75.6662,5.2685],[-75.6926,5.2552],[-75.7348,5.2644],[-75.7493,5.2845],[-75.8237,5.2701],[-75.8024,5.2004],[-75.8338,5.1501],[-75.8366,5.1148],[-75.8458,5.1056],[-75.8918,5.131],[-75.9174,5.0787],[-75.922,5.0421],[-75.9039,5.0236],[-75.8922,4.9615],[-75.8607,4.9421],[-75.8671,4.9333],[-75.8148,4.9194],[-75.7922,4.9378],[-75.7814,5.0104],[-75.7468,5.0468],[-75.7024,4.9455],[-75.6555,4.9458],[-75.6395,4.975],[-75.6231,4.971],[-75.6171,4.9314],[-75.5646,4.9378],[-75.5375,4.9165],[-75.4801,4.9165],[-75.4269,4.8164],[-75.3755,4.8027],[-75.3187,4.8881],[-75.3525,4.9406],[-75.3527,4.9667],[-75.318,5.0154],[-75.3488,5.0573],[-75.3448,5.0808],[-75.2879,5.1383],[-75.235,5.126],[-75.1716,5.171],[-75.1162,5.1606],[-75.0566,5.2755],[-74.9394,5.313],[-74.8728,5.2949],[-74.8267,5.3193],[-74.7545,5.2817],[-74.7343,5.2869],[-74.7011,5.3532],[-74.7066,5.371],[-74.6851,5.3672],[-74.6848,5.4002],[-74.6667,5.4059],[-74.6764,5.4381],[-74.6493,5.4429],[-74.6746,5.5147],[-74.641,5.5402],[-74.6531,5.5747],[-74.6285,5.6317],[-74.6275,5.696],[-74.652,5.7095],[-74.6715,5.7715]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;CALDAS&quot;,&quot;dpto_ccdgo&quot;:&quot;17&quot;}},{&quot;geometry&quot;:{&quot;type&quot;:&quot;Polygon&quot;,&quot;coordinates&quot;:[[[-74.7992,2.9379],[-74.8369,2.9085],[-74.8783,2.915],[-74.9106,2.8835],[-74.9357,2.9086],[-75.0703,2.7421],[-75.1468,2.7224],[-75.1541,2.7041],[-75.1333,2.6915],[-75.1555,2.645],[-75.1327,2.5952],[-75.1541,2.5812],[-75.1806,2.5077],[-75.2271,2.5117],[-75.2506,2.4445],[-75.2795,2.4227],[-75.3101,2.3616],[-75.3296,2.3653],[-75.3481,2.3238],[-75.3886,2.3126],[-75.4104,2.2456],[-75.4397,2.2207],[-75.4263,2.1881],[-75.4424,2.147],[-75.535,2.1177],[-75.5881,2.0111],[-75.641,1.958],[-75.6518,1.9011],[-75.6896,1.8794],[-75.7307,1.8233],[-75.7371,1.7825],[-75.8303,1.7474],[-75.844,1.7226],[-75.9122,1.712],[-75.9527,1.6638],[-75.98,1.6576],[-75.9808,1.6244],[-76.0344,1.5828],[-76.0746,1.5848],[-76.1198,1.5521],[-76.1697,1.588],[-76.1492,1.5369],[-76.1838,1.4882],[-76.1758,1.4511],[-76.2012,1.4223],[-76.2034,1.3541],[-76.223,1.3379],[-76.2142,1.3204],[-76.3062,1.2291],[-76.2895,1.2084],[-76.3027,1.1766],[-76.2851,1.1712],[-76.2742,1.1322],[-76.2148,1.1083],[-76.1595,1.1162],[-76.1478,1.0995],[-76.1234,1.1006],[-76.085,1.0576],[-76.0492,1.0462],[-76.0049,1.0547],[-75.9959,1.0276],[-75.9858,1.0498],[-76.0008,1.0679],[-75.9862,1.0701],[-75.9491,1.0315],[-75.9233,1.0323],[-75.9469,0.9829],[-75.9092,0.9731],[-75.8566,0.885],[-75.8285,0.8738],[-75.8002,0.8957],[-75.7623,0.8378],[-75.731,0.8587],[-75.6819,0.8569],[-75.6364,0.8767],[-75.6078,0.8383],[-75.5379,0.8268],[-75.5384,0.7886],[-75.508,0.7682],[-75.4831,0.783],[-75.4687,0.7588],[-75.409,0.7378],[-75.3398,0.7692],[-75.2975,0.7295],[-75.2656,0.7256],[-75.2571,0.7034],[-75.2762,0.6674],[-75.2312,0.6461],[-75.2073,0.6015],[-75.2355,0.5718],[-75.1985,0.5047],[-75.2177,0.4875],[-75.1553,0.4809],[-75.1012,0.5119],[-75.1059,0.4738],[-75.0339,0.4843],[-74.9862,0.4185],[-74.9846,0.4],[-75.0166,0.3829],[-75.0071,0.3423],[-74.9799,0.3146],[-75.0106,0.2915],[-75.0039,0.2732],[-74.9594,0.2425],[-74.893,0.2492],[-74.8409,0.213],[-74.7365,0.2096],[-74.6806,0.1654],[-74.6753,0.0997],[-74.7134,0.0942],[-74.6565,0.0657],[-74.7046,0.0398],[-74.6564,-0.0116],[-74.6777,-0.0601],[-74.6464,-0.0384],[-74.6165,-0.0563],[-74.6318,-0.0885],[-74.5302,-0.126],[-74.5347,-0.0951],[-74.519,-0.0886],[-74.4932,-0.1379],[-74.4748,-0.1303],[-74.4544,-0.0708],[-74.4234,-0.098],[-74.4463,-0.1396],[-74.4019,-0.1143],[-74.3419,-0.1097],[-74.3063,-0.146],[-74.2655,-0.1444],[-74.2882,-0.2023],[-74.234,-0.2376],[-74.2176,-0.2101],[-74.2003,-0.2098],[-74.1814,-0.2639],[-74.1582,-0.2631],[-74.1347,-0.2336],[-74.1116,-0.2351],[-74.0818,-0.2798],[-74.0447,-0.2748],[-74.0384,-0.3061],[-74.0072,-0.3406],[-73.8814,-0.3699],[-73.8185,-0.4112],[-73.7634,-0.4075],[-73.7348,-0.3816],[-73.7137,-0.3826],[-73.6857,-0.4177],[-73.6393,-0.4189],[-73.6514,-0.4572],[-73.6082,-0.4392],[-73.5846,-0.4491],[-73.5684,-0.5168],[-73.5332,-0.4877],[-73.5105,-0.5243],[-73.4303,-0.5109],[-73.3785,-0.5363],[-73.3319,-0.5061],[-73.203,-0.6265],[-73.1214,-0.6041],[-73.0748,-0.6213],[-73.0533,-0.5467],[-73.0157,-0.5269],[-72.9589,-0.5594],[-72.9372,-0.6058],[-72.9173,-0.6155],[-72.8159,-0.5992],[-72.7497,-0.555],[-72.7406,-0.5801],[-72.6776,-0.616],[-72.6738,-0.6352],[-72.5628,-0.7057],[-72.425,-0.5623],[-72.4078,-0.5679],[-72.3944,-0.6141],[-72.3056,-0.651],[-72.2428,-0.6053],[-72.2306,-0.493],[-72.1728,-0.4439],[-72.148,-0.3954],[-72.1534,-0.3553],[-72.0627,-0.3247],[-72.0418,-0.2692],[-71.8309,-0.2763],[-71.743,-0.2524],[-71.7292,-0.2313],[-71.7106,-0.2323],[-71.7365,-0.1545],[-71.7009,-0.0975],[-71.7048,-0.0673],[-71.5935,-0.0144],[-71.5772,0.0157],[-71.5467,0.0213],[-71.4538,-0.0122],[-71.4484,0.0033],[-71.4005,0.0056],[-71.3706,0.0312],[-71.3279,0.0187],[-71.2634,0.0419],[-71.2538,0.0595],[-71.2966,0.0706],[-71.2903,0.0959],[-71.3285,0.1129],[-71.321,0.1363],[-71.3352,0.155],[-71.3419,0.1383],[-71.3654,0.1446],[-71.3731,0.1721],[-71.4006,0.186],[-71.4088,0.1507],[-71.4511,0.1392],[-71.4703,0.1526],[-71.4561,0.1755],[-71.4735,0.185],[-71.4967,0.1332],[-71.5333,0.1204],[-71.545,0.132],[-71.5315,0.1652],[-71.5899,0.1663],[-71.5601,0.2156],[-71.6058,0.1833],[-71.6361,0.183],[-71.6171,0.1929],[-71.6241,0.2159],[-71.6439,0.2096],[-71.6979,0.2375],[-71.7263,0.281],[-71.7009,0.2996],[-71.705,0.3184],[-71.7372,0.2857],[-71.7537,0.3324],[-71.7891,0.3357],[-71.767,0.3696],[-71.8148,0.3736],[-71.8019,0.3553],[-71.8235,0.3394],[-71.851,0.3504],[-71.8234,0.4057],[-71.8469,0.4136],[-71.859,0.457],[-71.8871,0.4694],[-71.8898,0.4476],[-71.9205,0.4526],[-71.9015,0.472],[-71.929,0.4866],[-71.9132,0.516],[-71.9386,0.57],[-71.9531,0.54],[-72.0117,0.596],[-71.9815,0.6306],[-71.995,0.6331],[-71.9979,0.6574],[-72.0843,0.6578],[-72.0704,0.6927],[-72.1098,0.7049],[-72.1267,0.7401],[-72.1403,0.7181],[-72.1634,0.7339],[-72.1639,0.7133],[-72.1908,0.727],[-72.2004,0.702],[-72.2201,0.7056],[-72.2219,0.7473],[-72.2487,0.7885],[-72.2703,0.7941],[-72.2697,0.7631],[-72.3101,0.8093],[-72.2868,0.8187],[-72.3013,0.8412],[-72.2917,0.8778],[-72.3239,0.8754],[-72.3276,0.8399],[-72.3436,0.8686],[-72.3324,0.8794],[-72.3469,0.9029],[-72.3399,0.9267],[-72.3544,0.9351],[-72.3916,0.9191],[-72.377,0.9602],[-72.4005,0.9674],[-72.4105,0.9868],[-72.3995,1.0039],[-72.4557,1.0799],[-72.5109,1.068],[-72.6226,1.1362],[-72.6474,1.1808],[-72.6622,1.1508],[-72.7259,1.1861],[-72.7228,1.1496],[-72.7387,1.1511],[-72.7496,1.1288],[-72.778,1.1479],[-72.7713,1.1823],[-72.8239,1.1782],[-72.8269,1.1489],[-72.8592,1.1648],[-72.8498,1.1431],[-72.8721,1.1354],[-72.85,1.1047],[-72.8837,1.0986],[-72.8691,1.0865],[-72.8833,1.07],[-72.8608,1.0719],[-72.858,1.0422],[-72.8793,1.0462],[-72.8652,1.0417],[-72.8672,1.0245],[-72.9325,1.0152],[-72.9367,0.9841],[-72.9964,0.952],[-72.9874,0.9285],[-73.0062,0.9333],[-73.0097,0.9105],[-73.0266,0.9215],[-73.0383,0.9024],[-73.0516,0.9119],[-73.0775,0.8945],[-73.1093,0.924],[-73.1445,0.9199],[-73.1469,0.9433],[-73.1643,0.9404],[-73.1895,0.967],[-73.1729,0.9815],[-73.1786,1.0002],[-73.2349,1.0087],[-73.2516,1.0488],[-73.2788,1.0473],[-73.282,1.0668],[-73.3405,1.0992],[-73.3436,1.1234],[-73.3975,1.1531],[-73.393,1.1719],[-73.4211,1.1911],[-73.4073,1.2057],[-73.4242,1.2235],[-73.4087,1.2414],[-73.4319,1.2589],[-73.4283,1.2959],[-73.4561,1.2946],[-73.4721,1.3585],[-73.5476,1.4062],[-73.5473,1.438],[-73.6583,1.5764],[-73.6567,1.6177],[-74.04,1.9708],[-74.105,1.9725],[-74.1496,1.9975],[-74.1533,1.9796],[-74.19,1.9854],[-74.2419,2.0564],[-74.3619,2.0595],[-74.3925,2.0842],[-74.4621,2.0892],[-74.4842,2.11],[-74.4854,2.1492],[-74.5387,2.11],[-74.5508,2.1317],[-74.58,2.1246],[-74.6042,2.1567],[-74.5892,2.17],[-74.5917,2.2017],[-74.6108,2.2083],[-74.6271,2.1925],[-74.665,2.2113],[-74.65,2.24],[-74.7012,2.2717],[-74.6933,2.2842],[-74.7092,2.2838],[-74.7158,2.2633],[-74.73,2.28],[-74.7483,2.2742],[-74.7337,2.3467],[-74.6929,2.42],[-74.6729,2.425],[-74.6629,2.4883],[-74.6475,2.4937],[-74.6775,2.5238],[-74.6817,2.5583],[-74.5858,2.6654],[-74.6375,2.7008],[-74.6175,2.7538],[-74.6433,2.7558],[-74.6667,2.805],[-74.6729,2.8883],[-74.7694,2.8731],[-74.7992,2.9379]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;CAQUETÁ&quot;,&quot;dpto_ccdgo&quot;:&quot;18&quot;}},{&quot;geometry&quot;:{&quot;type&quot;:&quot;Polygon&quot;,&quot;coordinates&quot;:[[[-76.4592,3.3287],[-76.4685,3.3107],[-76.4784,3.3193],[-76.4774,3.294],[-76.4891,3.305],[-76.4942,3.2928],[-76.4752,3.2877],[-76.4872,3.2825],[-76.4598,3.2563],[-76.4756,3.2577],[-76.4621,3.2492],[-76.4773,3.2326],[-76.4654,3.2275],[-76.4982,3.2021],[-76.4871,3.1738],[-76.5078,3.1573],[-76.5008,3.144],[-76.5198,3.1497],[-76.5178,3.1345],[-76.5327,3.1357],[-76.5134,3.1208],[-76.5309,3.1236],[-76.5559,3.0995],[-76.5729,3.1288],[-76.5981,3.0921],[-76.624,3.1018],[-76.6298,3.1284],[-76.6663,3.098],[-76.7334,3.1249],[-76.7498,3.1462],[-76.7392,3.1861],[-76.7729,3.2337],[-76.8094,3.2075],[-76.908,3.2014],[-76.9155,3.1495],[-76.9391,3.1138],[-76.9719,3.1188],[-76.9968,3.1548],[-77.0866,3.1858],[-77.1296,3.1612],[-77.1593,3.1743],[-77.2341,3.1081],[-77.2447,3.1263],[-77.2523,3.1152],[-77.2616,3.1351],[-77.2883,3.1386],[-77.2799,3.1594],[-77.3172,3.1742],[-77.3473,3.1401],[-77.3658,3.1465],[-77.3821,3.2034],[-77.4303,3.2541],[-77.4707,3.237],[-77.472,3.2115],[-77.4977,3.2164],[-77.5049,3.1872],[-77.5426,3.2137],[-77.5732,3.1444],[-77.6261,3.0776],[-77.6534,3.0648],[-77.6908,3.0008],[-77.702,2.9725],[-77.6816,2.9916],[-77.6667,2.9842],[-77.6718,2.9363],[-77.6923,2.9135],[-77.716,2.8312],[-77.7641,2.7963],[-77.736,2.7875],[-77.7506,2.7641],[-77.7941,2.7561],[-77.7865,2.6925],[-77.8091,2.685],[-77.8425,2.7039],[-77.8456,2.6915],[-77.8731,2.6975],[-77.9076,2.6804],[-77.9064,2.6458],[-77.9283,2.6404],[-77.9148,2.5698],[-77.9252,2.482],[-77.9175,2.4115],[-77.8479,2.2606],[-77.8488,2.1912],[-77.7806,2.1484],[-77.7338,2.134],[-77.6456,2.1685],[-77.6036,2.1647],[-77.5562,2.2025],[-77.4879,2.1953],[-77.4723,2.2413],[-77.479,2.2737],[-77.4594,2.2862],[-77.3857,2.2559],[-77.3556,2.2603],[-77.3077,2.1957],[-77.318,2.1819],[-77.3079,2.1061],[-77.3335,2.0514],[-77.2593,1.9941],[-77.2206,1.9882],[-77.2032,1.952],[-77.2184,1.917],[-77.2455,1.9113],[-77.2557,1.8697],[-77.2892,1.849],[-77.3101,1.8042],[-77.2947,1.766],[-77.3309,1.6815],[-77.239,1.6573],[-77.1508,1.6856],[-77.1376,1.6549],[-77.0723,1.669],[-77.0569,1.6991],[-77.0263,1.714],[-76.9983,1.7073],[-76.9361,1.729],[-76.9021,1.6624],[-76.8337,1.6097],[-76.8575,1.564],[-76.8586,1.5225],[-76.9289,1.5005],[-76.9207,1.3457],[-76.8866,1.3719],[-76.6972,1.444],[-76.6766,1.4662],[-76.646,1.4555],[-76.574,1.3858],[-76.5843,1.3435],[-76.571,1.328],[-76.586,1.3006],[-76.5657,1.2385],[-76.5372,1.2092],[-76.549,1.1231],[-76.568,1.1034],[-76.545,1.0377],[-76.4935,1.0282],[-76.4256,0.9604],[-76.3707,0.9839],[-76.3351,0.9806],[-76.3288,0.958],[-76.2949,0.9614],[-76.276,0.9837],[-76.2357,0.9645],[-76.2364,0.982],[-76.1906,0.9934],[-76.2088,1.0054],[-76.2033,1.0178],[-76.1831,1.0132],[-76.1837,1.0261],[-76.1253,1.0066],[-76.0749,1.0284],[-76.0935,1.0502],[-76.0809,1.0651],[-76.1013,1.0685],[-76.1236,1.1008],[-76.2601,1.1225],[-76.2805,1.1379],[-76.2851,1.1712],[-76.3027,1.1767],[-76.2895,1.206],[-76.3031,1.2362],[-76.2142,1.3204],[-76.223,1.3379],[-76.2034,1.3541],[-76.2012,1.4223],[-76.1759,1.4508],[-76.1838,1.488],[-76.1494,1.5359],[-76.1522,1.5625],[-76.1699,1.5881],[-76.1831,1.5738],[-76.2024,1.5787],[-76.2116,1.6407],[-76.2423,1.6831],[-76.2723,1.6745],[-76.305,1.69],[-76.3256,1.6631],[-76.3767,1.6639],[-76.3719,1.7425],[-76.4185,1.7171],[-76.4351,1.7918],[-76.5113,1.8335],[-76.5304,1.8235],[-76.5903,1.8682],[-76.5787,1.8987],[-76.6193,1.9265],[-76.6105,1.9467],[-76.6247,1.9717],[-76.5725,2.0197],[-76.5861,2.0346],[-76.5773,2.0565],[-76.5906,2.1073],[-76.5534,2.1397],[-76.4874,2.1291],[-76.4674,2.1],[-76.4309,2.1204],[-76.4343,2.1873],[-76.4047,2.2005],[-76.3738,2.2791],[-76.2991,2.2825],[-76.2093,2.1984],[-76.1478,2.2013],[-76.1211,2.2248],[-76.1465,2.294],[-76.1202,2.3905],[-76.0892,2.4159],[-76.0325,2.4026],[-76.0219,2.4436],[-75.9772,2.504],[-75.924,2.4812],[-75.8875,2.4251],[-75.8615,2.4279],[-75.8532,2.4548],[-75.8141,2.4836],[-75.8376,2.5671],[-75.791,2.6304],[-75.7891,2.6582],[-75.758,2.6808],[-75.7478,2.7195],[-75.7538,2.7452],[-75.8058,2.7683],[-75.8056,2.8191],[-75.8254,2.8382],[-75.8792,2.8338],[-76.029,2.9405],[-76.0208,3.0039],[-76.0413,3.0159],[-76.0449,3.0431],[-76.073,3.0496],[-76.0823,3.0904],[-76.1054,3.1006],[-76.0737,3.1225],[-76.0915,3.1983],[-76.0686,3.1955],[-76.0552,3.2233],[-76.0678,3.2105],[-76.1564,3.236],[-76.1913,3.2271],[-76.2293,3.2768],[-76.3431,3.2806],[-76.4592,3.3287]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;CAUCA&quot;,&quot;dpto_ccdgo&quot;:&quot;19&quot;}},{&quot;geometry&quot;:{&quot;type&quot;:&quot;Polygon&quot;,&quot;coordinates&quot;:[[[-73.4534,10.8677],[-73.5846,10.8421],[-73.6387,10.8021],[-73.6387,10.7878],[-73.589,10.7817],[-73.5419,10.7547],[-73.5623,10.7409],[-73.5631,10.716],[-73.5938,10.7053],[-73.6169,10.6447],[-73.5954,10.6309],[-73.5959,10.5851],[-73.6134,10.5642],[-73.5705,10.5418],[-73.5631,10.5038],[-73.6398,10.5008],[-73.6523,10.4605],[-73.7033,10.4636],[-73.7042,10.4301],[-73.7407,10.4357],[-73.779,10.3962],[-73.8181,10.3851],[-73.8305,10.4026],[-73.9171,10.3784],[-73.9613,10.3368],[-73.9651,10.2881],[-74.0407,10.22],[-74.0657,10.1665],[-74.0673,10.0981],[-74.083,10.0671],[-74.0118,9.9761],[-74.0018,9.9402],[-73.9527,9.9269],[-73.895,9.8321],[-73.8418,9.7973],[-73.8274,9.7529],[-73.839,9.731],[-73.8104,9.6965],[-73.8033,9.6364],[-73.8679,9.601],[-73.8934,9.6164],[-73.9893,9.5798],[-74.004,9.5954],[-74.0367,9.5913],[-74.1392,9.4938],[-73.9781,9.3894],[-73.9917,9.324],[-73.9428,9.2896],[-73.962,9.1877],[-73.8928,9.1736],[-73.8666,9.183],[-73.8753,9.1305],[-73.7977,9.0574],[-73.8734,8.9118],[-73.86,8.8787],[-73.7953,8.8168],[-73.7893,8.7492],[-73.8158,8.7213],[-73.818,8.6387],[-73.7749,8.5606],[-73.7743,8.4971],[-73.746,8.4621],[-73.7576,8.3342],[-73.7467,8.3169],[-73.7603,8.2999],[-73.7503,8.2719],[-73.7796,8.2081],[-73.7696,8.1165],[-73.7914,8.1028],[-73.7212,8.0106],[-73.7236,7.9678],[-73.6744,7.9417],[-73.6708,7.9035],[-73.7512,7.8197],[-73.7375,7.7845],[-73.7618,7.76],[-73.5882,7.7413],[-73.4906,7.6744],[-73.4034,7.7241],[-73.3431,7.8121],[-73.3517,7.8925],[-73.3033,7.9066],[-73.2751,7.9578],[-73.2819,7.9934],[-73.2984,7.985],[-73.3093,8.0155],[-73.367,8.0126],[-73.3776,8.1055],[-73.4354,8.1452],[-73.4051,8.2466],[-73.3741,8.2658],[-73.3767,8.316],[-73.3507,8.3311],[-73.3421,8.4356],[-73.3704,8.4591],[-73.4144,8.4593],[-73.3932,8.3821],[-73.4342,8.3654],[-73.4418,8.3409],[-73.4881,8.384],[-73.53,8.3808],[-73.4733,8.4468],[-73.4777,8.4701],[-73.5228,8.4829],[-73.5477,8.4714],[-73.5766,8.5057],[-73.515,8.529],[-73.5472,8.5643],[-73.5522,8.6074],[-73.5216,8.6383],[-73.505,8.6885],[-73.4718,8.7075],[-73.4627,8.7453],[-73.4146,8.766],[-73.4483,8.8633],[-73.4257,8.8996],[-73.4374,8.91],[-73.4393,8.989],[-73.4119,9.0527],[-73.4295,9.1024],[-73.4117,9.1544],[-73.3717,9.1581],[-73.3562,9.2156],[-73.3333,9.2128],[-73.2984,9.2667],[-73.2887,9.3148],[-73.2645,9.3281],[-73.2608,9.3706],[-73.1873,9.447],[-73.2031,9.4692],[-73.174,9.4797],[-73.1767,9.5011],[-73.1451,9.5429],[-73.0847,9.5565],[-73.0551,9.6783],[-72.9435,9.8431],[-72.993,9.8764],[-72.9772,9.889],[-72.9815,9.9163],[-72.9992,9.9227],[-72.9529,10.0268],[-72.9547,10.066],[-72.9115,10.1124],[-72.922,10.138],[-72.8972,10.2179],[-72.9079,10.3443],[-72.8858,10.3846],[-72.9008,10.4361],[-72.9867,10.4005],[-73.0845,10.4263],[-73.1443,10.3981],[-73.1423,10.4368],[-73.1817,10.4663],[-73.168,10.4922],[-73.1449,10.4995],[-73.1376,10.5303],[-73.1234,10.5271],[-73.0954,10.5578],[-73.0822,10.6294],[-73.1041,10.6739],[-73.1461,10.6915],[-73.1574,10.7155],[-73.2076,10.7075],[-73.2371,10.7404],[-73.2778,10.7264],[-73.2515,10.8043],[-73.2799,10.857],[-73.3123,10.8462],[-73.3375,10.8626],[-73.4534,10.8677]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;CESAR&quot;,&quot;dpto_ccdgo&quot;:&quot;20&quot;}},{&quot;geometry&quot;:{&quot;type&quot;:&quot;Polygon&quot;,&quot;coordinates&quot;:[[[-75.8812,9.4236],[-75.923,9.4477],[-75.9455,9.4433],[-75.9781,9.3764],[-76.0853,9.335],[-76.1099,9.3044],[-76.1073,9.2662],[-76.1702,9.2297],[-76.1868,9.1192],[-76.2512,9.0579],[-76.2645,8.9975],[-76.3228,8.957],[-76.3383,8.9199],[-76.4166,8.8881],[-76.3812,8.7942],[-76.4196,8.755],[-76.3679,8.7207],[-76.3456,8.6398],[-76.314,8.6565],[-76.2661,8.6388],[-76.2507,8.6103],[-76.2654,8.5842],[-76.2228,8.5733],[-76.2368,8.5544],[-76.21,8.5229],[-76.2187,8.4436],[-76.1804,8.3973],[-76.2429,8.37],[-76.3034,8.3112],[-76.3033,8.2845],[-76.3534,8.1942],[-76.3311,8.1515],[-76.3682,8.1529],[-76.3749,8.1115],[-76.4085,8.0997],[-76.4087,8.0739],[-76.425,8.0743],[-76.4276,8.0198],[-76.4116,8.007],[-76.4211,7.9118],[-76.4635,7.8731],[-76.4835,7.758],[-76.4966,7.7497],[-76.4856,7.6893],[-76.5145,7.5867],[-76.4525,7.5011],[-76.4163,7.4185],[-76.3839,7.3923],[-75.8455,7.3471],[-75.8177,7.4158],[-75.8251,7.4422],[-75.7878,7.4598],[-75.7653,7.6019],[-75.7431,7.6122],[-75.7119,7.5813],[-75.6713,7.598],[-75.6052,7.5855],[-75.6014,7.6022],[-75.553,7.6273],[-75.5337,7.723],[-75.4886,7.7295],[-75.4543,7.7975],[-75.4656,7.8277],[-75.4224,7.8194],[-75.4043,7.8575],[-75.3468,7.875],[-75.3291,7.9269],[-75.3367,7.9481],[-75.3093,7.9474],[-75.244,8.0076],[-75.2358,8.0291],[-75.2471,8.0421],[-75.2268,8.063],[-75.1877,8.0443],[-75.1335,8.0539],[-75.1255,8.0401],[-75.093,8.0706],[-75.0474,8.0424],[-74.9684,8.0906],[-74.9279,8.0746],[-74.8671,8.1592],[-74.8679,8.1961],[-74.8306,8.1999],[-74.833,8.223],[-74.7949,8.2466],[-74.8088,8.2743],[-74.7809,8.2779],[-74.8006,8.2962],[-74.7956,8.3282],[-74.828,8.3597],[-74.8037,8.3688],[-74.8055,8.3826],[-74.8523,8.3847],[-74.8998,8.4543],[-74.9275,8.4533],[-74.926,8.4996],[-75.0057,8.5228],[-75.0335,8.4989],[-75.0409,8.4585],[-75.128,8.4683],[-75.1362,8.4299],[-75.1565,8.4333],[-75.1851,8.3966],[-75.2114,8.4253],[-75.1925,8.4434],[-75.2163,8.4854],[-75.2319,8.4679],[-75.2414,8.4873],[-75.3144,8.5024],[-75.3043,8.5178],[-75.3303,8.5528],[-75.3183,8.5904],[-75.3596,8.6797],[-75.3491,8.7007],[-75.3367,8.6962],[-75.3432,8.7152],[-75.3242,8.7555],[-75.3688,8.7912],[-75.3716,8.8265],[-75.3316,8.8655],[-75.2998,8.858],[-75.2932,8.8973],[-75.2727,8.9136],[-75.2446,8.8823],[-75.217,8.9158],[-75.1863,8.9143],[-75.188,8.9442],[-75.1717,8.9283],[-75.1561,8.9436],[-75.1878,8.9675],[-75.2237,9.0727],[-75.2811,9.0729],[-75.2991,9.0825],[-75.2936,9.0962],[-75.31,9.0888],[-75.3101,9.1176],[-75.3817,9.1381],[-75.3909,9.1613],[-75.4489,9.1401],[-75.4674,9.1647],[-75.4544,9.176],[-75.4662,9.2085],[-75.4573,9.2376],[-75.4998,9.2595],[-75.4965,9.2849],[-75.5123,9.2581],[-75.6094,9.281],[-75.5877,9.3025],[-75.5997,9.3254],[-75.6488,9.3624],[-75.6798,9.3446],[-75.7044,9.3722],[-75.7009,9.4135],[-75.7458,9.4213],[-75.7842,9.393],[-75.8252,9.3934],[-75.8344,9.4082],[-75.7915,9.4099],[-75.7939,9.4293],[-75.8812,9.4236]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;CÓRDOBA&quot;,&quot;dpto_ccdgo&quot;:&quot;23&quot;}},{&quot;geometry&quot;:{&quot;type&quot;:&quot;Polygon&quot;,&quot;coordinates&quot;:[[[-74.3275,5.824],[-74.3452,5.832],[-74.3847,5.7844],[-74.4309,5.758],[-74.5164,5.7914],[-74.5974,5.7434],[-74.6271,5.7625],[-74.6429,5.7354],[-74.661,5.7524],[-74.652,5.7095],[-74.6275,5.696],[-74.6285,5.6317],[-74.6531,5.5747],[-74.641,5.5402],[-74.6746,5.5147],[-74.6493,5.4429],[-74.6764,5.4381],[-74.6667,5.4059],[-74.6848,5.4002],[-74.6851,5.3672],[-74.7066,5.371],[-74.7011,5.3532],[-74.7343,5.2869],[-74.7234,5.2399],[-74.7346,5.2048],[-74.7144,5.1817],[-74.7319,5.1432],[-74.7165,5.1007],[-74.7432,5.0071],[-74.7059,4.9814],[-74.7488,4.9577],[-74.7317,4.894],[-74.7549,4.8859],[-74.7695,4.8429],[-74.7444,4.8234],[-74.7438,4.7883],[-74.8191,4.726],[-74.8014,4.7017],[-74.8072,4.6694],[-74.7858,4.6529],[-74.8163,4.6119],[-74.7938,4.5921],[-74.8149,4.5852],[-74.7863,4.5059],[-74.8073,4.4533],[-74.8331,4.4434],[-74.8558,4.3347],[-74.8835,4.317],[-74.8731,4.3066],[-74.8906,4.2887],[-74.8771,4.2654],[-74.8127,4.2943],[-74.7788,4.2836],[-74.7672,4.2513],[-74.7512,4.259],[-74.746,4.2368],[-74.7341,4.2478],[-74.6813,4.2009],[-74.6589,4.2159],[-74.652,4.2],[-74.6235,4.2268],[-74.6199,4.2519],[-74.5885,4.2674],[-74.5625,4.2721],[-74.5189,4.2405],[-74.4749,4.1279],[-74.5298,4.0448],[-74.5311,3.9676],[-74.5113,3.9461],[-74.5395,3.8448],[-74.4902,3.8176],[-74.4502,3.819],[-74.4635,3.7421],[-74.4504,3.7301],[-74.3596,3.9137],[-74.3569,3.971],[-74.3746,3.9859],[-74.3299,4.1305],[-74.2657,4.0917],[-74.2456,4.1032],[-74.2318,4.2167],[-74.2043,4.2397],[-74.2055,4.2689],[-74.2219,4.2821],[-74.2123,4.3934],[-74.1746,4.5071],[-74.1877,4.5292],[-74.1736,4.5409],[-74.1838,4.5965],[-74.2235,4.6259],[-74.1942,4.6551],[-74.1585,4.6628],[-74.177,4.7029],[-74.1581,4.7255],[-74.1261,4.7294],[-74.1129,4.7901],[-74.0796,4.809],[-74.0866,4.8325],[-74.0036,4.8186],[-74.0184,4.7681],[-74.002,4.6746],[-74.0314,4.646],[-74.0092,4.6262],[-73.9861,4.6291],[-74.0053,4.5606],[-74.0296,4.5579],[-74.0423,4.5124],[-74.0726,4.5131],[-74.0759,4.4632],[-74.1121,4.4331],[-74.0982,4.3456],[-74.1527,4.2546],[-74.1092,4.1696],[-74.1096,4.1325],[-74.1306,4.116],[-74.1245,4.0576],[-74.15,4.0093],[-74.1373,4.0004],[-74.0997,4.0131],[-74.0645,4.0614],[-74.0349,4.0608],[-74.0359,4.0824],[-74.0059,4.1098],[-73.9601,4.0955],[-73.9331,4.1492],[-73.8958,4.1426],[-73.8609,4.1718],[-73.8259,4.1683],[-73.8094,4.2039],[-73.7428,4.1978],[-73.7603,4.2364],[-73.7441,4.2662],[-73.7843,4.3017],[-73.807,4.4222],[-73.7833,4.4483],[-73.7383,4.4606],[-73.7387,4.486],[-73.7137,4.5151],[-73.6219,4.5625],[-73.568,4.5265],[-73.6034,4.4575],[-73.5726,4.4199],[-73.5507,4.3078],[-73.4717,4.2762],[-73.4303,4.3064],[-73.3536,4.3212],[-73.2035,4.2733],[-73.137,4.2128],[-73.0526,4.7363],[-73.0718,4.7392],[-73.1057,4.6598],[-73.1217,4.6716],[-73.149,4.6552],[-73.2209,4.6768],[-73.2347,4.6952],[-73.2223,4.7326],[-73.3063,4.7314],[-73.3209,4.7793],[-73.3718,4.8008],[-73.3652,4.8248],[-73.402,4.8799],[-73.4696,4.8927],[-73.5209,4.879],[-73.5387,4.8966],[-73.5447,4.9442],[-73.507,4.9964],[-73.5224,5.0292],[-73.4799,5.0631],[-73.4945,5.1064],[-73.4772,5.1481],[-73.5119,5.1623],[-73.5245,5.214],[-73.5148,5.2327],[-73.5342,5.2823],[-73.5994,5.3188],[-73.5927,5.3988],[-73.6784,5.4343],[-73.6767,5.4595],[-73.6963,5.4466],[-73.7195,5.4588],[-73.7202,5.4781],[-73.7432,5.4686],[-73.7471,5.4896],[-73.7688,5.4866],[-73.8047,5.5714],[-73.8899,5.5124],[-73.9078,5.5271],[-73.9012,5.4477],[-73.9125,5.4322],[-73.9422,5.4341],[-73.948,5.4176],[-73.973,5.4194],[-73.9991,5.3675],[-74.0218,5.3666],[-74.0223,5.3869],[-74.0755,5.4101],[-74.0976,5.4399],[-74.0969,5.4706],[-74.1173,5.473],[-74.1255,5.429],[-74.1824,5.4637],[-74.2037,5.4978],[-74.2445,5.4763],[-74.2564,5.4998],[-74.2429,5.5447],[-74.2978,5.575],[-74.315,5.6205],[-74.276,5.6922],[-74.3042,5.7097],[-74.2872,5.7465],[-74.313,5.7822],[-74.301,5.7977],[-74.3168,5.797],[-74.3275,5.824]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;CUNDINAMARCA&quot;,&quot;dpto_ccdgo&quot;:&quot;25&quot;}},{&quot;geometry&quot;:{&quot;type&quot;:&quot;Polygon&quot;,&quot;coordinates&quot;:[[[-77.3682,8.6774],[-77.3646,8.641],[-77.4088,8.644],[-77.3906,8.5847],[-77.4181,8.5882],[-77.4096,8.5663],[-77.4385,8.5602],[-77.4406,8.5227],[-77.4562,8.5095],[-77.4479,8.4733],[-77.4019,8.4765],[-77.359,8.4011],[-77.3505,8.2978],[-77.3327,8.2734],[-77.2996,8.2814],[-77.2805,8.2172],[-77.2605,8.2102],[-77.2478,8.1748],[-77.2572,8.1579],[-77.227,8.1368],[-77.2175,8.0879],[-77.2336,8.025],[-77.1656,7.9742],[-77.1821,7.9552],[-77.1586,7.9323],[-77.1761,7.9169],[-77.2566,7.92],[-77.3248,7.8958],[-77.3372,7.8569],[-77.3686,7.8283],[-77.3394,7.766],[-77.3912,7.7599],[-77.4426,7.6568],[-77.4702,7.6515],[-77.4892,7.5695],[-77.5245,7.5718],[-77.5635,7.5073],[-77.6067,7.5407],[-77.6458,7.6516],[-77.6975,7.693],[-77.7291,7.6955],[-77.7485,7.6135],[-77.7007,7.5065],[-77.7404,7.4655],[-77.7925,7.461],[-77.8838,7.217],[-77.855,7.1806],[-77.8357,7.1784],[-77.8217,7.1478],[-77.7788,7.1333],[-77.6587,6.9949],[-77.6623,6.9523],[-77.6986,6.9393],[-77.7119,6.8842],[-77.702,6.8422],[-77.6895,6.8353],[-77.6846,6.8707],[-77.6668,6.8756],[-77.6574,6.8544],[-77.5874,6.819],[-77.531,6.6947],[-77.5406,6.6865],[-77.5266,6.648],[-77.5181,6.6609],[-77.5043,6.6512],[-77.5056,6.6843],[-77.4723,6.7043],[-77.4057,6.6871],[-77.4003,6.6208],[-77.3253,6.5493],[-77.3762,6.425],[-77.3557,6.3989],[-77.4129,6.3811],[-77.3698,6.3551],[-77.3953,6.2356],[-77.4092,6.2271],[-77.4341,6.2701],[-77.459,6.2728],[-77.4742,6.2973],[-77.468,6.2489],[-77.4827,6.1922],[-77.4449,6.1194],[-77.373,6.0441],[-77.3636,5.999],[-77.3526,5.9989],[-77.3637,6.0592],[-77.3515,6.0459],[-77.3068,5.9192],[-77.307,5.8736],[-77.2945,5.8736],[-77.2905,5.8433],[-77.2765,5.8461],[-77.2522,5.7887],[-77.2486,5.8105],[-77.2434,5.7675],[-77.2559,5.7835],[-77.2641,5.7161],[-77.2998,5.6694],[-77.3167,5.6691],[-77.3419,5.6173],[-77.3711,5.6083],[-77.3893,5.63],[-77.4144,5.6303],[-77.4599,5.5965],[-77.4898,5.6074],[-77.5073,5.5287],[-77.5395,5.4872],[-77.4925,5.4686],[-77.454,5.4887],[-77.4299,5.4684],[-77.4283,5.4372],[-77.4076,5.454],[-77.3898,5.4436],[-77.3874,5.3918],[-77.4133,5.4034],[-77.3878,5.2883],[-77.3972,5.169],[-77.3841,5.1521],[-77.3762,4.9479],[-77.348,4.8084],[-77.3296,4.798],[-77.3484,4.7717],[-77.3091,4.782],[-77.2999,4.7471],[-77.3282,4.7397],[-77.3362,4.536],[-77.3227,4.5226],[-77.3399,4.5121],[-77.3515,4.4218],[-77.3376,4.4293],[-77.3661,4.4076],[-77.3668,4.3701],[-77.3868,4.3685],[-77.3761,4.3891],[-77.4261,4.3194],[-77.4562,4.3131],[-77.4141,4.2929],[-77.4853,4.2585],[-77.5003,4.2635],[-77.4838,4.2932],[-77.5167,4.2762],[-77.5313,4.2007],[-77.5255,4.1264],[-77.4496,4.0385],[-77.4289,4.0931],[-77.4358,4.1458],[-77.3903,4.1485],[-77.353,4.1975],[-77.3055,4.1665],[-77.2791,4.2227],[-77.2535,4.2342],[-77.2499,4.1877],[-77.2232,4.1572],[-77.1596,4.1837],[-77.1048,4.1077],[-77.0862,4.1226],[-77.068,4.096],[-77.0356,4.0913],[-77.0048,4.0989],[-76.995,4.1204],[-76.9544,4.1207],[-76.9147,4.0977],[-76.8674,4.0324],[-76.8234,4.0327],[-76.8153,4.007],[-76.7942,4.0114],[-76.7677,3.9887],[-76.6824,3.9649],[-76.6246,4.0149],[-76.5894,3.9941],[-76.5903,3.9701],[-76.5373,4.0162],[-76.5415,4.0437],[-76.5244,4.0673],[-76.4944,4.0695],[-76.4449,4.1757],[-76.455,4.2295],[-76.4871,4.2355],[-76.5266,4.2886],[-76.5279,4.3235],[-76.562,4.3697],[-76.5551,4.3994],[-76.4821,4.4141],[-76.4183,4.4478],[-76.383,4.4928],[-76.3652,4.4916],[-76.4038,4.535],[-76.3813,4.5596],[-76.3446,4.5618],[-76.3194,4.6079],[-76.2857,4.7124],[-76.3121,4.7506],[-76.2127,4.8289],[-76.1405,4.8402],[-76.1141,4.8904],[-76.1306,4.9112],[-76.0997,4.9172],[-76.0887,4.9461],[-76.0968,5.0318],[-76.0765,5.048],[-76.0604,5.1359],[-76.1325,5.1834],[-76.142,5.2334],[-76.1736,5.2603],[-76.2114,5.3486],[-76.1912,5.4146],[-76.178,5.4013],[-76.1525,5.4076],[-76.0853,5.4498],[-76.0748,5.5466],[-76.007,5.5738],[-76.0052,5.6219],[-76.087,5.6886],[-76.0612,5.758],[-76.0811,5.767],[-76.0709,5.7807],[-76.099,5.8492],[-76.0816,5.8828],[-76.0605,5.8863],[-76.051,5.9508],[-76.1049,6.0184],[-76.1438,5.9976],[-76.1727,6.0174],[-76.197,6.0802],[-76.2012,6.1603],[-76.2377,6.2083],[-76.3898,6.1915],[-76.4199,6.1657],[-76.4687,6.1766],[-76.4823,6.1605],[-76.5835,6.1935],[-76.6877,6.1616],[-76.72,6.1763],[-76.7231,6.237],[-76.7593,6.2574],[-76.7494,6.2802],[-76.7834,6.2912],[-76.7903,6.3223],[-76.7777,6.3288],[-76.7902,6.3465],[-76.7714,6.3642],[-76.7874,6.3779],[-76.7651,6.3893],[-76.7957,6.4176],[-76.7618,6.4322],[-76.7958,6.4437],[-76.7674,6.4766],[-76.8004,6.508],[-76.82,6.4872],[-76.8194,6.5255],[-76.8411,6.5215],[-76.8639,6.5715],[-76.883,6.56],[-76.8945,6.5702],[-76.8897,6.6053],[-76.858,6.6184],[-76.909,6.6294],[-76.8981,6.6682],[-76.9248,6.6469],[-76.939,6.6863],[-76.9635,6.6797],[-76.9336,6.7109],[-76.9672,6.7431],[-76.9579,6.7925],[-76.9723,6.809],[-76.9335,6.8118],[-76.9166,6.8455],[-76.8999,6.829],[-76.8781,6.8521],[-76.8353,6.8287],[-76.8179,6.8377],[-76.8306,6.8586],[-76.7924,6.8662],[-76.8001,6.9486],[-76.8134,6.9635],[-76.8285,6.9555],[-76.8191,6.976],[-76.8425,6.9883],[-76.8303,7.0026],[-76.6756,7.0299],[-76.6455,7.0084],[-76.6156,7.0168],[-76.6032,7.0005],[-76.5929,7.0116],[-76.5713,6.9797],[-76.5478,7.002],[-76.5083,7.1386],[-76.4842,7.1329],[-76.5304,7.255],[-76.579,7.3042],[-76.6187,7.3162],[-76.6619,7.4492],[-76.801,7.5717],[-76.9362,7.5834],[-76.9601,7.6398],[-77.1221,7.788],[-77.126,7.8302],[-77.0952,7.8251],[-77.0314,7.8801],[-77.0123,7.9338],[-77.0214,7.9488],[-77.0001,7.9584],[-76.9957,8.0212],[-76.9391,8.0628],[-76.9556,8.1227],[-76.9493,8.1723],[-76.9802,8.2553],[-77.0402,8.2566],[-77.1307,8.4119],[-77.2489,8.472],[-77.2751,8.5063],[-77.2882,8.5751],[-77.3426,8.6249],[-77.3682,8.6774]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;CHOCÓ&quot;,&quot;dpto_ccdgo&quot;:&quot;27&quot;}},{&quot;geometry&quot;:{&quot;type&quot;:&quot;Polygon&quot;,&quot;coordinates&quot;:[[[-74.5185,3.836],[-74.5347,3.8432],[-74.5576,3.7671],[-74.5908,3.7295],[-74.6754,3.6717],[-74.701,3.6157],[-74.7384,3.5908],[-74.7286,3.5516],[-74.7807,3.5097],[-74.7645,3.4409],[-74.8163,3.4064],[-74.8485,3.3408],[-74.9054,3.2914],[-75.0006,3.2762],[-75.0706,3.2953],[-75.0569,3.378],[-75.0277,3.3914],[-75.0427,3.4084],[-75.037,3.4295],[-75.1474,3.4358],[-75.1742,3.4087],[-75.1749,3.3773],[-75.1999,3.3846],[-75.2004,3.4094],[-75.2273,3.4158],[-75.2524,3.3657],[-75.3185,3.4195],[-75.3403,3.398],[-75.3617,3.4088],[-75.3754,3.3749],[-75.415,3.3712],[-75.4406,3.3452],[-75.4788,3.3611],[-75.4904,3.3259],[-75.5275,3.3183],[-75.5219,3.3012],[-75.5759,3.2284],[-75.5885,3.1558],[-75.5767,3.143],[-75.6221,3.0754],[-75.6015,3.0392],[-75.6329,2.9959],[-75.6932,2.9934],[-75.7027,2.97],[-75.7615,2.9423],[-75.763,2.9149],[-75.8401,2.8719],[-75.9015,2.8949],[-75.9274,2.9214],[-75.9534,2.9178],[-75.9886,2.9825],[-76.029,2.9405],[-75.8792,2.8338],[-75.8222,2.8355],[-75.8056,2.8191],[-75.8058,2.7683],[-75.751,2.7422],[-75.7524,2.6974],[-75.8376,2.5671],[-75.8141,2.4836],[-75.8532,2.4548],[-75.8615,2.4279],[-75.8875,2.4251],[-75.924,2.4812],[-75.9772,2.504],[-76.0219,2.4436],[-76.0325,2.4026],[-76.0892,2.4159],[-76.1202,2.3905],[-76.1465,2.294],[-76.1211,2.2248],[-76.1478,2.2013],[-76.2093,2.1984],[-76.2991,2.2825],[-76.3738,2.2791],[-76.4047,2.2005],[-76.4343,2.1873],[-76.4309,2.1204],[-76.4674,2.1],[-76.4874,2.1291],[-76.5534,2.1397],[-76.5903,2.1079],[-76.5773,2.0565],[-76.5861,2.0346],[-76.5725,2.0197],[-76.6243,1.9738],[-76.6105,1.9467],[-76.6193,1.9265],[-76.5787,1.8987],[-76.5903,1.8682],[-76.5573,1.8392],[-76.5304,1.8235],[-76.4888,1.8258],[-76.4351,1.7918],[-76.4195,1.7178],[-76.3719,1.7425],[-76.3814,1.6672],[-76.3256,1.6631],[-76.3037,1.6902],[-76.2723,1.6745],[-76.2423,1.6831],[-76.2116,1.6407],[-76.2024,1.5787],[-76.1654,1.5874],[-76.1198,1.5521],[-76.0746,1.5848],[-76.0344,1.5828],[-75.9834,1.6213],[-75.98,1.6576],[-75.9527,1.6638],[-75.907,1.7152],[-75.844,1.7226],[-75.8303,1.7474],[-75.7371,1.7825],[-75.7307,1.8233],[-75.6896,1.8794],[-75.6518,1.9011],[-75.641,1.958],[-75.5881,2.0111],[-75.535,2.1177],[-75.4424,2.147],[-75.4263,2.1881],[-75.4397,2.2207],[-75.4104,2.2456],[-75.3886,2.3126],[-75.3481,2.3238],[-75.3296,2.3653],[-75.3101,2.3616],[-75.2795,2.4227],[-75.2506,2.4445],[-75.2271,2.5117],[-75.1806,2.5077],[-75.1541,2.5812],[-75.1327,2.5952],[-75.1555,2.645],[-75.1333,2.6915],[-75.1541,2.7041],[-75.1471,2.722],[-75.0703,2.7421],[-74.989,2.858],[-74.911,2.9316],[-74.901,2.9627],[-74.869,2.9736],[-74.816,3.053],[-74.7878,3.0604],[-74.713,3.17],[-74.6733,3.1863],[-74.6566,3.2476],[-74.6163,3.2878],[-74.6179,3.3305],[-74.6398,3.3684],[-74.6057,3.4141],[-74.6305,3.4713],[-74.5907,3.5273],[-74.5665,3.5224],[-74.5374,3.5598],[-74.5029,3.6463],[-74.461,3.6672],[-74.413,3.7247],[-74.4178,3.742],[-74.4421,3.7302],[-74.4634,3.7409],[-74.4502,3.819],[-74.4902,3.8176],[-74.5185,3.836]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;HUILA&quot;,&quot;dpto_ccdgo&quot;:&quot;41&quot;}},{&quot;geometry&quot;:{&quot;type&quot;:&quot;Polygon&quot;,&quot;coordinates&quot;:[[[-71.652,12.4558],[-71.7305,12.4269],[-71.735,12.4087],[-71.6847,12.4429],[-71.7001,12.4177],[-71.6471,12.4311],[-71.6763,12.4046],[-71.6286,12.413],[-71.6957,12.3923],[-71.6933,12.3641],[-71.7029,12.3767],[-71.7222,12.3704],[-71.7113,12.4004],[-71.7246,12.4115],[-71.7619,12.381],[-71.7373,12.3684],[-71.7563,12.3328],[-71.7938,12.3286],[-71.8029,12.3058],[-71.8207,12.3104],[-71.8398,12.3398],[-71.8065,12.3668],[-71.8227,12.372],[-71.9557,12.2729],[-71.9441,12.2594],[-71.9399,12.2758],[-71.8912,12.2753],[-71.8903,12.2514],[-71.8703,12.2476],[-71.8799,12.2359],[-71.8615,12.2173],[-71.8685,12.1909],[-71.9249,12.1839],[-71.93,12.1511],[-71.9446,12.1606],[-71.9632,12.1495],[-71.9608,12.1797],[-71.9658,12.1469],[-71.9865,12.1476],[-71.9789,12.1723],[-72.0009,12.1863],[-71.9643,12.2282],[-71.9612,12.2577],[-72.0837,12.2309],[-72.1432,12.2394],[-72.1787,12.2168],[-72.1481,12.1993],[-72.1388,12.1046],[-72.2147,11.9304],[-72.2467,11.8923],[-72.2267,11.8912],[-72.2445,11.8782],[-72.2464,11.8917],[-72.4441,11.7797],[-72.5148,11.7769],[-72.5614,11.7451],[-72.5925,11.7468],[-72.624,11.7215],[-72.7691,11.6788],[-72.832,11.6312],[-72.8838,11.5632],[-73.0292,11.4918],[-73.2767,11.2858],[-73.3606,11.2623],[-73.5749,11.2597],[-73.5681,11.2327],[-73.5839,11.1894],[-73.6275,11.1417],[-73.6534,11.1375],[-73.6374,11.1088],[-73.65,11.0608],[-73.6355,11.0416],[-73.6649,10.9897],[-73.6426,10.9671],[-73.6334,10.9002],[-73.5986,10.836],[-73.4686,10.8677],[-73.3375,10.8626],[-73.3123,10.8462],[-73.2897,10.8623],[-73.2653,10.8453],[-73.2524,10.7707],[-73.2778,10.7264],[-73.2373,10.7405],[-73.2076,10.7075],[-73.1571,10.7154],[-73.1461,10.6915],[-73.1066,10.6771],[-73.0822,10.6294],[-73.0988,10.5498],[-73.1376,10.5303],[-73.1449,10.4995],[-73.168,10.4922],[-73.1816,10.4665],[-73.1423,10.4368],[-73.1443,10.3981],[-73.0845,10.4263],[-73.0369,10.4035],[-72.9779,10.4025],[-72.8627,10.4634],[-72.8344,10.5185],[-72.843,10.5389],[-72.7501,10.6341],[-72.7159,10.7061],[-72.7114,10.7521],[-72.6799,10.764],[-72.6826,10.7961],[-72.648,10.8804],[-72.6125,10.8826],[-72.5748,10.9157],[-72.5189,11.0007],[-72.5261,11.0118],[-72.4819,11.0586],[-72.4983,11.0851],[-72.4436,11.1277],[-72.4379,11.1153],[-72.3493,11.1514],[-72.2494,11.1402],[-71.9714,11.6463],[-71.8022,11.68],[-71.4571,11.7865],[-71.3784,11.8121],[-71.3882,11.8283],[-71.3624,11.827],[-71.3652,11.8401],[-71.3413,11.8492],[-71.3241,11.8331],[-71.2901,11.914],[-71.3263,11.9016],[-71.327,11.9212],[-71.312,11.915],[-71.3109,11.9289],[-71.2822,11.9061],[-71.219,11.9642],[-71.1361,12.0027],[-71.1161,12.0347],[-71.1151,12.086],[-71.2196,12.2603],[-71.2283,12.3006],[-71.3017,12.3534],[-71.3228,12.3477],[-71.4026,12.384],[-71.4366,12.3807],[-71.5261,12.4373],[-71.6107,12.437],[-71.652,12.4558]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;LA GUAJIRA&quot;,&quot;dpto_ccdgo&quot;:&quot;44&quot;}},{&quot;geometry&quot;:{&quot;type&quot;:&quot;Polygon&quot;,&quot;coordinates&quot;:[[[-74.0417,11.3416],[-74.0568,11.3281],[-74.0748,11.3422],[-74.0829,11.3155],[-74.1073,11.3479],[-74.1054,11.3189],[-74.1242,11.3344],[-74.135,11.3155],[-74.1447,11.337],[-74.1609,11.3242],[-74.149,11.2981],[-74.1943,11.3037],[-74.2066,11.2742],[-74.1914,11.2644],[-74.2208,11.2532],[-74.2166,11.2405],[-74.2418,11.22],[-74.2281,11.2049],[-74.2412,11.1758],[-74.215,11.0701],[-74.2506,11.0177],[-74.3043,10.9849],[-74.4207,10.9748],[-74.5124,10.9861],[-74.8519,11.1054],[-74.839,11.0587],[-74.7687,11.002],[-74.7538,10.9361],[-74.7184,10.9092],[-74.7365,10.8888],[-74.7416,10.8406],[-74.7228,10.6726],[-74.7471,10.6492],[-74.7244,10.6068],[-74.7389,10.5423],[-74.7984,10.4962],[-74.8181,10.4248],[-74.8619,10.3865],[-74.8612,10.3527],[-74.926,10.2221],[-74.9464,10.1357],[-74.9269,10.1082],[-74.8397,10.0787],[-74.7879,10.0094],[-74.8204,9.9673],[-74.8726,9.9367],[-74.8824,9.8729],[-74.8156,9.7899],[-74.8052,9.7618],[-74.8153,9.7312],[-74.7876,9.6969],[-74.8058,9.6755],[-74.777,9.6262],[-74.7736,9.5873],[-74.8071,9.5474],[-74.7757,9.5007],[-74.8068,9.4653],[-74.8028,9.4437],[-74.7633,9.4638],[-74.7321,9.4188],[-74.6989,9.4269],[-74.6724,9.4131],[-74.6602,9.386],[-74.6184,9.3715],[-74.6153,9.341],[-74.5656,9.3142],[-74.5299,9.2415],[-74.5109,9.2341],[-74.4638,9.2713],[-74.435,9.2741],[-74.403,9.2137],[-74.3475,9.2329],[-74.2954,9.2018],[-74.2982,9.1598],[-74.2483,9.1647],[-74.2201,9.1361],[-74.2284,9.124],[-74.1766,9.0893],[-74.1573,9.0574],[-74.1347,9.0644],[-74.1179,9.0489],[-74.1394,9.0299],[-74.1132,9.041],[-74.098,9.0158],[-74.0571,9.0185],[-74.0356,9.0444],[-74.0284,9.027],[-74.0068,9.0318],[-73.985,9.0106],[-74.0023,9.0097],[-74.0018,8.9955],[-73.9001,8.9807],[-73.8704,8.9604],[-73.8677,8.9365],[-73.798,9.0583],[-73.8753,9.1305],[-73.8666,9.183],[-73.8928,9.1736],[-73.962,9.1877],[-73.9428,9.2896],[-73.9917,9.324],[-73.9781,9.3894],[-74.1392,9.4938],[-74.0367,9.5913],[-74.004,9.5954],[-73.9893,9.5798],[-73.8934,9.6164],[-73.8679,9.601],[-73.8033,9.6364],[-73.8091,9.6921],[-73.839,9.731],[-73.8274,9.7529],[-73.8418,9.7973],[-73.895,9.8321],[-73.9527,9.9269],[-74.0018,9.9402],[-74.0118,9.9761],[-74.0511,10.0103],[-74.0844,10.0731],[-74.0408,10.2199],[-73.9651,10.2881],[-73.9613,10.3368],[-73.9219,10.3751],[-73.8425,10.401],[-73.8177,10.3851],[-73.779,10.3962],[-73.7407,10.4357],[-73.7042,10.4301],[-73.7033,10.4636],[-73.6523,10.4605],[-73.6398,10.5008],[-73.5619,10.5057],[-73.5705,10.5418],[-73.6134,10.5642],[-73.5959,10.5851],[-73.5954,10.6309],[-73.6169,10.6447],[-73.5938,10.7053],[-73.5631,10.716],[-73.5623,10.7409],[-73.5419,10.7547],[-73.589,10.7817],[-73.6387,10.7878],[-73.6352,10.8079],[-73.5986,10.836],[-73.636,10.9079],[-73.6426,10.9672],[-73.6649,10.9899],[-73.6355,11.0416],[-73.65,11.0608],[-73.6374,11.1088],[-73.6533,11.1376],[-73.6275,11.1417],[-73.591,11.1786],[-73.5653,11.2546],[-73.7907,11.2564],[-73.858,11.2742],[-73.9752,11.3387],[-74.0417,11.3416]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;MAGDALENA&quot;,&quot;dpto_ccdgo&quot;:&quot;47&quot;}},{&quot;geometry&quot;:{&quot;type&quot;:&quot;Polygon&quot;,&quot;coordinates&quot;:[[[-71.0779,4.8991],[-71.2117,4.8173],[-71.2883,4.8031],[-71.3228,4.7667],[-71.3902,4.7567],[-71.4293,4.7233],[-71.5768,4.675],[-71.5979,4.6453],[-71.7324,4.5753],[-71.8067,4.5835],[-71.9882,4.3844],[-72.0606,4.375],[-72.0708,4.4081],[-72.1431,4.4403],[-72.2434,4.4346],[-72.3029,4.4084],[-72.3205,4.3709],[-72.3422,4.3715],[-72.3562,4.3417],[-72.405,4.3179],[-72.4279,4.3537],[-72.4668,4.3174],[-72.5478,4.3547],[-72.5735,4.3255],[-72.5734,4.3021],[-72.6759,4.3174],[-72.6907,4.2885],[-72.7164,4.2933],[-72.7419,4.3258],[-72.7703,4.3343],[-72.763,4.3478],[-72.7797,4.3528],[-72.7689,4.3664],[-72.8006,4.3783],[-72.7883,4.3975],[-72.825,4.4176],[-72.8135,4.4298],[-72.8702,4.4507],[-72.9379,4.5227],[-72.968,4.5992],[-73.0169,4.6356],[-73.0502,4.6924],[-73.0526,4.7363],[-73.1376,4.2126],[-73.2035,4.2733],[-73.3536,4.3212],[-73.4303,4.3064],[-73.4717,4.2762],[-73.5311,4.2967],[-73.551,4.3082],[-73.5726,4.4199],[-73.6033,4.4562],[-73.5678,4.5256],[-73.5785,4.5424],[-73.6219,4.5625],[-73.7137,4.5151],[-73.7387,4.486],[-73.7383,4.4606],[-73.7925,4.4411],[-73.8115,4.4028],[-73.7927,4.3811],[-73.7843,4.3017],[-73.7444,4.2674],[-73.7603,4.2364],[-73.7426,4.198],[-73.8094,4.2039],[-73.8259,4.1683],[-73.8609,4.1718],[-73.8958,4.1426],[-73.9331,4.1492],[-73.9601,4.0955],[-74.0059,4.1098],[-74.0359,4.0824],[-74.0349,4.0608],[-74.0707,4.0577],[-74.1235,4.0013],[-74.1603,4.0178],[-74.2174,4.0109],[-74.2601,3.9483],[-74.2564,3.9279],[-74.317,3.8808],[-74.2966,3.8189],[-74.3272,3.8267],[-74.3939,3.7699],[-74.3872,3.7527],[-74.4157,3.7411],[-74.4245,3.7084],[-74.5029,3.6463],[-74.5251,3.5775],[-74.5636,3.5259],[-74.5897,3.5282],[-74.6305,3.4713],[-74.6057,3.4141],[-74.6398,3.3684],[-74.6179,3.3305],[-74.6163,3.2878],[-74.6566,3.2476],[-74.6733,3.1863],[-74.713,3.17],[-74.7878,3.0604],[-74.816,3.053],[-74.8496,2.9947],[-74.901,2.9627],[-74.9333,2.9094],[-74.9106,2.8835],[-74.8783,2.915],[-74.8369,2.9085],[-74.8,2.9383],[-74.7694,2.8731],[-74.6733,2.8887],[-74.6667,2.805],[-74.6433,2.7558],[-74.6175,2.7538],[-74.6375,2.7008],[-74.5858,2.6654],[-74.6817,2.5583],[-74.6775,2.5238],[-74.6475,2.4937],[-74.6629,2.4883],[-74.6729,2.425],[-74.6929,2.42],[-74.7337,2.3467],[-74.7483,2.2742],[-74.73,2.28],[-74.7158,2.2633],[-74.7092,2.2838],[-74.6933,2.2842],[-74.7012,2.2717],[-74.65,2.24],[-74.665,2.2113],[-74.6271,2.1925],[-74.6108,2.2083],[-74.5917,2.2017],[-74.5892,2.17],[-74.6042,2.1567],[-74.58,2.1246],[-74.5508,2.1317],[-74.5387,2.11],[-74.4854,2.1492],[-74.4842,2.11],[-74.4621,2.0892],[-74.3925,2.0842],[-74.3619,2.0595],[-74.2419,2.0564],[-74.19,1.9854],[-74.1533,1.9796],[-74.1496,1.9975],[-74.105,1.9725],[-74.04,1.9708],[-73.6567,1.6177],[-73.6569,2.2945],[-73.6434,2.2837],[-73.6297,2.2949],[-73.635,2.3257],[-73.6138,2.3411],[-73.633,2.3603],[-73.6176,2.3773],[-73.5864,2.39],[-73.5854,2.3596],[-73.572,2.3549],[-73.528,2.3876],[-73.5123,2.3329],[-73.5059,2.3564],[-73.474,2.3618],[-73.4503,2.3397],[-73.4557,2.3824],[-73.4423,2.3863],[-73.4368,2.3265],[-73.4122,2.357],[-73.3903,2.3511],[-73.3963,2.3289],[-73.379,2.325],[-73.3746,2.3625],[-73.3569,2.3685],[-73.3451,2.3527],[-73.3567,2.3241],[-73.3332,2.3333],[-73.3304,2.3604],[-73.3006,2.336],[-73.2674,2.3588],[-73.2425,2.3473],[-73.2412,2.3713],[-73.2679,2.3809],[-73.2259,2.3889],[-73.2165,2.4055],[-73.2177,2.3864],[-73.2016,2.3825],[-73.1657,2.3994],[-73.1635,2.3654],[-73.1241,2.3788],[-73.1413,2.3971],[-73.1278,2.411],[-73.1106,2.381],[-73.0452,2.4379],[-73.0328,2.4126],[-72.9861,2.4519],[-72.9658,2.4484],[-72.9626,2.4802],[-72.9348,2.4641],[-72.9327,2.497],[-72.9542,2.4949],[-72.9583,2.5085],[-72.921,2.5344],[-72.9203,2.5625],[-72.8182,2.614],[-72.7397,2.5699],[-72.7022,2.6178],[-72.6794,2.6222],[-72.653,2.5715],[-72.6209,2.6274],[-72.5864,2.5837],[-72.5867,2.6393],[-72.5558,2.6499],[-72.5714,2.6741],[-72.5372,2.6828],[-72.5363,2.7027],[-72.4722,2.6893],[-72.4706,2.7338],[-72.4346,2.74],[-72.4067,2.726],[-72.3355,2.7967],[-72.313,2.7991],[-72.295,2.7741],[-72.28,2.7758],[-72.2595,2.8247],[-72.2151,2.7757],[-72.1929,2.7723],[-72.184,2.7903],[-72.2058,2.8148],[-72.2027,2.864],[-72.1828,2.8752],[-72.144,2.8647],[-72.1349,2.889],[-72.0821,2.8259],[-72.0516,2.8167],[-72.0049,2.8294],[-71.9819,2.8012],[-71.9539,2.8317],[-71.8279,2.8375],[-71.8231,2.87],[-71.8509,2.8716],[-71.8206,2.8791],[-71.7884,2.8695],[-71.78,2.8178],[-71.758,2.853],[-71.7619,2.8973],[-71.6971,2.8381],[-71.6815,2.8717],[-71.662,2.8727],[-71.6739,2.8258],[-71.6522,2.8202],[-71.6106,2.8463],[-71.5752,2.8443],[-71.5832,2.8723],[-71.5451,2.8591],[-71.5207,2.879],[-71.4703,2.8531],[-71.4634,2.8993],[-71.3907,2.844],[-71.3746,2.8918],[-71.3453,2.8603],[-71.3247,2.9245],[-71.306,2.9202],[-71.2996,2.8756],[-71.2837,2.8678],[-71.2596,2.8862],[-71.2472,2.8628],[-71.2218,2.8656],[-71.1835,2.9048],[-71.1538,2.8723],[-71.1382,2.9039],[-71.1094,2.8726],[-71.0775,2.8822],[-71.0779,4.8991]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;META&quot;,&quot;dpto_ccdgo&quot;:&quot;50&quot;}},{&quot;geometry&quot;:{&quot;type&quot;:&quot;MultiPolygon&quot;,&quot;coordinates&quot;:[[[[-78.1403,2.6762],[-78.3327,2.6563],[-78.3712,2.6372],[-78.3955,2.603],[-78.4552,2.5976],[-78.4542,2.5755],[-78.5142,2.5004],[-78.557,2.4916],[-78.5518,2.4472],[-78.5616,2.4313],[-78.5664,2.4546],[-78.622,2.3773],[-78.6232,2.3267],[-78.6605,2.2868],[-78.6732,2.2407],[-78.6978,2.2325],[-78.7127,2.1676],[-78.7036,2.1186],[-78.6897,2.1118],[-78.6799,2.0586],[-78.6498,2.0499],[-78.676,2.0495],[-78.6744,1.9801],[-78.6459,1.9784],[-78.6357,2.0116],[-78.585,1.9726],[-78.6027,1.947],[-78.5971,1.8943],[-78.5519,1.8989],[-78.5385,1.8559],[-78.5508,1.8357],[-78.5425,1.8021],[-78.564,1.7922],[-78.5537,1.7577],[-78.5819,1.7403],[-78.5686,1.7513],[-78.5807,1.7784],[-78.5998,1.7735],[-78.5976,1.7927],[-78.6513,1.7937],[-78.6545,1.7751],[-78.6879,1.7816],[-78.6752,1.7616],[-78.6867,1.7484],[-78.6926,1.7905],[-78.6995,1.7698],[-78.7172,1.7934],[-78.7138,1.7457],[-78.7284,1.7325],[-78.7381,1.7455],[-78.7622,1.7414],[-78.7265,1.7531],[-78.7472,1.7658],[-78.7258,1.7628],[-78.7383,1.7969],[-78.7437,1.7855],[-78.756,1.7981],[-78.7575,1.7771],[-78.7851,1.7986],[-78.7599,1.8197],[-78.7518,1.8057],[-78.7237,1.8235],[-78.7686,1.8223],[-78.8119,1.787],[-78.7797,1.8245],[-78.8096,1.8293],[-78.8649,1.8033],[-78.9308,1.7341],[-78.9544,1.6844],[-79.0069,1.658],[-78.9986,1.6388],[-79.0101,1.632],[-78.9885,1.6008],[-78.9589,1.594],[-78.9025,1.5431],[-78.8635,1.5508],[-78.8748,1.5148],[-78.8563,1.4807],[-78.8189,1.4731],[-78.7986,1.4848],[-78.8336,1.4507],[-78.8081,1.4558],[-78.8247,1.4451],[-78.7754,1.4061],[-78.7786,1.3925],[-78.7577,1.394],[-78.695,1.3302],[-78.6607,1.3196],[-78.6489,1.2773],[-78.6154,1.2463],[-78.5445,1.2444],[-78.5476,1.2266],[-78.5146,1.2132],[-78.5167,1.1879],[-78.4951,1.1984],[-78.4552,1.1765],[-78.4382,1.1939],[-78.4278,1.1388],[-78.4163,1.1389],[-78.4177,1.1599],[-78.3951,1.1523],[-78.3745,1.1747],[-78.3114,1.1913],[-78.282,1.111],[-78.2511,1.0995],[-78.2519,1.0792],[-78.277,1.0729],[-78.2816,1.0562],[-78.2061,1.0021],[-78.1918,0.9697],[-78.2,0.9497],[-78.1851,0.938],[-78.1535,0.924],[-78.1119,0.9323],[-78.0891,0.8971],[-78.0217,0.8748],[-77.9372,0.8167],[-77.8428,0.8024],[-77.8048,0.831],[-77.7464,0.8329],[-77.7142,0.8511],[-77.6649,0.818],[-77.677,0.7924],[-77.6616,0.79],[-77.6978,0.7414],[-77.6754,0.7372],[-77.6662,0.7053],[-77.6227,0.6946],[-77.5564,0.6494],[-77.4809,0.6571],[-77.4809,0.6096],[-77.5223,0.5316],[-77.5277,0.4002],[-77.4245,0.392],[-77.4077,0.4049],[-77.3812,0.3853],[-77.3716,0.4011],[-77.2881,0.3633],[-77.2137,0.3632],[-77.1791,0.3898],[-77.1127,0.3727],[-77.088,0.3946],[-77.0992,0.4106],[-77.0891,0.4244],[-77.1076,0.4425],[-77.1021,0.4704],[-77.1302,0.5245],[-77.1174,0.5914],[-77.1868,0.631],[-77.1392,0.8215],[-77.1021,0.8336],[-77.1212,0.8932],[-77.0727,0.9423],[-77.0738,0.9697],[-77.0281,0.9949],[-77.0368,1.0471],[-77.0581,1.0343],[-77.093,1.075],[-77.1001,1.154],[-77.0884,1.1834],[-77.021,1.1962],[-76.9811,1.2228],[-76.9794,1.2867],[-76.9396,1.2727],[-76.9042,1.3209],[-76.9318,1.3858],[-76.9183,1.4297],[-76.9289,1.5005],[-76.8586,1.5225],[-76.8345,1.6154],[-76.9021,1.6624],[-76.9361,1.729],[-76.9983,1.7073],[-77.0263,1.714],[-77.0569,1.6991],[-77.0723,1.669],[-77.1376,1.6549],[-77.1508,1.6856],[-77.239,1.6573],[-77.3309,1.6815],[-77.2947,1.766],[-77.3101,1.8042],[-77.2892,1.849],[-77.2557,1.8697],[-77.2455,1.9113],[-77.2184,1.917],[-77.2032,1.952],[-77.2206,1.9882],[-77.2593,1.9941],[-77.3335,2.0514],[-77.3076,2.1082],[-77.318,2.1819],[-77.3077,2.196],[-77.3231,2.222],[-77.3588,2.2624],[-77.3857,2.2559],[-77.4594,2.2862],[-77.479,2.2737],[-77.4723,2.2413],[-77.4879,2.1953],[-77.5562,2.2025],[-77.6036,2.1647],[-77.6456,2.1685],[-77.7394,2.1336],[-77.8386,2.1782],[-77.8532,2.2054],[-77.8479,2.2606],[-77.9188,2.4167],[-77.9155,2.5937],[-77.9283,2.6404],[-77.9454,2.6257],[-77.9782,2.6617],[-78.0329,2.6495],[-78.0725,2.6112],[-78.0967,2.6472],[-78.1372,2.644],[-78.1403,2.6762]]],[[[-78.8898,1.5099],[-78.8919,1.5097],[-78.889,1.5093],[-78.8898,1.5099]]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;NARIÑO&quot;,&quot;dpto_ccdgo&quot;:&quot;52&quot;}},{&quot;geometry&quot;:{&quot;type&quot;:&quot;Polygon&quot;,&quot;coordinates&quot;:[[[-73.0039,9.2802],[-73.0109,9.2907],[-73.0502,9.2584],[-73.0709,9.2641],[-73.0882,9.2262],[-73.1301,9.2284],[-73.177,9.1766],[-73.2136,9.1832],[-73.2509,9.1582],[-73.369,9.1726],[-73.3812,9.1528],[-73.406,9.1614],[-73.4242,9.1238],[-73.4119,9.0527],[-73.4397,8.9753],[-73.4257,8.8996],[-73.4482,8.8622],[-73.4146,8.766],[-73.4584,8.7497],[-73.4718,8.7075],[-73.5073,8.6849],[-73.5216,8.6383],[-73.5522,8.6069],[-73.5472,8.5643],[-73.515,8.529],[-73.5777,8.4958],[-73.5477,8.4714],[-73.5228,8.4829],[-73.4777,8.4701],[-73.4733,8.4468],[-73.53,8.3808],[-73.4881,8.384],[-73.4418,8.3409],[-73.4342,8.3654],[-73.3932,8.3821],[-73.4144,8.4593],[-73.3704,8.4591],[-73.3421,8.4356],[-73.3507,8.3311],[-73.3767,8.316],[-73.3741,8.2658],[-73.4051,8.2466],[-73.4354,8.1452],[-73.3776,8.1055],[-73.367,8.0126],[-73.3093,8.0155],[-73.2984,7.985],[-73.2793,7.9879],[-73.276,7.946],[-73.3035,7.9065],[-73.3479,7.8985],[-73.3431,7.8121],[-73.4393,7.6965],[-73.4908,7.6744],[-73.5589,7.7283],[-73.6331,7.7452],[-73.6,7.7259],[-73.5969,7.7013],[-73.5591,7.6913],[-73.5588,7.6724],[-73.5179,7.6414],[-73.5056,7.5958],[-73.4087,7.5652],[-73.3864,7.5821],[-73.3553,7.5443],[-73.2838,7.5494],[-73.2566,7.5316],[-73.2475,7.5583],[-73.2592,7.5874],[-73.219,7.6321],[-73.1233,7.6081],[-72.9824,7.6203],[-72.9922,7.597],[-72.9783,7.529],[-72.8961,7.4796],[-72.9004,7.4334],[-72.8507,7.3747],[-72.856,7.3628],[-72.8368,7.3556],[-72.8341,7.3042],[-72.8762,7.2635],[-72.8564,7.217],[-72.8324,7.2075],[-72.8591,7.1545],[-72.8205,7.073],[-72.8004,7.0732],[-72.7869,7.0488],[-72.7499,7.0591],[-72.7566,7.0406],[-72.734,6.9868],[-72.7218,7.0051],[-72.6773,7.0078],[-72.6685,6.9655],[-72.6491,6.9975],[-72.632,6.9869],[-72.5624,6.9998],[-72.5419,6.9419],[-72.5474,6.886],[-72.5137,6.888],[-72.489,6.9248],[-72.3923,6.8722],[-72.3134,6.9322],[-72.2765,7.0128],[-72.2517,7.0069],[-72.2442,6.977],[-72.201,7.0067],[-72.1854,7.054],[-72.1221,7.0277],[-72.0779,7.0454],[-72.0476,7.0382],[-72.1744,7.2576],[-72.1539,7.3282],[-72.1945,7.3838],[-72.2998,7.3907],[-72.3255,7.376],[-72.3535,7.3962],[-72.4286,7.4024],[-72.4471,7.4619],[-72.4751,7.4872],[-72.4525,7.5645],[-72.476,7.6316],[-72.4737,7.7585],[-72.4446,7.8598],[-72.4571,7.9112],[-72.4865,7.9268],[-72.4881,7.9435],[-72.4187,7.9955],[-72.416,8.0334],[-72.3834,8.0345],[-72.3513,8.0044],[-72.3471,8.0164],[-72.3524,8.0866],[-72.3735,8.1051],[-72.3545,8.1657],[-72.3937,8.2526],[-72.3799,8.3043],[-72.3954,8.3261],[-72.3883,8.3482],[-72.6171,8.5952],[-72.6548,8.6143],[-72.7202,8.9407],[-72.7731,9.0857],[-72.7658,9.1056],[-72.7852,9.1152],[-72.7963,9.1035],[-72.7961,9.1213],[-72.8115,9.1199],[-72.8219,9.1415],[-72.8234,9.1219],[-72.8812,9.1323],[-72.8871,9.1036],[-72.9325,9.083],[-72.9484,9.0923],[-72.9872,9.1434],[-72.9555,9.1795],[-72.9709,9.2134],[-72.9962,9.221],[-72.9844,9.2516],[-73.0039,9.2802]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;NORTE DE SANTANDER&quot;,&quot;dpto_ccdgo&quot;:&quot;54&quot;}},{&quot;geometry&quot;:{&quot;type&quot;:&quot;Polygon&quot;,&quot;coordinates&quot;:[[[-75.7019,4.7205],[-75.7136,4.7138],[-75.7085,4.6551],[-75.8251,4.6635],[-75.865,4.6148],[-75.8813,4.5276],[-75.8705,4.5127],[-75.8814,4.4674],[-75.8655,4.4548],[-75.8881,4.4467],[-75.8958,4.4252],[-75.8011,4.3906],[-75.7874,4.2936],[-75.824,4.2259],[-75.8422,4.1244],[-75.839,4.0976],[-75.7671,4.0753],[-75.6964,4.132],[-75.6433,4.2461],[-75.5971,4.2795],[-75.5773,4.4527],[-75.5246,4.4979],[-75.515,4.5556],[-75.4689,4.5983],[-75.421,4.6109],[-75.4215,4.6586],[-75.3832,4.704],[-75.396,4.7154],[-75.4794,4.6632],[-75.5149,4.6937],[-75.6065,4.7095],[-75.6598,4.6999],[-75.7019,4.7205]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;QUINDIO&quot;,&quot;dpto_ccdgo&quot;:&quot;63&quot;}},{&quot;geometry&quot;:{&quot;type&quot;:&quot;Polygon&quot;,&quot;coordinates&quot;:[[[-76.0082,5.5637],[-76.037,5.5672],[-76.0748,5.5466],[-76.0853,5.4498],[-76.1525,5.4076],[-76.178,5.4013],[-76.1912,5.4146],[-76.2114,5.3486],[-76.1736,5.2603],[-76.142,5.2334],[-76.1325,5.1834],[-76.0609,5.1371],[-76.0798,5.0409],[-76.0491,5.0072],[-76.0277,4.9386],[-75.9876,4.9114],[-75.9882,4.8745],[-75.9428,4.8567],[-75.9142,4.8735],[-75.9006,4.8521],[-75.9108,4.8166],[-75.9357,4.8077],[-75.9175,4.7945],[-75.9291,4.7683],[-75.9077,4.7521],[-75.852,4.7787],[-75.8561,4.7278],[-75.8311,4.7378],[-75.754,4.7099],[-75.7029,4.7214],[-75.6598,4.6999],[-75.5458,4.7015],[-75.4794,4.6632],[-75.4119,4.6989],[-75.3779,4.7296],[-75.388,4.7468],[-75.3755,4.8027],[-75.4269,4.8164],[-75.4801,4.9165],[-75.5375,4.9165],[-75.5646,4.9378],[-75.6171,4.9314],[-75.6231,4.971],[-75.6395,4.975],[-75.6555,4.9458],[-75.7024,4.9455],[-75.7468,5.0468],[-75.7814,5.0104],[-75.7922,4.9378],[-75.8148,4.9194],[-75.8671,4.9333],[-75.8607,4.9421],[-75.8922,4.9615],[-75.9039,5.0236],[-75.922,5.0421],[-75.9174,5.0787],[-75.8918,5.131],[-75.8458,5.1056],[-75.8366,5.1148],[-75.8338,5.1501],[-75.8024,5.2004],[-75.8237,5.2701],[-75.7493,5.2845],[-75.7348,5.2644],[-75.6926,5.2552],[-75.6662,5.2685],[-75.6482,5.3087],[-75.6662,5.354],[-75.7252,5.3971],[-75.8092,5.3621],[-75.8607,5.3717],[-75.8506,5.4125],[-75.868,5.4902],[-75.905,5.4799],[-75.9308,5.5089],[-75.9593,5.5051],[-76.0082,5.5637]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;RISARALDA&quot;,&quot;dpto_ccdgo&quot;:&quot;66&quot;}},{&quot;geometry&quot;:{&quot;type&quot;:&quot;Polygon&quot;,&quot;coordinates&quot;:[[[-73.7743,8.1083],[-73.7753,8.145],[-73.8676,8.0636],[-73.8673,7.9819],[-73.8316,7.9359],[-73.8216,7.823],[-73.7981,7.775],[-73.8319,7.7298],[-73.7973,7.6544],[-73.8184,7.6428],[-73.8103,7.6166],[-73.8287,7.6024],[-73.8484,7.5359],[-73.91,7.4979],[-73.9174,7.476],[-73.896,7.4088],[-73.9388,7.1768],[-73.9311,7.1191],[-73.8882,7.0702],[-73.8842,7.0052],[-73.9156,6.9691],[-74.0106,6.9133],[-74.0772,6.8419],[-74.1151,6.7656],[-74.1773,6.7249],[-74.2292,6.7114],[-74.259,6.6734],[-74.3122,6.6543],[-74.3302,6.6296],[-74.3594,6.6328],[-74.4047,6.5939],[-74.3938,6.5005],[-74.4047,6.4709],[-74.3695,6.4122],[-74.4235,6.39],[-74.4504,6.3319],[-74.529,6.2633],[-74.5084,6.2165],[-74.4696,6.2014],[-74.4795,6.1596],[-74.4526,6.1357],[-74.4517,6.0993],[-74.408,6.0865],[-74.3831,6.0403],[-74.3476,6.0385],[-74.3373,6.065],[-74.2981,6.0841],[-74.2587,6.0655],[-74.2601,6.0125],[-74.2222,5.9679],[-74.2389,5.9437],[-74.2245,5.9232],[-74.2311,5.905],[-74.275,5.8685],[-74.2661,5.8346],[-74.1973,5.8529],[-74.1804,5.9111],[-74.1333,5.8759],[-74.1031,5.877],[-74.0793,5.8185],[-74.026,5.8068],[-74.0251,5.7808],[-73.9826,5.7209],[-73.9624,5.7394],[-73.9245,5.743],[-73.8745,5.7279],[-73.8831,5.7076],[-73.8364,5.7399],[-73.8192,5.7375],[-73.8125,5.715],[-73.7636,5.7729],[-73.7159,5.7817],[-73.644,5.7152],[-73.6002,5.869],[-73.6359,5.9112],[-73.603,5.9375],[-73.5848,6.0082],[-73.5396,6.0374],[-73.5152,6.0991],[-73.4974,6.108],[-73.4381,6.0714],[-73.4148,6.0731],[-73.3707,6.0052],[-73.4066,5.8909],[-73.4445,5.902],[-73.4569,5.8904],[-73.4511,5.867],[-73.4735,5.8168],[-73.4359,5.7982],[-73.4308,5.7671],[-73.3905,5.7511],[-73.3511,5.8231],[-73.3515,5.8726],[-73.3292,5.8515],[-73.2705,5.8535],[-73.2469,5.816],[-73.1864,5.8462],[-73.2218,5.8973],[-73.2083,5.9215],[-73.2247,5.9411],[-73.2205,5.9727],[-73.1993,6.0031],[-73.1426,5.9611],[-73.1008,5.9623],[-73.0341,6.0234],[-73.0091,5.9647],[-72.916,6.1074],[-72.8725,6.1251],[-72.8684,6.1445],[-72.8313,6.1488],[-72.8037,6.216],[-72.775,6.2105],[-72.7447,6.2292],[-72.7579,6.3151],[-72.7256,6.3721],[-72.738,6.4403],[-72.7249,6.4567],[-72.7359,6.4907],[-72.8086,6.5388],[-72.8089,6.5592],[-72.7646,6.5828],[-72.7191,6.5527],[-72.6491,6.4364],[-72.5392,6.488],[-72.5427,6.5828],[-72.4855,6.6571],[-72.4989,6.7952],[-72.4771,6.8422],[-72.5006,6.8712],[-72.5029,6.9082],[-72.5137,6.888],[-72.5474,6.886],[-72.5419,6.9419],[-72.5624,6.9998],[-72.632,6.9869],[-72.6491,6.9975],[-72.6685,6.9655],[-72.6773,7.0078],[-72.7218,7.0051],[-72.734,6.9868],[-72.7566,7.0406],[-72.7499,7.0591],[-72.7869,7.0488],[-72.8359,7.0966],[-72.8591,7.1545],[-72.8324,7.2075],[-72.8564,7.217],[-72.8762,7.2635],[-72.8341,7.3042],[-72.8368,7.3556],[-72.856,7.3628],[-72.8507,7.3747],[-72.9004,7.4334],[-72.8961,7.4796],[-72.9783,7.529],[-72.9922,7.597],[-72.9824,7.6203],[-73.1233,7.6081],[-73.219,7.6321],[-73.2592,7.5874],[-73.2475,7.5583],[-73.2566,7.5316],[-73.2838,7.5494],[-73.3553,7.5443],[-73.3864,7.5821],[-73.4087,7.5652],[-73.5056,7.5958],[-73.5179,7.6414],[-73.5588,7.6724],[-73.5591,7.6913],[-73.5969,7.7013],[-73.6,7.7259],[-73.633,7.7492],[-73.7584,7.751],[-73.7619,7.7714],[-73.7374,7.785],[-73.7512,7.8197],[-73.6708,7.9035],[-73.6823,7.9514],[-73.7237,7.968],[-73.7212,8.0106],[-73.7914,8.1028],[-73.7743,8.1083]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;SANTANDER&quot;,&quot;dpto_ccdgo&quot;:&quot;68&quot;}},{&quot;geometry&quot;:{&quot;type&quot;:&quot;Polygon&quot;,&quot;coordinates&quot;:[[[-75.5232,10.0917],[-75.4975,10.1455],[-75.5736,10.0864],[-75.576,9.9705],[-75.6209,9.8764],[-75.6231,9.8054],[-75.6424,9.7591],[-75.7041,9.6997],[-75.6538,9.7073],[-75.6126,9.6945],[-75.5707,9.6183],[-75.5759,9.5552],[-75.6289,9.4351],[-75.6762,9.4035],[-75.7001,9.4117],[-75.7044,9.3722],[-75.6792,9.3443],[-75.661,9.3611],[-75.6259,9.3531],[-75.5877,9.3025],[-75.6094,9.281],[-75.5123,9.2581],[-75.4965,9.2849],[-75.4998,9.2595],[-75.4573,9.2376],[-75.4662,9.2085],[-75.4544,9.176],[-75.4674,9.1647],[-75.4489,9.1401],[-75.3909,9.1613],[-75.3817,9.1381],[-75.3101,9.1176],[-75.31,9.0888],[-75.2936,9.0962],[-75.2991,9.0825],[-75.2811,9.0729],[-75.2241,9.0731],[-75.1878,8.9675],[-75.1561,8.9436],[-75.1717,8.9283],[-75.188,8.9442],[-75.1863,8.9143],[-75.217,8.9158],[-75.2446,8.8823],[-75.2727,8.9136],[-75.2932,8.8973],[-75.2998,8.858],[-75.3316,8.8655],[-75.3716,8.8265],[-75.3688,8.7912],[-75.3242,8.7555],[-75.3432,8.7152],[-75.3367,8.6962],[-75.3491,8.7007],[-75.3596,8.6797],[-75.3183,8.5904],[-75.3303,8.5528],[-75.3043,8.5178],[-75.3144,8.5024],[-75.2414,8.4873],[-75.2319,8.4679],[-75.2163,8.4854],[-75.1925,8.4434],[-75.2114,8.4253],[-75.1851,8.3966],[-75.1565,8.4333],[-75.1362,8.4299],[-75.128,8.4683],[-75.0409,8.4585],[-75.0335,8.4989],[-75.0057,8.5228],[-74.926,8.4996],[-74.9275,8.4533],[-74.8998,8.4543],[-74.8523,8.3847],[-74.8403,8.394],[-74.8038,8.3799],[-74.828,8.3597],[-74.7902,8.3182],[-74.7947,8.2819],[-74.7709,8.2794],[-74.7478,8.2991],[-74.7275,8.281],[-74.7132,8.3041],[-74.6535,8.279],[-74.6493,8.3135],[-74.614,8.347],[-74.6145,8.4065],[-74.5869,8.3841],[-74.5611,8.3901],[-74.5329,8.4548],[-74.5354,8.4806],[-74.5695,8.5095],[-74.5765,8.5443],[-74.5638,8.5718],[-74.5947,8.5923],[-74.5867,8.6308],[-74.6107,8.7559],[-74.5397,8.8053],[-74.586,8.8412],[-74.5794,8.8728],[-74.6394,8.9775],[-74.6838,9.0115],[-74.7369,9.0158],[-74.7505,9.0424],[-74.7819,9.0377],[-74.8238,9.0574],[-74.8633,9.1485],[-74.903,9.1635],[-74.9047,9.2296],[-74.931,9.2548],[-74.9257,9.279],[-74.9445,9.2958],[-74.9329,9.3284],[-74.9505,9.3479],[-74.8908,9.431],[-74.9357,9.4482],[-74.9669,9.4344],[-75.0322,9.4666],[-75.0289,9.5098],[-75.0124,9.5283],[-75.0399,9.5404],[-75.0779,9.5328],[-75.1334,9.5964],[-75.1672,9.6134],[-75.1811,9.6019],[-75.1893,9.6293],[-75.1645,9.6465],[-75.2327,9.6467],[-75.2765,9.6863],[-75.3147,9.6528],[-75.3271,9.6167],[-75.3562,9.6473],[-75.3739,9.6301],[-75.378,9.7204],[-75.36,9.7375],[-75.3383,9.8282],[-75.3768,9.8494],[-75.3936,9.8808],[-75.4218,9.8845],[-75.3967,9.8938],[-75.4276,9.8929],[-75.4309,9.9127],[-75.4655,9.8918],[-75.482,9.9299],[-75.4692,9.9247],[-75.4642,9.9614],[-75.4801,9.9784],[-75.4761,10.0186],[-75.4908,10.0383],[-75.5168,10.0252],[-75.5449,10.0444],[-75.5232,10.0917]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;SUCRE&quot;,&quot;dpto_ccdgo&quot;:&quot;70&quot;}},{&quot;geometry&quot;:{&quot;type&quot;:&quot;Polygon&quot;,&quot;coordinates&quot;:[[[-74.8217,5.3167],[-74.8541,5.315],[-74.8725,5.295],[-74.9393,5.313],[-74.9866,5.2886],[-75.0281,5.2888],[-75.0567,5.2755],[-75.1162,5.1606],[-75.1716,5.171],[-75.235,5.126],[-75.2839,5.1407],[-75.3448,5.0808],[-75.3488,5.0573],[-75.318,5.0154],[-75.3527,4.9667],[-75.3525,4.9406],[-75.3187,4.8881],[-75.3755,4.8027],[-75.3832,4.704],[-75.4215,4.6586],[-75.4157,4.6219],[-75.4323,4.6011],[-75.4689,4.5983],[-75.5243,4.5434],[-75.5246,4.4979],[-75.5775,4.4522],[-75.5967,4.2803],[-75.6433,4.2461],[-75.6964,4.132],[-75.7471,4.0951],[-75.7387,4.0517],[-75.7765,4.004],[-75.7953,4.0051],[-75.7915,3.971],[-75.8122,3.9194],[-75.8584,3.8814],[-75.853,3.8522],[-75.9033,3.7966],[-75.9201,3.7404],[-75.9603,3.7057],[-75.9504,3.674],[-75.9937,3.6384],[-75.984,3.5599],[-76.0413,3.4383],[-76.0314,3.3823],[-76.0619,3.3517],[-76.0378,3.301],[-76.0505,3.282],[-76.0386,3.2515],[-76.0595,3.2308],[-76.0604,3.2027],[-76.0915,3.1983],[-76.0737,3.1225],[-76.1057,3.1068],[-76.0732,3.0773],[-76.073,3.0496],[-76.0449,3.0431],[-76.0413,3.0159],[-76.0208,3.0039],[-76.029,2.9405],[-75.9886,2.9825],[-75.9534,2.9178],[-75.9274,2.9214],[-75.9015,2.8949],[-75.8401,2.8719],[-75.763,2.9149],[-75.7615,2.9423],[-75.7027,2.97],[-75.6932,2.9934],[-75.6329,2.9959],[-75.6015,3.0392],[-75.6221,3.0754],[-75.5767,3.143],[-75.5885,3.1558],[-75.5759,3.2284],[-75.5219,3.3012],[-75.5275,3.3183],[-75.4904,3.3259],[-75.4788,3.3611],[-75.4406,3.3452],[-75.415,3.3712],[-75.3754,3.3749],[-75.3617,3.4088],[-75.3403,3.398],[-75.3185,3.4195],[-75.2524,3.3657],[-75.2273,3.4158],[-75.2004,3.4094],[-75.1999,3.3846],[-75.1749,3.3773],[-75.1742,3.4087],[-75.1474,3.4358],[-75.037,3.4295],[-75.0427,3.4084],[-75.0277,3.3914],[-75.0569,3.378],[-75.0706,3.2953],[-75.0006,3.2762],[-74.9054,3.2914],[-74.8485,3.3408],[-74.8163,3.4064],[-74.7645,3.4409],[-74.7807,3.5097],[-74.7286,3.5516],[-74.7384,3.5908],[-74.701,3.6157],[-74.6754,3.6717],[-74.6249,3.6987],[-74.5576,3.7671],[-74.5113,3.9461],[-74.5311,3.9676],[-74.5298,4.0448],[-74.4749,4.1279],[-74.5189,4.2405],[-74.5625,4.2721],[-74.5885,4.2674],[-74.6199,4.2519],[-74.6235,4.2268],[-74.652,4.2],[-74.6589,4.2159],[-74.6813,4.2009],[-74.7341,4.2478],[-74.746,4.2368],[-74.7512,4.259],[-74.7672,4.2513],[-74.7788,4.2836],[-74.8127,4.2943],[-74.8771,4.2654],[-74.8906,4.2887],[-74.8731,4.3066],[-74.8835,4.317],[-74.8558,4.3347],[-74.8331,4.4434],[-74.8073,4.4533],[-74.7863,4.5059],[-74.8149,4.5852],[-74.7938,4.5921],[-74.8163,4.6119],[-74.7858,4.6529],[-74.8072,4.6694],[-74.8014,4.7017],[-74.8191,4.726],[-74.7438,4.7883],[-74.7444,4.8234],[-74.7695,4.8429],[-74.7549,4.8859],[-74.7317,4.894],[-74.7488,4.9577],[-74.7059,4.9819],[-74.7432,5.0071],[-74.7168,5.0923],[-74.7319,5.1432],[-74.7144,5.1798],[-74.7346,5.2048],[-74.725,5.2644],[-74.7343,5.2869],[-74.7545,5.2817],[-74.8217,5.3167]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;TOLIMA&quot;,&quot;dpto_ccdgo&quot;:&quot;73&quot;}},{&quot;geometry&quot;:{&quot;type&quot;:&quot;MultiPolygon&quot;,&quot;coordinates&quot;:[[[[-76.0793,5.0447],[-76.0968,5.0318],[-76.0887,4.9461],[-76.0997,4.9172],[-76.1306,4.9112],[-76.1141,4.8904],[-76.1386,4.842],[-76.2127,4.8289],[-76.3121,4.7506],[-76.2857,4.7124],[-76.3194,4.6079],[-76.3446,4.5618],[-76.3813,4.5596],[-76.4038,4.535],[-76.3652,4.4916],[-76.383,4.4928],[-76.4183,4.4478],[-76.4821,4.4141],[-76.5552,4.3992],[-76.562,4.3697],[-76.5279,4.3235],[-76.5266,4.2886],[-76.4871,4.2355],[-76.455,4.2295],[-76.4449,4.1757],[-76.4944,4.0695],[-76.5244,4.0673],[-76.5415,4.0437],[-76.5373,4.0162],[-76.589,3.9707],[-76.5929,3.9985],[-76.6246,4.0149],[-76.6824,3.9649],[-76.7677,3.9887],[-76.7942,4.0114],[-76.8153,4.007],[-76.8234,4.0327],[-76.8674,4.0324],[-76.9147,4.0977],[-76.9544,4.1207],[-76.995,4.1204],[-77.0048,4.0989],[-77.0356,4.0913],[-77.068,4.096],[-77.0862,4.1226],[-77.1048,4.1077],[-77.1596,4.1837],[-77.2232,4.1572],[-77.2499,4.1877],[-77.2535,4.2342],[-77.2791,4.2227],[-77.3055,4.1665],[-77.353,4.1975],[-77.3903,4.1485],[-77.4358,4.1458],[-77.4289,4.0931],[-77.4496,4.0385],[-77.3593,3.9267],[-77.3244,3.9727],[-77.3072,4.0423],[-77.2686,4.077],[-77.2616,4.0604],[-77.2323,4.0814],[-77.2287,4.0591],[-77.1946,4.0528],[-77.2236,3.9961],[-77.29,3.9791],[-77.3175,3.9503],[-77.3208,3.9025],[-77.2863,3.8953],[-77.3051,3.8737],[-77.2816,3.8394],[-77.1816,3.8317],[-77.1327,3.8725],[-77.0975,3.8753],[-77.0867,3.9052],[-77.0736,3.8795],[-77.0529,3.8748],[-77.1063,3.8488],[-77.1349,3.8048],[-77.1818,3.8094],[-77.166,3.7575],[-77.197,3.7505],[-77.197,3.7208],[-77.1891,3.6814],[-77.1654,3.6848],[-77.1656,3.6447],[-77.1892,3.6532],[-77.1957,3.6107],[-77.2359,3.5774],[-77.3004,3.57],[-77.3707,3.4751],[-77.337,3.4487],[-77.3325,3.4266],[-77.3557,3.4103],[-77.3646,3.448],[-77.4132,3.3556],[-77.4274,3.368],[-77.4799,3.3231],[-77.5483,3.2259],[-77.4987,3.234],[-77.5041,3.2223],[-77.4764,3.2098],[-77.4621,3.2267],[-77.4707,3.237],[-77.4291,3.2537],[-77.3821,3.2034],[-77.3658,3.1465],[-77.3462,3.1402],[-77.3172,3.1742],[-77.2799,3.1594],[-77.2883,3.1386],[-77.2616,3.1351],[-77.2523,3.1152],[-77.2447,3.1263],[-77.2341,3.1081],[-77.1593,3.1743],[-77.1296,3.1612],[-77.0984,3.186],[-76.9968,3.1548],[-76.9719,3.1188],[-76.9385,3.114],[-76.9155,3.1495],[-76.908,3.2014],[-76.8094,3.2075],[-76.7729,3.2337],[-76.7392,3.1861],[-76.7498,3.1462],[-76.7334,3.1249],[-76.6663,3.098],[-76.6298,3.1284],[-76.6101,3.0912],[-76.593,3.0936],[-76.5988,3.1051],[-76.5729,3.1288],[-76.5559,3.0995],[-76.5309,3.1236],[-76.5136,3.1203],[-76.5327,3.1357],[-76.5178,3.1345],[-76.5198,3.1497],[-76.5008,3.144],[-76.5078,3.1573],[-76.4871,3.1738],[-76.4982,3.2021],[-76.4654,3.2275],[-76.4773,3.2326],[-76.4621,3.2492],[-76.4756,3.2577],[-76.4598,3.2563],[-76.4872,3.2825],[-76.4752,3.2877],[-76.4942,3.2928],[-76.4891,3.305],[-76.4774,3.294],[-76.4784,3.3193],[-76.4685,3.3107],[-76.4604,3.3289],[-76.3431,3.2806],[-76.2293,3.2768],[-76.1913,3.2271],[-76.1564,3.236],[-76.1459,3.2226],[-76.0614,3.2134],[-76.0386,3.2515],[-76.0505,3.282],[-76.0378,3.3003],[-76.0616,3.3541],[-76.0314,3.3823],[-76.0413,3.4383],[-75.984,3.5599],[-75.9937,3.6384],[-75.9504,3.674],[-75.9603,3.7057],[-75.9201,3.7404],[-75.9033,3.7966],[-75.853,3.8522],[-75.8584,3.8814],[-75.8122,3.9194],[-75.7915,3.971],[-75.7953,4.0051],[-75.7765,4.004],[-75.7376,4.0551],[-75.7524,4.0774],[-75.839,4.0976],[-75.843,4.1508],[-75.7875,4.293],[-75.7897,4.3518],[-75.812,4.4043],[-75.8949,4.4171],[-75.8881,4.4467],[-75.8655,4.4548],[-75.8814,4.4678],[-75.8669,4.611],[-75.8251,4.6635],[-75.7072,4.6571],[-75.7136,4.7138],[-75.7894,4.7161],[-75.8311,4.7378],[-75.8561,4.7278],[-75.8523,4.7787],[-75.8886,4.7547],[-75.9233,4.7603],[-75.9175,4.7945],[-75.9357,4.8077],[-75.9108,4.8166],[-75.901,4.8529],[-75.9142,4.8735],[-75.9428,4.8567],[-75.9877,4.8738],[-75.9876,4.9114],[-76.0277,4.9386],[-76.0491,5.0072],[-76.0793,5.0447]]],[[[-77.2381,4.0405],[-77.2326,4.0314],[-77.2264,4.0399],[-77.2381,4.0405]]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;VALLE DEL CAUCA&quot;,&quot;dpto_ccdgo&quot;:&quot;76&quot;}},{&quot;geometry&quot;:{&quot;type&quot;:&quot;Polygon&quot;,&quot;coordinates&quot;:[[[-70.6804,7.0939],[-70.6872,7.1044],[-70.736,7.0887],[-70.7605,7.0977],[-70.7774,7.0767],[-70.8533,7.0777],[-70.8491,7.057],[-70.8863,7.0644],[-70.9077,7.0413],[-70.919,7.0526],[-70.9216,7.0237],[-70.9698,7.0164],[-70.9954,6.9831],[-71.0238,6.9739],[-71.1117,6.9899],[-71.1151,7.0067],[-71.1031,7.0069],[-71.13,7.0327],[-71.1915,7.019],[-71.2279,7.0274],[-71.2409,7.0118],[-71.2645,7.0321],[-71.3698,7.0154],[-71.3917,7.0359],[-71.4244,7.0389],[-71.455,7.0098],[-71.4652,7.0422],[-71.4782,7.0151],[-71.4985,7.0363],[-71.512,7.0216],[-71.5403,7.0347],[-71.587,7.0164],[-71.5877,7.0552],[-71.705,7.0325],[-71.7462,7.0657],[-71.8119,7.0624],[-71.835,7.0257],[-71.9489,7.0113],[-72.0506,6.7689],[-72.1001,6.7472],[-72.0914,6.646],[-72.1128,6.6121],[-72.1309,6.5206],[-72.1779,6.4968],[-72.1747,6.463],[-72.2138,6.4655],[-72.2351,6.422],[-72.2679,6.4416],[-72.2827,6.3794],[-72.3157,6.3575],[-72.3171,6.3347],[-72.3459,6.3416],[-72.3666,6.3069],[-72.3439,6.226],[-72.2866,6.1999],[-72.289,6.1632],[-72.2627,6.1232],[-72.1377,6.0666],[-72.0774,6.1129],[-72.0104,6.13],[-71.9547,6.169],[-71.8794,6.1591],[-71.8241,6.1872],[-71.6715,6.1904],[-71.6376,6.2287],[-71.614,6.2268],[-71.6123,6.2101],[-71.5926,6.2114],[-71.5752,6.1911],[-71.574,6.2098],[-71.5533,6.1972],[-71.5352,6.2256],[-71.5098,6.1978],[-71.4966,6.2166],[-71.4872,6.2014],[-71.4563,6.2229],[-71.4397,6.2149],[-71.4487,6.2458],[-71.4209,6.2251],[-71.4143,6.2434],[-71.3807,6.2413],[-71.3779,6.2252],[-71.3486,6.2292],[-71.3325,6.2566],[-71.2978,6.2718],[-71.2724,6.2614],[-71.2677,6.285],[-71.2336,6.2636],[-71.2205,6.2983],[-71.1581,6.2629],[-71.0926,6.2791],[-71.0598,6.2546],[-71.0354,6.2546],[-71.0347,6.2662],[-70.9852,6.2288],[-70.8958,6.2357],[-70.8679,6.2216],[-70.8612,6.2393],[-70.7972,6.2535],[-70.7258,6.2164],[-70.6308,6.2271],[-70.5797,6.2496],[-70.539,6.245],[-70.5305,6.2301],[-70.4307,6.278],[-70.4307,6.2915],[-70.3809,6.3024],[-70.2715,6.2739],[-70.1984,6.2957],[-70.1752,6.279],[-70.1615,6.2983],[-70.1495,6.2689],[-70.1221,6.2617],[-70.1147,6.2328],[-70.0662,6.2115],[-70.0602,6.1851],[-70.0401,6.1846],[-70.058,6.1587],[-70.0027,6.1489],[-69.9901,6.1659],[-69.9852,6.1366],[-69.9462,6.1408],[-69.8995,6.0963],[-69.8973,6.0597],[-69.8682,6.0417],[-69.7843,6.0586],[-69.6826,6.0384],[-69.5415,6.0437],[-69.4276,6.1073],[-70.1178,6.9794],[-70.2243,6.9747],[-70.2655,6.9412],[-70.3224,6.9346],[-70.3608,6.9562],[-70.3721,6.9809],[-70.4167,6.9809],[-70.4311,7.0073],[-70.5023,7.0057],[-70.5563,7.0793],[-70.6076,7.0637],[-70.6804,7.0939]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;ARAUCA&quot;,&quot;dpto_ccdgo&quot;:&quot;81&quot;}},{&quot;geometry&quot;:{&quot;type&quot;:&quot;Polygon&quot;,&quot;coordinates&quot;:[[[-72.3389,6.3447],[-72.3554,6.3419],[-72.3961,6.2742],[-72.3872,6.261],[-72.4189,6.1867],[-72.3925,6.1883],[-72.3931,6.1616],[-72.3739,6.1477],[-72.3892,6.1237],[-72.3641,6.0993],[-72.3754,6.0925],[-72.3666,6.0768],[-72.3212,6.0882],[-72.3215,6.0678],[-72.3655,6.0367],[-72.3398,5.9985],[-72.3277,5.9017],[-72.336,5.8896],[-72.4155,5.904],[-72.4509,5.8784],[-72.4631,5.8485],[-72.3076,5.7928],[-72.3005,5.7583],[-72.2804,5.7496],[-72.2497,5.6853],[-72.2214,5.676],[-72.2721,5.6622],[-72.2627,5.6335],[-72.289,5.6003],[-72.2953,5.515],[-72.3304,5.4976],[-72.3965,5.5702],[-72.4209,5.5632],[-72.4424,5.5193],[-72.4899,5.4818],[-72.5034,5.443],[-72.584,5.382],[-72.5672,5.3734],[-72.5798,5.3503],[-72.6203,5.3512],[-72.7006,5.2733],[-72.7256,5.318],[-72.7569,5.3314],[-72.7983,5.3801],[-72.8595,5.3404],[-72.8827,5.3632],[-72.8962,5.2621],[-72.9739,5.1504],[-72.9286,5.0997],[-72.9084,5.1025],[-72.9038,5.0679],[-72.9753,4.9748],[-73.0198,5.0016],[-73.0489,4.9236],[-73.0415,4.8783],[-73.0777,4.8107],[-73.0457,4.758],[-73.0504,4.6927],[-73.0169,4.6356],[-72.968,4.5992],[-72.9379,4.5227],[-72.8702,4.4507],[-72.8135,4.4298],[-72.825,4.4176],[-72.7883,4.3975],[-72.8006,4.3783],[-72.7689,4.3664],[-72.7797,4.3528],[-72.763,4.3478],[-72.7695,4.3332],[-72.6936,4.2875],[-72.6759,4.3174],[-72.5734,4.3021],[-72.5735,4.3255],[-72.5478,4.3547],[-72.4668,4.3174],[-72.4279,4.3537],[-72.405,4.3179],[-72.3562,4.3417],[-72.3422,4.3715],[-72.3205,4.3709],[-72.3029,4.4084],[-72.2434,4.4346],[-72.1431,4.4403],[-72.0708,4.4081],[-72.0606,4.375],[-71.9903,4.3835],[-71.8067,4.5835],[-71.7324,4.5753],[-71.5979,4.6453],[-71.5768,4.675],[-71.4293,4.7233],[-71.3902,4.7567],[-71.3228,4.7667],[-71.2883,4.8031],[-71.2117,4.8173],[-71.0573,4.9057],[-71.0019,4.9807],[-70.9499,5.1177],[-70.9146,5.1405],[-70.862,5.1442],[-70.6954,5.2818],[-70.6741,5.3155],[-70.68,5.361],[-70.6032,5.4237],[-70.4206,5.5345],[-70.3605,5.587],[-70.2638,5.5636],[-70.1947,5.6032],[-70.1531,5.6009],[-70.1149,5.6315],[-70.0518,5.7112],[-70.0438,5.7462],[-69.9788,5.8073],[-69.9663,5.8616],[-69.9325,5.8765],[-69.8828,5.9698],[-69.8543,5.9845],[-69.8359,6.0413],[-69.8918,6.054],[-69.9003,6.0975],[-69.9481,6.1419],[-69.9852,6.1366],[-69.9855,6.1645],[-70.0027,6.1489],[-70.058,6.1587],[-70.0401,6.1846],[-70.0602,6.1851],[-70.0662,6.2115],[-70.1147,6.2328],[-70.1234,6.2633],[-70.1541,6.275],[-70.1546,6.2972],[-70.1752,6.279],[-70.1984,6.2957],[-70.2715,6.2739],[-70.3671,6.3027],[-70.4307,6.2915],[-70.4307,6.278],[-70.5305,6.2301],[-70.539,6.245],[-70.5797,6.2496],[-70.6308,6.2271],[-70.7258,6.2164],[-70.7972,6.2535],[-70.8612,6.2393],[-70.8679,6.2216],[-70.8958,6.2357],[-70.9852,6.2288],[-71.0347,6.2662],[-71.0354,6.2546],[-71.0598,6.2546],[-71.0926,6.2791],[-71.1581,6.2629],[-71.2205,6.2983],[-71.2336,6.2636],[-71.2677,6.285],[-71.2724,6.2614],[-71.2978,6.2718],[-71.3325,6.2566],[-71.3486,6.2292],[-71.3779,6.2252],[-71.3807,6.2413],[-71.4143,6.2434],[-71.4209,6.2251],[-71.4487,6.2458],[-71.4397,6.2149],[-71.4563,6.2229],[-71.4872,6.2014],[-71.4966,6.2166],[-71.5098,6.1978],[-71.5352,6.2256],[-71.5533,6.1972],[-71.574,6.2098],[-71.5752,6.1911],[-71.5926,6.2114],[-71.6123,6.2101],[-71.614,6.2268],[-71.6376,6.2287],[-71.6715,6.1904],[-71.8241,6.1872],[-71.8794,6.1591],[-71.9547,6.169],[-72.0104,6.13],[-72.0774,6.1129],[-72.1397,6.0667],[-72.2627,6.1232],[-72.289,6.1632],[-72.2866,6.1999],[-72.3439,6.226],[-72.3666,6.3069],[-72.3389,6.3447]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;CASANARE&quot;,&quot;dpto_ccdgo&quot;:&quot;85&quot;}},{&quot;geometry&quot;:{&quot;type&quot;:&quot;Polygon&quot;,&quot;coordinates&quot;:[[[-76.6705,1.4673],[-76.751,1.4201],[-76.8868,1.3718],[-76.9213,1.3448],[-76.9042,1.3209],[-76.9361,1.2746],[-76.9794,1.2867],[-76.9811,1.2228],[-77.021,1.1962],[-77.0884,1.1834],[-77.0973,1.1643],[-77.0932,1.0755],[-77.0581,1.0343],[-77.0368,1.0471],[-77.0281,0.9949],[-77.0738,0.9697],[-77.0727,0.9423],[-77.1212,0.8932],[-77.1021,0.8336],[-77.1392,0.8215],[-77.1868,0.631],[-77.1174,0.5914],[-77.1302,0.5245],[-77.1021,0.4704],[-77.1076,0.4425],[-77.0891,0.4244],[-77.0992,0.4106],[-77.088,0.3946],[-77.1121,0.3831],[-77.1121,0.3667],[-77.0788,0.2862],[-77.0275,0.2774],[-77.0053,0.2951],[-76.9847,0.2684],[-76.9343,0.2766],[-76.9353,0.262],[-76.9061,0.2453],[-76.8442,0.2391],[-76.798,0.2649],[-76.7586,0.247],[-76.7665,0.2635],[-76.7327,0.2886],[-76.7127,0.269],[-76.659,0.273],[-76.6531,0.2511],[-76.6293,0.2631],[-76.5887,0.2192],[-76.5354,0.2589],[-76.5034,0.2362],[-76.4481,0.2395],[-76.4333,0.259],[-76.4235,0.2348],[-76.4123,0.2416],[-76.4124,0.3813],[-76.3678,0.3937],[-76.3452,0.3798],[-76.313,0.4331],[-76.2966,0.4207],[-76.2779,0.4359],[-76.2571,0.3998],[-76.2328,0.4003],[-76.2258,0.3729],[-76.2087,0.3851],[-76.1787,0.3705],[-76.1596,0.3886],[-76.1332,0.3702],[-76.1135,0.3134],[-76.0747,0.3351],[-76.055,0.3289],[-76.0455,0.3032],[-76.0105,0.2988],[-75.9846,0.2586],[-76.0048,0.2472],[-75.9659,0.2364],[-75.9547,0.2001],[-75.9004,0.1613],[-75.906,0.136],[-75.8833,0.139],[-75.8769,0.1164],[-75.8541,0.131],[-75.807,0.0468],[-75.6494,0.0267],[-75.6353,0.0467],[-75.6084,0.0116],[-75.5813,0.0138],[-75.5767,-0.0282],[-75.53,-0.0267],[-75.3983,-0.1009],[-75.3586,-0.0921],[-75.2759,-0.1274],[-75.2258,-0.0911],[-75.2022,-0.0449],[-75.1702,-0.045],[-75.069,-0.0949],[-75.018,-0.1477],[-74.9749,-0.1574],[-74.9748,-0.1868],[-74.9283,-0.2288],[-74.9124,-0.2129],[-74.8854,-0.2456],[-74.8543,-0.2433],[-74.8095,-0.1929],[-74.7873,-0.201],[-74.7316,-0.3029],[-74.7266,-0.3489],[-74.7022,-0.3524],[-74.6838,-0.3314],[-74.6893,-0.3633],[-74.6562,-0.3768],[-74.6099,-0.3532],[-74.6155,-0.3796],[-74.5809,-0.3895],[-74.5305,-0.4697],[-74.5063,-0.4645],[-74.4915,-0.4906],[-74.4709,-0.48],[-74.4573,-0.5058],[-74.4268,-0.4998],[-74.4217,-0.5612],[-74.3967,-0.5421],[-74.3891,-0.5537],[-73.8413,-0.398],[-73.8819,-0.3697],[-74.0072,-0.3406],[-74.0384,-0.3061],[-74.0447,-0.2748],[-74.0818,-0.2798],[-74.1116,-0.2351],[-74.143,-0.238],[-74.1685,-0.2665],[-74.1883,-0.2585],[-74.2003,-0.2098],[-74.2405,-0.2347],[-74.2894,-0.2004],[-74.2668,-0.1425],[-74.3031,-0.1475],[-74.3419,-0.1097],[-74.4019,-0.1143],[-74.4463,-0.1396],[-74.4234,-0.098],[-74.4544,-0.0708],[-74.4748,-0.1303],[-74.4972,-0.1374],[-74.519,-0.0886],[-74.5347,-0.0951],[-74.5323,-0.1257],[-74.6318,-0.0885],[-74.616,-0.0622],[-74.6314,-0.0441],[-74.6486,-0.0389],[-74.6773,-0.0605],[-74.6564,-0.0116],[-74.7046,0.0415],[-74.6746,0.0459],[-74.6562,0.0733],[-74.7135,0.0953],[-74.6907,0.0878],[-74.6753,0.0997],[-74.6806,0.1654],[-74.7365,0.2096],[-74.8409,0.213],[-74.893,0.2492],[-74.9594,0.2425],[-75.0039,0.2732],[-75.0106,0.2915],[-74.9799,0.3146],[-75.0071,0.3423],[-75.0166,0.3834],[-74.9829,0.4088],[-75.0183,0.4724],[-75.035,0.4844],[-75.1049,0.4732],[-75.094,0.5012],[-75.107,0.5129],[-75.1537,0.4813],[-75.2169,0.4866],[-75.1983,0.5034],[-75.2353,0.565],[-75.2071,0.5953],[-75.2203,0.6333],[-75.2762,0.6674],[-75.2571,0.7034],[-75.2656,0.7256],[-75.2975,0.7295],[-75.3398,0.7692],[-75.409,0.7378],[-75.4687,0.7588],[-75.4831,0.783],[-75.505,0.7669],[-75.5384,0.7886],[-75.5379,0.8268],[-75.6078,0.8383],[-75.6364,0.8767],[-75.6819,0.8569],[-75.731,0.8587],[-75.7623,0.8378],[-75.8002,0.8957],[-75.8285,0.8738],[-75.8566,0.885],[-75.9092,0.9731],[-75.9469,0.9829],[-75.9243,1.0336],[-75.9476,1.0307],[-75.9942,1.0726],[-75.9929,1.0276],[-76.0061,1.055],[-76.0482,1.0462],[-76.0896,1.0578],[-76.0804,1.0212],[-76.104,1.0252],[-76.1261,1.0066],[-76.1837,1.0261],[-76.1831,1.0132],[-76.2033,1.0178],[-76.2088,1.0054],[-76.1906,0.9934],[-76.2364,0.982],[-76.2357,0.9645],[-76.276,0.9837],[-76.298,0.9606],[-76.3302,0.9584],[-76.3351,0.9806],[-76.3697,0.9839],[-76.4017,0.9799],[-76.4123,0.9607],[-76.4449,0.9693],[-76.4935,1.0282],[-76.545,1.0377],[-76.5681,1.0826],[-76.5372,1.2092],[-76.5657,1.2385],[-76.586,1.3006],[-76.571,1.328],[-76.5843,1.3435],[-76.574,1.3858],[-76.6705,1.4673]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;PUTUMAYO&quot;,&quot;dpto_ccdgo&quot;:&quot;86&quot;}},{&quot;geometry&quot;:{&quot;type&quot;:&quot;Polygon&quot;,&quot;coordinates&quot;:[[[-67.6764,3.9123],[-67.6924,3.9362],[-67.7076,4.045],[-67.8132,3.9845],[-67.876,3.9191],[-67.9136,3.9094],[-67.9374,3.9631],[-68.0248,3.9759],[-68.0345,4.0114],[-68.079,3.9352],[-68.0784,3.9805],[-68.0983,3.9746],[-68.1129,3.9434],[-68.1328,3.9465],[-68.1195,3.9821],[-68.1305,4.0009],[-68.1737,3.986],[-68.205,3.9975],[-68.2066,3.9568],[-68.3418,3.9937],[-68.3556,3.9547],[-68.3467,3.9241],[-68.3818,3.9124],[-68.4204,3.9267],[-68.4366,3.915],[-68.393,3.8729],[-68.3947,3.8508],[-68.4468,3.8844],[-68.4445,3.8384],[-68.4762,3.852],[-68.513,3.8255],[-68.5099,3.7791],[-68.5693,3.818],[-68.5506,3.764],[-68.576,3.7902],[-68.6347,3.7736],[-68.672,3.812],[-68.6805,3.797],[-68.6464,3.7751],[-68.6508,3.7617],[-68.7543,3.7831],[-68.7948,3.7223],[-68.8521,3.7387],[-68.8321,3.6707],[-68.8642,3.7063],[-68.9256,3.6868],[-68.9376,3.7424],[-68.9423,3.6825],[-68.9958,3.6919],[-69.0559,3.6387],[-69.0788,3.6559],[-69.1004,3.6381],[-69.1211,3.676],[-69.1525,3.6426],[-69.1867,3.6339],[-69.1681,3.6719],[-69.2001,3.6695],[-69.208,3.702],[-69.235,3.674],[-69.247,3.7148],[-69.2797,3.7263],[-69.2871,3.7133],[-69.268,3.6813],[-69.292,3.6448],[-69.3057,3.6522],[-69.2896,3.6981],[-69.3035,3.7173],[-69.3664,3.6655],[-69.3879,3.6851],[-69.4077,3.66],[-69.4547,3.709],[-69.4784,3.6954],[-69.4929,3.6508],[-69.5043,3.6787],[-69.589,3.6833],[-69.595,3.6726],[-69.5706,3.6694],[-69.5926,3.5677],[-69.6089,3.5955],[-69.629,3.5686],[-69.6631,3.5854],[-69.7006,3.5399],[-69.7098,3.5767],[-69.7399,3.5909],[-69.7424,3.576],[-69.7137,3.5494],[-69.734,3.5429],[-69.7773,3.5646],[-69.8019,3.5079],[-69.8154,3.5159],[-69.8171,3.5521],[-69.8439,3.549],[-69.8172,3.477],[-69.8516,3.4918],[-69.8724,3.5358],[-69.8936,3.5369],[-69.8955,3.5172],[-69.8617,3.4788],[-69.8717,3.4394],[-69.9025,3.4244],[-69.915,3.447],[-69.9603,3.4569],[-69.9435,3.3948],[-70.0019,3.3727],[-70.0258,3.4176],[-70.076,3.3874],[-70.1103,3.385],[-70.1266,3.4008],[-70.1334,3.3651],[-70.1729,3.349],[-70.1088,3.2937],[-70.1157,3.2797],[-70.1362,3.2938],[-70.1579,3.2816],[-70.1568,3.2579],[-70.1318,3.2441],[-70.128,3.2023],[-70.1481,3.1908],[-70.1572,3.2294],[-70.1744,3.2358],[-70.1646,3.1811],[-70.1923,3.1735],[-70.2179,3.206],[-70.2065,3.1731],[-70.2444,3.1792],[-70.2879,3.124],[-70.2799,3.0945],[-70.3199,3.0863],[-70.3152,3.0708],[-70.2727,3.0661],[-70.2553,3.0397],[-70.3033,3.0336],[-70.2784,2.9365],[-70.354,2.914],[-70.3559,2.8537],[-70.4939,2.8133],[-70.4976,2.7885],[-70.9425,2.6067],[-70.93,2.5732],[-70.8886,2.5573],[-70.8526,2.5702],[-70.8293,2.5327],[-70.793,2.5201],[-70.7541,2.537],[-70.7332,2.485],[-70.6797,2.441],[-70.63,2.3129],[-70.5307,2.2684],[-70.511,2.2828],[-70.4886,2.2529],[-70.5112,2.2595],[-70.5143,2.2451],[-70.4968,2.2337],[-70.4731,2.2437],[-70.4647,2.2334],[-70.4582,2.2573],[-70.4208,2.2686],[-70.4079,2.2552],[-70.399,2.2678],[-70.3659,2.2355],[-70.342,2.2479],[-70.3122,2.2083],[-70.2928,2.2285],[-70.3055,2.2529],[-70.2736,2.2374],[-70.2435,2.2653],[-70.2473,2.2433],[-70.1944,2.2298],[-70.1827,2.2401],[-70.1914,2.2526],[-70.1745,2.2374],[-70.1568,2.2399],[-70.1597,2.2651],[-70.1417,2.2512],[-70.1467,2.2777],[-70.0852,2.2632],[-70.0692,2.294],[-70.0452,2.2931],[-70.0531,2.278],[-70.0264,2.2724],[-70.0241,2.2353],[-69.996,2.2244],[-69.9962,2.2048],[-70.0062,2.2073],[-70.0066,2.1821],[-70.0362,2.182],[-70.0336,2.1585],[-70.0553,2.1619],[-70.0584,2.1457],[-70.119,2.1109],[-70.1038,2.0945],[-70.1208,2.0495],[-70.1115,2.0028],[-70.1407,1.9798],[-70.1802,1.8817],[-70.0468,1.7723],[-69.975,1.7432],[-69.9028,1.7453],[-69.859,1.7093],[-69.8396,1.7189],[-69.8093,1.6948],[-69.8037,1.7047],[-69.7826,1.6928],[-69.7212,1.7352],[-69.629,1.7234],[-69.5472,1.7768],[-69.3933,1.7267],[-68.1633,1.7278],[-68.1696,1.7433],[-68.193,1.7378],[-68.1775,1.7657],[-68.1921,1.78],[-68.2398,1.7711],[-68.2266,1.8293],[-68.2746,1.8191],[-68.2853,1.8297],[-68.2057,1.9859],[-68.199,2.0387],[-68.1747,1.9685],[-68.1393,1.9707],[-68.0942,1.8965],[-68.0619,1.8932],[-68.031,1.811],[-67.9956,1.8458],[-67.9077,1.8048],[-67.9219,1.8204],[-67.9225,1.8584],[-67.9088,1.8622],[-67.9217,1.8927],[-67.8712,1.9008],[-67.8693,1.9237],[-67.8324,1.9394],[-67.8087,1.9859],[-67.7834,1.9999],[-67.7755,2.0349],[-67.7434,2.0345],[-67.7307,2.0117],[-67.6772,2.0091],[-67.6584,1.9905],[-67.6248,2.0404],[-67.6017,2.0438],[-67.5739,2.1035],[-67.5866,2.1216],[-67.5739,2.1623],[-67.5509,2.1494],[-67.4504,2.1688],[-67.4458,2.1991],[-67.4165,2.1936],[-67.4161,2.2287],[-67.3946,2.2327],[-67.3686,2.2162],[-67.3617,2.171],[-67.3273,2.1549],[-67.3585,2.1158],[-67.3585,2.0945],[-67.3417,2.0849],[-67.3584,2.0416],[-67.3415,2.0267],[-67.3473,1.985],[-67.3031,1.9006],[-67.2755,1.9234],[-67.2202,1.9179],[-67.2085,1.8583],[-67.1566,1.8278],[-67.1631,1.8013],[-67.1366,1.7989],[-67.1276,1.7768],[-67.149,1.7315],[-67.1289,1.6879],[-67.1431,1.6042],[-67.1008,1.5817],[-67.0749,1.3701],[-67.1121,1.335],[-67.1514,1.3456],[-67.1561,1.3172],[-67.1267,1.2706],[-67.1006,1.2597],[-67.0821,1.2007],[-67.093,1.1709],[-66.8506,1.2236],[-66.8812,1.2866],[-66.8485,1.3186],[-66.852,1.3562],[-66.8748,1.3981],[-66.9112,1.4235],[-66.9208,1.531],[-66.9629,1.5896],[-66.9624,1.6686],[-66.9896,1.6906],[-67.0324,1.7847],[-67.0354,1.8455],[-67.0716,1.934],[-67.123,1.9769],[-67.097,2.0524],[-67.108,2.1193],[-67.1217,2.137],[-67.1616,2.1328],[-67.222,2.2542],[-67.2174,2.3027],[-67.1879,2.3503],[-67.2218,2.3986],[-67.2971,2.4419],[-67.3394,2.5187],[-67.3833,2.544],[-67.3921,2.5736],[-67.4676,2.6194],[-67.4852,2.6658],[-67.5232,2.6734],[-67.5619,2.6558],[-67.5638,2.7261],[-67.6144,2.8115],[-67.6583,2.7966],[-67.7356,2.8169],[-67.7361,2.8356],[-67.7504,2.8375],[-67.8154,2.8313],[-67.838,2.7933],[-67.8641,2.7895],[-67.8628,2.8649],[-67.4349,3.2485],[-67.3812,3.2484],[-67.3816,3.2926],[-67.3108,3.3779],[-67.3392,3.451],[-67.4015,3.48],[-67.412,3.5389],[-67.4441,3.5852],[-67.448,3.6765],[-67.4792,3.7048],[-67.5013,3.7674],[-67.6125,3.7556],[-67.6764,3.9123]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;GUAINÍA&quot;,&quot;dpto_ccdgo&quot;:&quot;94&quot;}},{&quot;geometry&quot;:{&quot;type&quot;:&quot;Polygon&quot;,&quot;coordinates&quot;:[[[-71.3127,2.9246],[-71.3308,2.9213],[-71.3477,2.8582],[-71.3616,2.8905],[-71.3827,2.8875],[-71.3912,2.8439],[-71.4634,2.8993],[-71.4703,2.8531],[-71.5207,2.879],[-71.5451,2.8591],[-71.5832,2.8723],[-71.5752,2.8443],[-71.6106,2.8463],[-71.6522,2.8202],[-71.6739,2.8258],[-71.662,2.8727],[-71.6815,2.8717],[-71.6971,2.8381],[-71.7619,2.8973],[-71.758,2.853],[-71.78,2.8178],[-71.7884,2.8695],[-71.8206,2.8791],[-71.8509,2.8716],[-71.8231,2.87],[-71.8279,2.8375],[-71.9539,2.8317],[-71.9819,2.8012],[-72.0049,2.8294],[-72.0516,2.8167],[-72.0821,2.8259],[-72.1349,2.889],[-72.144,2.8647],[-72.1828,2.8752],[-72.2027,2.864],[-72.2058,2.8148],[-72.184,2.7903],[-72.1929,2.7723],[-72.2151,2.7757],[-72.2595,2.8247],[-72.28,2.7758],[-72.295,2.7741],[-72.313,2.7991],[-72.3355,2.7967],[-72.4067,2.726],[-72.4346,2.74],[-72.4706,2.7338],[-72.4722,2.6893],[-72.5363,2.7027],[-72.5372,2.6828],[-72.5714,2.6741],[-72.5558,2.6499],[-72.5867,2.6393],[-72.5864,2.5837],[-72.6209,2.6274],[-72.653,2.5715],[-72.6794,2.6222],[-72.7022,2.6178],[-72.7397,2.5699],[-72.8182,2.614],[-72.9203,2.5625],[-72.921,2.5344],[-72.9583,2.5085],[-72.9542,2.4949],[-72.9327,2.497],[-72.9348,2.4641],[-72.9626,2.4802],[-72.9658,2.4484],[-72.9861,2.4519],[-73.0328,2.4126],[-73.0452,2.4379],[-73.1106,2.381],[-73.1278,2.411],[-73.1413,2.3971],[-73.1241,2.3788],[-73.1635,2.3654],[-73.1657,2.3994],[-73.2016,2.3825],[-73.2177,2.3864],[-73.2165,2.4055],[-73.2259,2.3889],[-73.2679,2.3809],[-73.2412,2.3713],[-73.2425,2.3473],[-73.2674,2.3588],[-73.3006,2.336],[-73.3304,2.3604],[-73.3332,2.3333],[-73.3567,2.3241],[-73.3451,2.3527],[-73.3569,2.3685],[-73.3746,2.3625],[-73.379,2.325],[-73.3963,2.3289],[-73.3903,2.3511],[-73.4122,2.357],[-73.4368,2.3265],[-73.4423,2.3863],[-73.4557,2.3824],[-73.4503,2.3397],[-73.474,2.3618],[-73.5059,2.3564],[-73.5123,2.3329],[-73.528,2.3876],[-73.572,2.3549],[-73.5854,2.3596],[-73.5864,2.39],[-73.6185,2.3767],[-73.633,2.3603],[-73.6138,2.3411],[-73.635,2.3257],[-73.6297,2.2949],[-73.6434,2.2837],[-73.6569,2.2945],[-73.6639,1.5934],[-73.5473,1.438],[-73.5351,1.3899],[-73.483,1.3703],[-73.4561,1.2946],[-73.4283,1.2959],[-73.4319,1.2589],[-73.4087,1.2414],[-73.4242,1.2235],[-73.4073,1.2057],[-73.4211,1.1909],[-73.393,1.1719],[-73.393,1.1474],[-73.3436,1.1234],[-73.3405,1.0992],[-73.282,1.0668],[-73.2788,1.0473],[-73.2516,1.0488],[-73.2349,1.0087],[-73.1786,1.0002],[-73.1729,0.9815],[-73.1895,0.967],[-73.1643,0.9404],[-73.1469,0.9433],[-73.1445,0.9199],[-73.1093,0.924],[-73.0767,0.8944],[-73.0516,0.9119],[-73.0383,0.9024],[-73.0266,0.9215],[-73.0097,0.9105],[-73.0062,0.9333],[-72.9879,0.9281],[-72.9966,0.9517],[-72.9403,0.98],[-72.9325,1.0152],[-72.8672,1.0245],[-72.8652,1.0417],[-72.8793,1.0462],[-72.858,1.0422],[-72.8608,1.0719],[-72.8833,1.07],[-72.8691,1.0865],[-72.8837,1.0986],[-72.85,1.1047],[-72.8721,1.1354],[-72.8498,1.1431],[-72.8592,1.1648],[-72.8269,1.1489],[-72.8239,1.1782],[-72.7713,1.1823],[-72.778,1.1479],[-72.7496,1.1288],[-72.7387,1.1511],[-72.7228,1.1496],[-72.7259,1.1861],[-72.6622,1.1508],[-72.6499,1.1818],[-72.6226,1.1362],[-72.5109,1.068],[-72.4557,1.0799],[-72.3995,1.0039],[-72.4105,0.9868],[-72.4005,0.9674],[-72.377,0.9602],[-72.3916,0.9191],[-72.3544,0.9351],[-72.3399,0.9267],[-72.3469,0.9029],[-72.3324,0.8794],[-72.3436,0.8686],[-72.3288,0.8408],[-72.3167,0.853],[-72.3231,0.8761],[-72.2885,0.8732],[-72.3014,0.8424],[-72.2868,0.8187],[-72.3101,0.8093],[-72.2697,0.7631],[-72.2703,0.7941],[-72.2487,0.7885],[-72.2219,0.7473],[-72.2209,0.7063],[-72.2004,0.702],[-72.1908,0.727],[-72.1639,0.7133],[-72.1634,0.7339],[-72.1403,0.7181],[-72.1267,0.7401],[-72.1098,0.7049],[-72.0704,0.6927],[-72.0707,0.6684],[-72.0862,0.6596],[-72.0486,0.6562],[-71.7741,0.9061],[-71.7657,0.9616],[-71.7403,0.9848],[-71.7102,0.9905],[-71.6884,0.9703],[-71.6656,0.9729],[-71.6158,1.0371],[-71.5853,1.0446],[-71.5727,1.0912],[-71.5825,1.1269],[-71.54,1.1146],[-71.5562,1.1555],[-71.5316,1.1603],[-71.5355,1.1241],[-71.5027,1.1033],[-71.4851,1.1088],[-71.5347,1.206],[-71.553,1.2074],[-71.5389,1.2302],[-71.5525,1.2769],[-71.5264,1.278],[-71.5306,1.2958],[-71.4786,1.4048],[-71.4794,1.4462],[-71.4553,1.4648],[-71.4399,1.508],[-71.4395,1.545],[-71.3902,1.5982],[-71.3982,1.7337],[-71.3678,1.7389],[-71.3304,1.7051],[-71.3139,1.7139],[-71.2586,1.668],[-71.1258,1.7831],[-71.0926,1.7811],[-71.0934,1.8021],[-71.0647,1.7983],[-71.0417,1.8175],[-71.0003,1.815],[-70.9565,1.8462],[-70.9024,1.8885],[-70.8945,1.9277],[-70.8774,1.9331],[-70.8661,1.9088],[-70.847,1.9206],[-70.801,1.9056],[-70.7705,1.9276],[-70.7611,1.91],[-70.7331,1.9239],[-70.6911,1.8977],[-70.6626,1.9139],[-70.6365,1.9032],[-70.6209,1.93],[-70.5791,1.9286],[-70.5309,1.9571],[-70.514,1.957],[-70.5111,1.9404],[-70.4866,1.9458],[-70.4853,1.9631],[-70.4644,1.963],[-70.4656,1.9829],[-70.4347,1.9997],[-70.3865,1.9852],[-70.3681,2.0036],[-70.3511,1.983],[-70.3176,2.0128],[-70.2607,2.0141],[-70.2505,2.0294],[-70.181,2.0248],[-70.1515,2.0716],[-70.1395,2.0623],[-70.1088,2.0802],[-70.1193,2.1103],[-70.0922,2.122],[-70.1001,2.13],[-70.0584,2.1457],[-70.0553,2.1619],[-70.0336,2.1585],[-70.0362,2.182],[-70.0059,2.1827],[-69.9955,2.2238],[-70.0233,2.2342],[-70.0264,2.2724],[-70.0538,2.2793],[-70.047,2.2942],[-70.0692,2.294],[-70.0852,2.2632],[-70.1467,2.2777],[-70.1417,2.2512],[-70.1597,2.2651],[-70.1568,2.2399],[-70.1745,2.2374],[-70.1914,2.2526],[-70.1827,2.2401],[-70.1944,2.2298],[-70.2473,2.2433],[-70.2435,2.2653],[-70.2736,2.2374],[-70.3055,2.2529],[-70.2928,2.2285],[-70.3122,2.2083],[-70.342,2.2479],[-70.3659,2.2355],[-70.399,2.2678],[-70.4079,2.2552],[-70.4208,2.2686],[-70.4582,2.2573],[-70.4647,2.2334],[-70.4984,2.2344],[-70.5134,2.2573],[-70.4888,2.2548],[-70.511,2.2828],[-70.5307,2.2684],[-70.63,2.3129],[-70.6797,2.441],[-70.7332,2.485],[-70.7541,2.537],[-70.793,2.5201],[-70.8293,2.5327],[-70.8526,2.5702],[-70.8886,2.5573],[-70.9282,2.5704],[-70.9425,2.6067],[-70.5012,2.788],[-70.5699,2.8327],[-70.5957,2.8377],[-70.6183,2.7917],[-70.6354,2.8488],[-70.6622,2.8565],[-70.6404,2.8026],[-70.6817,2.7778],[-70.7092,2.7371],[-70.7248,2.7952],[-70.7544,2.7702],[-70.8113,2.76],[-70.7964,2.7944],[-70.8216,2.8131],[-70.8714,2.7778],[-70.8542,2.8232],[-70.8761,2.8474],[-70.871,2.7993],[-70.8837,2.7926],[-70.9113,2.8499],[-70.9381,2.8573],[-70.9251,2.8154],[-70.9466,2.7856],[-70.962,2.8005],[-70.9479,2.818],[-70.9546,2.8421],[-70.9885,2.8291],[-71.0106,2.8568],[-71.0581,2.8528],[-71.0758,2.8822],[-71.1158,2.8752],[-71.1372,2.9039],[-71.1514,2.8722],[-71.1835,2.9048],[-71.2218,2.8656],[-71.2472,2.8628],[-71.2596,2.8862],[-71.2837,2.8678],[-71.2996,2.8756],[-71.3127,2.9246]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;GUAVIARE&quot;,&quot;dpto_ccdgo&quot;:&quot;95&quot;}},{&quot;geometry&quot;:{&quot;type&quot;:&quot;Polygon&quot;,&quot;coordinates&quot;:[[[-67.8097,6.3243],[-67.8457,6.312],[-67.9298,6.2364],[-68.0275,6.1961],[-68.0777,6.2271],[-68.1419,6.2287],[-68.2574,6.197],[-68.307,6.163],[-68.3736,6.1859],[-68.4486,6.1877],[-68.5101,6.1791],[-68.542,6.149],[-68.5885,6.1663],[-68.6448,6.1292],[-68.6869,6.132],[-68.7065,6.1521],[-68.7927,6.1474],[-68.8296,6.1799],[-68.8822,6.1674],[-68.9733,6.1962],[-69.0142,6.1929],[-69.0462,6.2217],[-69.1237,6.1909],[-69.1503,6.1509],[-69.1777,6.1473],[-69.2386,6.0795],[-69.3073,6.089],[-69.3447,6.1444],[-69.4043,6.1256],[-69.4523,6.0835],[-69.5415,6.0437],[-69.6826,6.0384],[-69.8042,6.0554],[-69.8417,6.0343],[-69.8546,5.9841],[-69.8828,5.9698],[-69.9325,5.8765],[-69.9677,5.8594],[-69.9788,5.8073],[-70.0438,5.7462],[-70.0568,5.7036],[-70.1402,5.6099],[-70.1947,5.6032],[-70.2638,5.5636],[-70.3608,5.5869],[-70.6744,5.3675],[-70.6741,5.3155],[-70.6938,5.2835],[-70.8609,5.145],[-70.9438,5.1243],[-70.9745,5.0801],[-70.9677,5.0583],[-70.9868,5.0437],[-71.0019,4.9807],[-71.0565,4.9064],[-71.0779,4.8991],[-71.0775,2.8822],[-71.0624,2.8563],[-71.0291,2.8463],[-71.0106,2.8568],[-70.9876,2.8289],[-70.9546,2.8421],[-70.9479,2.818],[-70.962,2.8005],[-70.9457,2.7855],[-70.9251,2.8154],[-70.9381,2.8573],[-70.9113,2.8499],[-70.8837,2.7926],[-70.8715,2.7963],[-70.8753,2.8471],[-70.8542,2.8232],[-70.8714,2.7778],[-70.8216,2.8131],[-70.7964,2.7944],[-70.8113,2.76],[-70.7544,2.7702],[-70.7248,2.7952],[-70.7092,2.7371],[-70.6817,2.7778],[-70.6404,2.8026],[-70.6601,2.8574],[-70.6354,2.8488],[-70.6203,2.7926],[-70.5873,2.8405],[-70.5047,2.7878],[-70.4939,2.8133],[-70.3587,2.8519],[-70.354,2.914],[-70.2784,2.9365],[-70.3033,3.0336],[-70.2553,3.0397],[-70.2727,3.0661],[-70.3152,3.0708],[-70.3199,3.0863],[-70.2799,3.0945],[-70.2879,3.124],[-70.2444,3.1792],[-70.2065,3.1731],[-70.2179,3.206],[-70.1923,3.1735],[-70.1646,3.1811],[-70.1744,3.2358],[-70.1572,3.2294],[-70.1481,3.1908],[-70.128,3.2023],[-70.1318,3.2441],[-70.1568,3.2579],[-70.1579,3.2816],[-70.1362,3.2938],[-70.1157,3.2797],[-70.1088,3.2937],[-70.1729,3.349],[-70.1334,3.3651],[-70.1266,3.4008],[-70.1103,3.385],[-70.076,3.3874],[-70.0258,3.4176],[-70.0019,3.3727],[-69.9435,3.3948],[-69.9603,3.4569],[-69.915,3.447],[-69.9025,3.4244],[-69.8717,3.4394],[-69.8617,3.4788],[-69.8955,3.5172],[-69.8936,3.5369],[-69.8724,3.5358],[-69.8516,3.4918],[-69.8172,3.477],[-69.8439,3.549],[-69.8171,3.5521],[-69.8154,3.5159],[-69.8019,3.5079],[-69.7773,3.5646],[-69.734,3.5429],[-69.7137,3.5494],[-69.7424,3.576],[-69.7399,3.5909],[-69.7098,3.5767],[-69.7006,3.5399],[-69.6631,3.5854],[-69.629,3.5686],[-69.6089,3.5955],[-69.5926,3.5677],[-69.5706,3.6694],[-69.5955,3.673],[-69.5887,3.6835],[-69.5043,3.6787],[-69.4929,3.6508],[-69.4784,3.6954],[-69.4547,3.709],[-69.4077,3.66],[-69.3879,3.6851],[-69.3664,3.6655],[-69.3035,3.7173],[-69.2896,3.6981],[-69.3057,3.6522],[-69.292,3.6448],[-69.268,3.6813],[-69.2871,3.7133],[-69.2797,3.7263],[-69.247,3.7148],[-69.235,3.674],[-69.208,3.702],[-69.2001,3.6695],[-69.1681,3.6719],[-69.1867,3.6339],[-69.1525,3.6426],[-69.1211,3.676],[-69.1004,3.6381],[-69.0788,3.6559],[-69.0559,3.6387],[-68.9958,3.6919],[-68.9423,3.6825],[-68.9376,3.7424],[-68.9258,3.6869],[-68.8642,3.7063],[-68.835,3.6701],[-68.8521,3.7387],[-68.7948,3.7223],[-68.7543,3.7831],[-68.6508,3.7617],[-68.6464,3.7751],[-68.6805,3.797],[-68.672,3.812],[-68.6347,3.7736],[-68.576,3.7902],[-68.5506,3.764],[-68.5693,3.818],[-68.5099,3.7791],[-68.513,3.8255],[-68.4762,3.852],[-68.4445,3.8384],[-68.4468,3.8844],[-68.3947,3.8508],[-68.393,3.8729],[-68.4366,3.915],[-68.4204,3.9267],[-68.3818,3.9124],[-68.3467,3.9241],[-68.3446,3.9932],[-68.3139,3.9778],[-68.2367,3.9752],[-68.2066,3.9568],[-68.205,3.9975],[-68.1737,3.986],[-68.1305,4.0009],[-68.1195,3.9821],[-68.1328,3.9465],[-68.1129,3.9434],[-68.0983,3.9746],[-68.0784,3.9805],[-68.079,3.9352],[-68.0345,4.0114],[-68.0248,3.9759],[-67.9374,3.9631],[-67.9136,3.9094],[-67.876,3.9191],[-67.8132,3.9845],[-67.7076,4.045],[-67.7356,4.1281],[-67.7684,4.1623],[-67.7984,4.2366],[-67.804,4.3273],[-67.7616,4.3493],[-67.7815,4.3924],[-67.7732,4.419],[-67.7978,4.4371],[-67.7992,4.4798],[-67.8572,4.5247],[-67.8393,4.5575],[-67.8449,4.6451],[-67.8178,4.7072],[-67.8387,4.9435],[-67.8059,5.054],[-67.8543,5.1352],[-67.8244,5.1961],[-67.8239,5.251],[-67.8493,5.2739],[-67.8495,5.304],[-67.7997,5.3587],[-67.6254,5.4752],[-67.5989,5.5441],[-67.6202,5.5663],[-67.638,5.6747],[-67.5974,5.8278],[-67.5338,5.903],[-67.4099,6.0019],[-67.4933,6.127],[-67.4862,6.1631],[-67.4559,6.1899],[-67.4725,6.2105],[-67.5472,6.2662],[-67.5864,6.2624],[-67.6253,6.2914],[-67.7618,6.2914],[-67.8097,6.3243]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;VICHADA&quot;,&quot;dpto_ccdgo&quot;:&quot;99&quot;}},{&quot;geometry&quot;:{&quot;type&quot;:&quot;MultiPolygon&quot;,&quot;coordinates&quot;:[[[[-81.7042,12.5948],[-81.7325,12.5549],[-81.7301,12.4803],[-81.7035,12.5438],[-81.7076,12.5721],[-81.6871,12.5809],[-81.7042,12.5948]]],[[[-81.6884,12.5496],[-81.6881,12.5506],[-81.6892,12.551],[-81.6884,12.5496]]],[[[-81.6885,12.5524],[-81.6888,12.5531],[-81.689,12.5531],[-81.6885,12.5524]]],[[[-81.6897,12.6011],[-81.6903,12.599],[-81.689,12.5995],[-81.6897,12.6011]]],[[[-81.3644,13.3857],[-81.3923,13.3589],[-81.3892,13.3208],[-81.3497,13.3569],[-81.3644,13.3857]]],[[[-81.3711,13.3947],[-81.3797,13.3915],[-81.3767,13.3815],[-81.3711,13.3947]]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;ARCHIPIÉLAGO DE SAN ANDRÉS, PROVIDENCIA Y SANTA CATALINA&quot;,&quot;dpto_ccdgo&quot;:&quot;88&quot;}},{&quot;geometry&quot;:{&quot;type&quot;:&quot;Polygon&quot;,&quot;coordinates&quot;:[[[-71.1447,0.0557],[-71.188,0.0973],[-71.1871,0.0812],[-71.2258,0.0542],[-71.2349,0.0664],[-71.2557,0.0586],[-71.2714,0.0352],[-71.3279,0.0187],[-71.3706,0.0312],[-71.4005,0.0056],[-71.4484,0.0033],[-71.4538,-0.0122],[-71.5467,0.0213],[-71.5772,0.0157],[-71.5935,-0.0144],[-71.7048,-0.0673],[-71.7009,-0.0975],[-71.7365,-0.1545],[-71.7113,-0.2344],[-71.8309,-0.2763],[-72.0363,-0.2671],[-72.0614,-0.2962],[-72.0627,-0.3247],[-72.1534,-0.3553],[-72.148,-0.3954],[-72.1728,-0.4439],[-72.2306,-0.493],[-72.2428,-0.6053],[-72.309,-0.652],[-72.3947,-0.6138],[-72.4078,-0.568],[-72.425,-0.5623],[-72.5628,-0.7057],[-72.6738,-0.6352],[-72.6776,-0.616],[-72.7406,-0.5801],[-72.7497,-0.555],[-72.8159,-0.5992],[-72.9173,-0.6155],[-72.9372,-0.6058],[-72.9589,-0.5594],[-73.0157,-0.5269],[-73.0533,-0.5467],[-73.0748,-0.6213],[-73.1214,-0.6041],[-73.203,-0.6265],[-73.3319,-0.5061],[-73.3785,-0.5363],[-73.4303,-0.5109],[-73.5105,-0.5243],[-73.5332,-0.4877],[-73.5684,-0.5168],[-73.5851,-0.4488],[-73.6087,-0.4392],[-73.6509,-0.4574],[-73.64,-0.4181],[-73.6802,-0.4202],[-73.7291,-0.3805],[-73.7634,-0.4075],[-73.8159,-0.4117],[-73.8413,-0.398],[-74.3891,-0.5537],[-74.3952,-0.5876],[-74.3636,-0.6213],[-74.3755,-0.6549],[-74.3419,-0.6939],[-74.3817,-0.7205],[-74.3545,-0.7554],[-74.3142,-0.7681],[-74.3177,-0.7962],[-74.2918,-0.7805],[-74.2906,-0.822],[-74.2554,-0.8201],[-74.2714,-0.8791],[-74.303,-0.8631],[-74.322,-0.8812],[-74.2756,-0.9096],[-74.2632,-0.9446],[-74.2743,-0.9799],[-74.2213,-1.0115],[-74.1678,-1.0087],[-74.0865,-1.0544],[-74.0497,-1.0529],[-74.0242,-1.0064],[-74.0282,-1.0599],[-74.012,-1.0979],[-73.9823,-1.1099],[-73.9621,-1.0849],[-73.9524,-1.0968],[-73.9685,-1.1272],[-73.9066,-1.1266],[-73.864,-1.2294],[-73.8125,-1.2501],[-73.7882,-1.2414],[-73.7693,-1.2627],[-73.7448,-1.2009],[-73.7329,-1.2508],[-73.6817,-1.2414],[-73.6458,-1.2702],[-73.6204,-1.2647],[-73.6131,-1.3197],[-73.5946,-1.3309],[-73.571,-1.3216],[-73.5826,-1.3765],[-73.5603,-1.3829],[-73.5522,-1.4049],[-73.5873,-1.424],[-73.5386,-1.433],[-73.5312,-1.4785],[-73.49,-1.4856],[-73.4964,-1.514],[-73.479,-1.5292],[-73.4999,-1.5625],[-73.4795,-1.5793],[-73.4577,-1.5711],[-73.5165,-1.6374],[-73.5404,-1.6868],[-73.5341,-1.7079],[-73.4518,-1.7489],[-73.4309,-1.7905],[-73.3802,-1.7812],[-73.3149,-1.8288],[-73.2978,-1.8248],[-73.3057,-1.8002],[-73.2851,-1.7807],[-73.2451,-1.7838],[-73.2537,-1.8085],[-73.2312,-1.8022],[-73.2199,-1.7499],[-73.1852,-1.8083],[-73.1468,-1.8051],[-73.1546,-1.8601],[-73.1088,-1.8838],[-73.1302,-1.9927],[-73.0934,-2.0404],[-73.1143,-2.0743],[-73.0689,-2.0883],[-73.1168,-2.1283],[-73.1341,-2.1815],[-73.1716,-2.186],[-73.1728,-2.2206],[-73.1254,-2.2965],[-73.1226,-2.3274],[-73.0976,-2.3268],[-73.057,-2.366],[-73.0404,-2.3547],[-73.0394,-2.3278],[-73.0015,-2.363],[-72.9759,-2.3447],[-72.934,-2.4164],[-72.9333,-2.4578],[-72.8313,-2.4312],[-72.7749,-2.3941],[-72.7512,-2.4294],[-72.7299,-2.4211],[-72.7289,-2.3991],[-72.7024,-2.3983],[-72.6824,-2.4534],[-72.6623,-2.4412],[-72.6311,-2.3597],[-72.5971,-2.368],[-72.5679,-2.4051],[-72.5432,-2.4051],[-72.5183,-2.4271],[-72.4767,-2.4206],[-72.433,-2.442],[-72.4086,-2.416],[-72.3984,-2.4704],[-72.3735,-2.4925],[-72.2959,-2.4773],[-72.2839,-2.4543],[-72.2552,-2.459],[-72.2513,-2.4318],[-72.2219,-2.4497],[-72.1873,-2.4355],[-72.1566,-2.4811],[-72.1285,-2.4141],[-72.0488,-2.3388],[-72.0142,-2.3693],[-71.9592,-2.3592],[-71.9197,-2.3806],[-71.9261,-2.3154],[-71.8812,-2.3124],[-71.8329,-2.196],[-71.7973,-2.207],[-71.7891,-2.1879],[-71.7485,-2.1743],[-71.7415,-2.1463],[-71.7196,-2.1602],[-71.7292,-2.2277],[-71.706,-2.2323],[-71.6505,-2.2031],[-71.6063,-2.2379],[-71.5184,-2.2524],[-71.5258,-2.3207],[-71.4994,-2.3555],[-71.4783,-2.346],[-71.4829,-2.2889],[-71.4566,-2.2785],[-71.3994,-2.358],[-71.4097,-2.3906],[-71.3951,-2.4114],[-71.3184,-2.3814],[-71.2966,-2.3474],[-71.2769,-2.352],[-71.2933,-2.3781],[-71.2844,-2.3887],[-71.228,-2.3483],[-71.1962,-2.3819],[-71.1722,-2.3811],[-71.1661,-2.3433],[-71.1275,-2.3385],[-71.1407,-2.3031],[-71.1256,-2.286],[-71.0366,-2.2761],[-70.9943,-2.3087],[-70.987,-2.2914],[-71.0142,-2.2265],[-71.0025,-2.2117],[-70.9815,-2.214],[-70.9371,-2.2571],[-70.8795,-2.2233],[-70.8575,-2.2389],[-70.8388,-2.2924],[-70.7707,-2.2991],[-70.7523,-2.3313],[-70.6637,-2.3597],[-70.683,-2.4042],[-70.6441,-2.4141],[-70.6283,-2.399],[-70.645,-2.4541],[-70.6282,-2.4801],[-70.559,-2.4788],[-70.5459,-2.4503],[-70.5854,-2.4285],[-70.5652,-2.4198],[-70.513,-2.4771],[-70.4701,-2.4562],[-70.4332,-2.5293],[-70.4079,-2.5292],[-70.3666,-2.4948],[-70.3022,-2.5047],[-70.3051,-2.528],[-70.3597,-2.5451],[-70.3584,-2.5671],[-70.3258,-2.5826],[-70.2446,-2.5582],[-70.2194,-2.6563],[-70.1949,-2.6634],[-70.1783,-2.6332],[-70.1654,-2.643],[-70.1624,-2.7136],[-70.1147,-2.7004],[-70.1016,-2.6623],[-70.0766,-2.663],[-70.0604,-2.7597],[-70.0735,-2.7909],[-70.7132,-3.7955],[-70.6855,-3.794],[-70.653,-3.8298],[-70.6208,-3.8399],[-70.5732,-3.8186],[-70.52,-3.8804],[-70.4699,-3.8707],[-70.3544,-3.8002],[-70.2881,-3.8206],[-70.2481,-3.8951],[-70.1832,-3.9286],[-70.1674,-4.0515],[-70.0649,-4.0809],[-69.9498,-4.2294],[-69.9304,-4.2045],[-69.4517,-1.5389],[-69.4562,-1.4887],[-69.4327,-1.4528],[-69.4303,-1.3922],[-69.3975,-1.3609],[-69.4299,-1.2184],[-69.3955,-1.122],[-69.433,-1.0695],[-69.4521,-1.0708],[-69.4707,-1.0934],[-69.4623,-1.1418],[-69.4892,-1.1511],[-69.4656,-1.1746],[-69.4782,-1.2115],[-69.5056,-1.2174],[-69.539,-1.1919],[-69.5647,-1.1933],[-69.5925,-1.1458],[-69.6345,-1.1681],[-69.638,-1.2139],[-69.6642,-1.2263],[-69.6803,-1.2013],[-69.6809,-1.1213],[-69.6615,-1.1165],[-69.6523,-1.1337],[-69.6494,-1.1168],[-69.7047,-1.0478],[-69.7495,-1.0276],[-69.7728,-1.037],[-69.758,-1.0731],[-69.7345,-1.0823],[-69.7571,-1.0989],[-69.7841,-1.0865],[-69.8175,-1.0323],[-69.8398,-1.0285],[-69.8759,-1.0783],[-69.9551,-1.0961],[-69.9715,-1.073],[-69.9414,-1.0347],[-69.9542,-0.9956],[-69.902,-0.9719],[-69.9414,-0.9466],[-69.9582,-0.9678],[-69.9989,-0.976],[-70.0008,-0.946],[-70.0166,-0.9369],[-70.0308,-0.9787],[-70.079,-0.9469],[-70.1223,-0.9724],[-70.1356,-1.0147],[-70.0879,-1.0124],[-70.0791,-1.0379],[-70.1279,-1.1107],[-70.1686,-1.1129],[-70.1776,-1.0749],[-70.2276,-1.0497],[-70.1975,-0.9851],[-70.2199,-0.9853],[-70.2321,-1.0146],[-70.2532,-1.0208],[-70.3071,-0.9646],[-70.2959,-0.9365],[-70.2606,-0.938],[-70.2213,-0.8863],[-70.2971,-0.7913],[-70.2902,-0.7525],[-70.2488,-0.7394],[-70.2619,-0.7115],[-70.2561,-0.6029],[-70.2822,-0.5582],[-70.2999,-0.5593],[-70.3097,-0.5903],[-70.3252,-0.5613],[-70.2445,-0.4699],[-70.2026,-0.4738],[-70.2098,-0.4421],[-70.2466,-0.4454],[-70.2883,-0.4129],[-70.3098,-0.4415],[-70.3651,-0.454],[-70.3512,-0.4725],[-70.3212,-0.4698],[-70.3346,-0.4993],[-70.3778,-0.4979],[-70.3996,-0.4629],[-70.4574,-0.4955],[-70.4526,-0.4397],[-70.5193,-0.3577],[-70.5312,-0.3747],[-70.5607,-0.3659],[-70.5795,-0.392],[-70.6304,-0.3199],[-70.678,-0.3521],[-70.7367,-0.2867],[-70.7801,-0.3123],[-70.7595,-0.3191],[-70.7621,-0.3311],[-70.8262,-0.3657],[-70.8782,-0.28],[-70.8831,-0.2139],[-70.9151,-0.2018],[-70.9465,-0.1541],[-70.9307,-0.129],[-70.9016,-0.1325],[-70.8921,-0.1162],[-70.9266,-0.0889],[-70.9273,-0.0518],[-70.9613,-0.0398],[-70.9689,-0.0093],[-70.9917,-0.002],[-71.0157,-0.0125],[-71.0121,-0.0415],[-71.0311,-0.0474],[-71.0531,-0.0277],[-71.0395,-0.0045],[-71.095,-0.0082],[-71.1043,0.026],[-71.134,0.0042],[-71.1447,0.0557]]],&quot;crs&quot;:null},&quot;type&quot;:&quot;Feature&quot;,&quot;properties&quot;:{&quot;dpto_cnmbre&quot;:&quot;AMAZONAS&quot;,&quot;dpto_ccdgo&quot;:&quot;91&quot;}}],&quot;type&quot;:&quot;FeatureCollection&quot;,&quot;properties&quot;:{&quot;exceededTransferLimit&quot;:false}};
+      const points = [{&quot;name&quot;:&quot;San José del Palmar&quot;,&quot;short&quot;:&quot;San José del Palmar&quot;,&quot;department&quot;:&quot;Chocó&quot;,&quot;lat&quot;:4.974,&quot;lon&quot;:-76.228,&quot;level&quot;:&quot;critical&quot;,&quot;accessGap&quot;:true,&quot;epicenter&quot;:true,&quot;label&quot;:&quot;primary&quot;,&quot;priority&quot;:&quot;Crítica · epicentro y brecha de acceso/comunicaciones&quot;,&quot;evidence&quot;:&quot;Epicentro; 500 viviendas afectadas y cerca de 20 estructuras colapsadas; señal telefónica intermitente.&quot;,&quot;gap&quot;:&quot;Verificar veredas, vías, energía, población sin contacto y necesidades por hogar.&quot;,&quot;confidence&quot;:&quot;Alta para el casco urbano; incompleta para el área rural.&quot;,&quot;source&quot;:&quot;https://elpais.com/america-colombia/2026-08-11/el-choco-epicentro-del-sismo-y-de-la-pobreza-en-colombia-el-municipio-no-tiene-con-que-atender-esta-calamidad.html&quot;},{&quot;name&quot;:&quot;El Cairo&quot;,&quot;department&quot;:&quot;Valle del Cauca&quot;,&quot;lat&quot;:4.762,&quot;lon&quot;:-76.244,&quot;level&quot;:&quot;critical&quot;,&quot;accessGap&quot;:false,&quot;epicenter&quot;:false,&quot;label&quot;:&quot;primary&quot;,&quot;priority&quot;:&quot;Crítica · destrucción extensa y habitabilidad&quot;,&quot;evidence&quot;:&quot;La cobertura localizada reporta destrucción de 80% de viviendas y edificios.&quot;,&quot;gap&quot;:&quot;EDAN predio por predio: habitabilidad, agua, vías, refugio y necesidades médicas.&quot;,&quot;confidence&quot;:&quot;Alta sobre daño grave; balance local todavía preliminar.&quot;,&quot;source&quot;:&quot;https://elpais.com/america-colombia/2026-08-10/colombia-revive-el-trauma-del-terremoto-que-arraso-el-eje-cafetero-hace-27-anos.html&quot;},{&quot;name&quot;:&quot;Pereira&quot;,&quot;department&quot;:&quot;Risaralda&quot;,&quot;lat&quot;:4.8143,&quot;lon&quot;:-75.6946,&quot;level&quot;:&quot;critical&quot;,&quot;accessGap&quot;:false,&quot;epicenter&quot;:false,&quot;label&quot;:&quot;primary&quot;,&quot;priority&quot;:&quot;Crítica · rescate urbano e inspección estructural&quot;,&quot;evidence&quot;:&quot;Al menos 70 estructuras completamente colapsadas en el corte inicial; Risaralda concentró 42 fallecidos en ese balance.&quot;,&quot;gap&quot;:&quot;Actualizar por barrio: desaparecidos, edificios habitables y capacidad hospitalaria.&quot;,&quot;confidence&quot;:&quot;Alta; las cifras siguen cambiando.&quot;,&quot;source&quot;:&quot;https://elpais.com/america-colombia/2026-08-10/colombia-revive-el-trauma-del-terremoto-que-arraso-el-eje-cafetero-hace-27-anos.html&quot;},{&quot;name&quot;:&quot;Cali&quot;,&quot;department&quot;:&quot;Valle del Cauca&quot;,&quot;lat&quot;:3.4516,&quot;lon&quot;:-76.532,&quot;level&quot;:&quot;critical&quot;,&quot;accessGap&quot;:false,&quot;epicenter&quot;:false,&quot;label&quot;:&quot;primary&quot;,&quot;priority&quot;:&quot;Crítica · rescate, albergues y riesgo secundario por lluvias&quot;,&quot;evidence&quot;:&quot;Colapsos, víctimas, rescates y grandes alojamientos temporales confirmados; fue una de las ciudades más afectadas.&quot;,&quot;gap&quot;:&quot;Mapear por barrio hospitales, refugios, servicios, estructuras inseguras y afectación por lluvia.&quot;,&quot;confidence&quot;:&quot;Alta en la afectación; el detalle barrial sigue incompleto.&quot;,&quot;source&quot;:&quot;https://elpais.com/america-colombia/2026-08-13/entre-carpas-y-escombros-cali-ruega-para-que-la-lluvia-no-agrave-la-tragedia-del-terremoto.html&quot;},{&quot;name&quot;:&quot;Quibdó&quot;,&quot;department&quot;:&quot;Chocó&quot;,&quot;lat&quot;:5.6947,&quot;lon&quot;:-76.6583,&quot;level&quot;:&quot;critical&quot;,&quot;accessGap&quot;:true,&quot;epicenter&quot;:false,&quot;label&quot;:&quot;primary&quot;,&quot;priority&quot;:&quot;Crítica · colapsos urbanos y cobertura territorial incompleta&quot;,&quot;evidence&quot;:&quot;En el corte temprano: 40 viviendas destruidas, 13 muertes y 131 heridos; tres de seis comunas registraron colapsos.&quot;,&quot;gap&quot;:&quot;El daño total de vivienda no estaba calculado; verificar periferia y municipios que remiten heridos.&quot;,&quot;confidence&quot;:&quot;Alta en hechos reportados; cobertura incompleta.&quot;,&quot;source&quot;:&quot;https://elpais.com/america-colombia/2026-08-13/la-incertidumbre-y-el-temor-se-apoderan-de-quibdo-tras-el-terremoto-es-verdad-que-la-casita-se-va-a-caer.html&quot;},{&quot;name&quot;:&quot;Unión Panamericana&quot;,&quot;department&quot;:&quot;Chocó&quot;,&quot;lat&quot;:5.281,&quot;lon&quot;:-76.629,&quot;level&quot;:&quot;high&quot;,&quot;accessGap&quot;:true,&quot;epicenter&quot;:false,&quot;label&quot;:&quot;secondary&quot;,&quot;priority&quot;:&quot;Alta · daño confirmado y brecha de evaluación rural&quot;,&quot;evidence&quot;:&quot;Viviendas destruidas documentadas en cobertura de campo.&quot;,&quot;gap&quot;:&quot;Censar corregimientos y veredas, accesibilidad, servicios y remisiones médicas.&quot;,&quot;confidence&quot;:&quot;Media: impacto confirmado, sin balance municipal comparable localizado.&quot;,&quot;source&quot;:&quot;https://elpais.com/america-colombia/2026-08-13/la-incertidumbre-y-el-temor-se-apoderan-de-quibdo-tras-el-terremoto-es-verdad-que-la-casita-se-va-a-caer.html&quot;},{&quot;name&quot;:&quot;Manizales&quot;,&quot;department&quot;:&quot;Caldas&quot;,&quot;lat&quot;:5.0703,&quot;lon&quot;:-75.5138,&quot;level&quot;:&quot;high&quot;,&quot;accessGap&quot;:false,&quot;epicenter&quot;:false,&quot;label&quot;:&quot;primary&quot;,&quot;priority&quot;:&quot;Alta · infraestructura crítica e inspección de edificios&quot;,&quot;evidence&quot;:&quot;Daños graves en la catedral y la Universidad Católica; el aeropuerto La Nubia suspendió operaciones.&quot;,&quot;gap&quot;:&quot;Completar inspecciones por edificio y verificar continuidad aeroportuaria y hospitalaria.&quot;,&quot;confidence&quot;:&quot;Alta.&quot;,&quot;source&quot;:&quot;https://elpais.com/america-colombia/2026-08-10/colombia-revive-el-trauma-del-terremoto-que-arraso-el-eje-cafetero-hace-27-anos.html&quot;},{&quot;name&quot;:&quot;Armenia&quot;,&quot;department&quot;:&quot;Quindío&quot;,&quot;lat&quot;:4.5339,&quot;lon&quot;:-75.6811,&quot;level&quot;:&quot;high&quot;,&quot;accessGap&quot;:false,&quot;epicenter&quot;:false,&quot;label&quot;:&quot;secondary&quot;,&quot;priority&quot;:&quot;Alta · evaluación urbana pendiente de consolidación&quot;,&quot;evidence&quot;:&quot;Afectación reportada por fuentes nacionales e internacionales; incluida en las medidas de emergencia.&quot;,&quot;gap&quot;:&quot;No se localizó un balance municipal comparable; completar EDAN urbano.&quot;,&quot;confidence&quot;:&quot;Media.&quot;,&quot;source&quot;:&quot;https://apnews.com/article/colombia-ecuador-earthquake-26fd40f93272d834fced47a4a673edc9&quot;},{&quot;name&quot;:&quot;Buenaventura&quot;,&quot;department&quot;:&quot;Valle del Cauca&quot;,&quot;lat&quot;:3.8801,&quot;lon&quot;:-77.0197,&quot;level&quot;:&quot;high&quot;,&quot;accessGap&quot;:true,&quot;epicenter&quot;:false,&quot;label&quot;:&quot;secondary&quot;,&quot;priority&quot;:&quot;Alta · verificar zona rural, ribereña y conectividad&quot;,&quot;evidence&quot;:&quot;Afectación reportada e inclusión en las medidas de emergencia.&quot;,&quot;gap&quot;:&quot;Verificar casco urbano, comunidades rurales y ribereñas, puerto, vías y servicios.&quot;,&quot;confidence&quot;:&quot;Media para afectación; baja para severidad territorial.&quot;,&quot;source&quot;:&quot;https://elpais.com/america-colombia/2026-08-13/pago-del-impuesto-de-renta-en-colombia-estas-son-las-nuevas-fechas-por-el-terremoto.html&quot;},{&quot;name&quot;:&quot;Palmira&quot;,&quot;department&quot;:&quot;Valle del Cauca&quot;,&quot;lat&quot;:3.5394,&quot;lon&quot;:-76.3036,&quot;level&quot;:&quot;reported&quot;,&quot;accessGap&quot;:false,&quot;epicenter&quot;:false,&quot;label&quot;:false,&quot;priority&quot;:&quot;Reportada · falta balance municipal comparable&quot;,&quot;evidence&quot;:&quot;Incluida entre las jurisdicciones cubiertas por medidas de emergencia.&quot;,&quot;gap&quot;:&quot;Localizar o producir EDAN municipal y daños por corregimiento.&quot;,&quot;confidence&quot;:&quot;Media-baja para severidad.&quot;,&quot;source&quot;:&quot;https://elpais.com/america-colombia/2026-08-13/pago-del-impuesto-de-renta-en-colombia-estas-son-las-nuevas-fechas-por-el-terremoto.html&quot;},{&quot;name&quot;:&quot;Tuluá&quot;,&quot;department&quot;:&quot;Valle del Cauca&quot;,&quot;lat&quot;:4.0847,&quot;lon&quot;:-76.1954,&quot;level&quot;:&quot;reported&quot;,&quot;accessGap&quot;:false,&quot;epicenter&quot;:false,&quot;label&quot;:false,&quot;priority&quot;:&quot;Reportada · falta balance municipal comparable&quot;,&quot;evidence&quot;:&quot;Incluida entre las jurisdicciones cubiertas por medidas de emergencia.&quot;,&quot;gap&quot;:&quot;Localizar o producir EDAN municipal y daños por corregimiento.&quot;,&quot;confidence&quot;:&quot;Media-baja para severidad.&quot;,&quot;source&quot;:&quot;https://elpais.com/america-colombia/2026-08-13/pago-del-impuesto-de-renta-en-colombia-estas-son-las-nuevas-fechas-por-el-terremoto.html&quot;},{&quot;name&quot;:&quot;Popayán&quot;,&quot;department&quot;:&quot;Cauca&quot;,&quot;lat&quot;:2.4448,&quot;lon&quot;:-76.6147,&quot;level&quot;:&quot;reported&quot;,&quot;accessGap&quot;:false,&quot;epicenter&quot;:false,&quot;label&quot;:&quot;secondary&quot;,&quot;priority&quot;:&quot;Reportada · evaluación territorial por consolidar&quot;,&quot;evidence&quot;:&quot;Incluida entre las jurisdicciones cubiertas por medidas de emergencia.&quot;,&quot;gap&quot;:&quot;Localizar o producir EDAN municipal y verificar infraestructura crítica.&quot;,&quot;confidence&quot;:&quot;Media-baja para severidad.&quot;,&quot;source&quot;:&quot;https://elpais.com/america-colombia/2026-08-13/pago-del-impuesto-de-renta-en-colombia-estas-son-las-nuevas-fechas-por-el-terremoto.html&quot;}];
+      const deptLevels = {&quot;CHOCO&quot;:&quot;critical&quot;,&quot;RISARALDA&quot;:&quot;critical&quot;,&quot;VALLE DEL CAUCA&quot;:&quot;critical&quot;,&quot;CALDAS&quot;:&quot;high&quot;,&quot;QUINDIO&quot;:&quot;high&quot;,&quot;CAUCA&quot;:&quot;reported&quot;};
+      const colors = {critical:&#x27;var(--red)&#x27;,high:&#x27;var(--orange)&#x27;,reported:&#x27;var(--yellow)&#x27;,gap:&#x27;var(--blue)&#x27;};
+      const svg = d3.select(root.querySelector(&#x27;svg&#x27;));
+      const wrap = root.querySelector(&#x27;.rc-map-wrap&#x27;);
+      const tooltip = root.querySelector(&#x27;.rc-tooltip&#x27;);
+      const filter = root.querySelector(&#x27;#rc-impact-filter&#x27;);
+      const normalize = s =&gt; (s || &#x27;&#x27;).normalize(&#x27;NFD&#x27;).replace(/[\u0300-\u036f]/g,&#x27;&#x27;).toUpperCase();
+
+      function setDetail(d){
+        root.querySelector(&#x27;#rc-detail-name&#x27;).textContent = `${d.name} · ${d.department}`;
+        root.querySelector(&#x27;#rc-detail-priority&#x27;).textContent = d.priority;
+        root.querySelector(&#x27;#rc-detail-evidence&#x27;).textContent = d.evidence;
+        root.querySelector(&#x27;#rc-detail-gap&#x27;).textContent = d.gap;
+        root.querySelector(&#x27;#rc-detail-confidence&#x27;).textContent = d.confidence;
+        root.querySelector(&#x27;#rc-detail-source&#x27;).href = d.source;
+      }
+
+      function deptFill(d){
+        const level = deptLevels[normalize(d.properties.dpto_cnmbre)];
+        if(!level) return &#x27;color-mix(in srgb,var(--muted) 22%,transparent)&#x27;;
+        return `color-mix(in srgb,${colors[level]} 30%,transparent)`;
+      }
+
+      function draw(){
+        const width = Math.max(300, wrap.clientWidth);
+        const height = Math.max(480, Math.min(690, width * 1.02));
+        svg.attr(&#x27;viewBox&#x27;,`0 0 ${width} ${height}`);
+        svg.selectAll(&#x27;*&#x27;).remove();
+        const projection = d3.geoMercator().fitExtent([[18,18],[width-18,height-18]], geo);
+        const path = d3.geoPath(projection);
+        svg.append(&#x27;g&#x27;).selectAll(&#x27;path&#x27;).data(geo.features).join(&#x27;path&#x27;)
+          .attr(&#x27;class&#x27;,&#x27;rc-dept&#x27;).attr(&#x27;d&#x27;,path).attr(&#x27;fill&#x27;,deptFill)
+          .on(&#x27;mouseenter&#x27;,(event,d)=&gt;{
+            const level = deptLevels[normalize(d.properties.dpto_cnmbre)];
+            tooltip.style.display=&#x27;block&#x27;;
+            tooltip.textContent=`${d.properties.dpto_cnmbre}: ${level ? &#x27;afectación pública localizada&#x27; : &#x27;sin evidencia localizada en este corte&#x27;}`;
+          })
+          .on(&#x27;mousemove&#x27;,event=&gt;{
+            const r=wrap.getBoundingClientRect(); tooltip.style.left=`${event.clientX-r.left+10}px`; tooltip.style.top=`${event.clientY-r.top+10}px`;
+          }).on(&#x27;mouseleave&#x27;,()=&gt;tooltip.style.display=&#x27;none&#x27;);
+
+        const active = filter.value === &#x27;all&#x27; ? points : points.filter(d=&gt;d.level===filter.value || (filter.value===&#x27;gap&#x27; &amp;&amp; d.accessGap));
+        const g = svg.append(&#x27;g&#x27;);
+        const marks = g.selectAll(&#x27;circle&#x27;).data(active,d=&gt;d.name).join(&#x27;circle&#x27;)
+          .attr(&#x27;class&#x27;,&#x27;rc-point&#x27;)
+          .attr(&#x27;cx&#x27;,d=&gt;projection([d.lon,d.lat])[0]).attr(&#x27;cy&#x27;,d=&gt;projection([d.lon,d.lat])[1])
+          .attr(&#x27;r&#x27;,d=&gt;d.epicenter?8:(d.level===&#x27;critical&#x27;?6.5:5.2)).attr(&#x27;fill&#x27;,d=&gt;d.accessGap?colors.gap:colors[d.level])
+          .on(&#x27;click&#x27;,(event,d)=&gt;setDetail(d))
+          .on(&#x27;mouseenter&#x27;,(event,d)=&gt;{tooltip.style.display=&#x27;block&#x27;;tooltip.textContent=`${d.name}: ${d.priority}`})
+          .on(&#x27;mousemove&#x27;,event=&gt;{const r=wrap.getBoundingClientRect();tooltip.style.left=`${event.clientX-r.left+10}px`;tooltip.style.top=`${event.clientY-r.top+10}px`})
+          .on(&#x27;mouseleave&#x27;,()=&gt;tooltip.style.display=&#x27;none&#x27;);
+
+        const labels = active.filter(d=&gt;d.label);
+        g.selectAll(&#x27;text&#x27;).data(labels,d=&gt;d.name).join(&#x27;text&#x27;).attr(&#x27;class&#x27;,d=&gt;`rc-label ${d.label===&#x27;secondary&#x27;?&#x27;rc-label-secondary&#x27;:&#x27;&#x27;}`)
+          .attr(&#x27;x&#x27;,d=&gt;projection([d.lon,d.lat])[0]+8).attr(&#x27;y&#x27;,d=&gt;projection([d.lon,d.lat])[1]+3).text(d=&gt;d.short || d.name);
+      }
+      filter.addEventListener(&#x27;change&#x27;,draw);
+      new ResizeObserver(draw).observe(wrap);
+      setDetail(points[0]);
+      draw();
+    })();
+  &lt;/script&gt;
+&lt;/div&gt;
+
+&lt;script src=&quot;https://unpkg.com/@floating-ui/core@1.7.3/dist/floating-ui.core.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://unpkg.com/@floating-ui/dom@1.7.4/dist/floating-ui.dom.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  if (window.FloatingUIDOM == null) {
+    return;
+  }
+  const { autoUpdate, computePosition, flip, offset, shift, size } =
+    window.FloatingUIDOM;
+  const tooltipPlacements = new Set([&quot;top&quot;, &quot;right&quot;, &quot;bottom&quot;, &quot;left&quot;]);
+  const tooltipId = `codex-visualization-tooltip-${
+    window.crypto?.randomUUID?.() ?? Date.now().toString(36)
+  }`;
+  const tooltipGap = 5;
+  const hoverDelay = 700;
+  const skipDelay = 300;
+  let activeTrigger = null;
+  let pendingTrigger = null;
+  let tooltip = null;
+  let openTimeout = null;
+  let autoUpdateCleanup = null;
+  let positionRequest = 0;
+  let skipDelayUntil = 0;
+
+  const getTrigger = (target) =&gt;
+    target?.nodeType === Node.ELEMENT_NODE
+      ? target.closest(&quot;[data-tooltip]&quot;)
+      : null;
+  const containsTarget = (trigger, target) =&gt;
+    target?.nodeType != null &amp;&amp; trigger.contains(target);
+  const getContent = (trigger) =&gt;
+    trigger.getAttribute(&quot;data-tooltip&quot;)?.trim() ?? &quot;&quot;;
+  const getPlacement = (trigger) =&gt; {
+    const placement = trigger.getAttribute(&quot;data-tooltip-placement&quot;);
+    return tooltipPlacements.has(placement) ? placement : &quot;top&quot;;
+  };
+  const getTooltip = () =&gt; {
+    if (tooltip == null) {
+      tooltip = document.createElement(&quot;div&quot;);
+      tooltip.id = tooltipId;
+      tooltip.className = &quot;tooltip&quot;;
+      tooltip.setAttribute(&quot;role&quot;, &quot;tooltip&quot;);
+    }
+    return tooltip;
+  };
+  const setDescribedBy = (trigger, described) =&gt; {
+    const ids = new Set(
+      (trigger.getAttribute(&quot;aria-describedby&quot;) ?? &quot;&quot;)
+        .split(/\s+/)
+        .filter(Boolean),
+    );
+    if (described) {
+      ids.add(tooltipId);
+    } else {
+      ids.delete(tooltipId);
+    }
+    if (ids.size === 0) {
+      trigger.removeAttribute(&quot;aria-describedby&quot;);
+    } else {
+      trigger.setAttribute(&quot;aria-describedby&quot;, [...ids].join(&quot; &quot;));
+    }
+  };
+  const clearOpenTimeout = () =&gt; {
+    if (openTimeout != null) {
+      window.clearTimeout(openTimeout);
+      openTimeout = null;
+    }
+    pendingTrigger = null;
+  };
+  const closeTooltip = (activateSkipDelay = true) =&gt; {
+    clearOpenTimeout();
+    positionRequest += 1;
+    autoUpdateCleanup?.();
+    autoUpdateCleanup = null;
+    if (activeTrigger == null) {
+      return;
+    }
+    setDescribedBy(activeTrigger, false);
+    activeTrigger = null;
+    tooltip?.remove();
+    if (activateSkipDelay) {
+      skipDelayUntil = Date.now() + skipDelay;
+    }
+  };
+  const updatePosition = (trigger, floating) =&gt; {
+    const request = ++positionRequest;
+    void computePosition(trigger, floating, {
+      middleware: [
+        offset(tooltipGap),
+        flip({ padding: tooltipGap }),
+        shift({ padding: tooltipGap }),
+        size({
+          padding: tooltipGap,
+          apply({ availableHeight, availableWidth, elements }) {
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-width&quot;,
+              `${Math.max(0, availableWidth)}px`,
+            );
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-height&quot;,
+              `${Math.max(0, availableHeight)}px`,
+            );
+          },
+        }),
+      ],
+      placement: getPlacement(trigger),
+      strategy: &quot;fixed&quot;,
+    })
+      .then(({ x, y }) =&gt; {
+        if (activeTrigger !== trigger || request !== positionRequest) {
+          return;
+        }
+        const scale = window.devicePixelRatio || 1;
+        floating.style.transform = `translate(${Math.round(x * scale) / scale}px, ${Math.round(y * scale) / scale}px)`;
+        floating.style.visibility = &quot;visible&quot;;
+      })
+      .catch(() =&gt; {
+        if (activeTrigger === trigger &amp;&amp; request === positionRequest) {
+          closeTooltip(false);
+        }
+      });
+  };
+  const openTooltip = (trigger) =&gt; {
+    const content = getContent(trigger);
+    if (!trigger.isConnected || content.length === 0) {
+      return;
+    }
+    clearOpenTimeout();
+    if (activeTrigger === trigger) {
+      return;
+    }
+    closeTooltip();
+    const floating = getTooltip();
+    floating.textContent = content;
+    floating.style.visibility = &quot;hidden&quot;;
+    floating.style.transform = &quot;translate(0, 0)&quot;;
+    document.body.appendChild(floating);
+    activeTrigger = trigger;
+    setDescribedBy(trigger, true);
+    autoUpdateCleanup = autoUpdate(trigger, floating, () =&gt; {
+      updatePosition(trigger, floating);
+    });
+  };
+  const requestOpen = (trigger, immediate = false) =&gt; {
+    if (
+      getContent(trigger).length === 0 ||
+      activeTrigger === trigger ||
+      pendingTrigger === trigger
+    ) {
+      return;
+    }
+    clearOpenTimeout();
+    pendingTrigger = trigger;
+    const delay =
+      immediate || activeTrigger != null || Date.now() &lt; skipDelayUntil
+        ? 0
+        : hoverDelay;
+    if (delay === 0) {
+      openTooltip(trigger);
+      return;
+    }
+    openTimeout = window.setTimeout(() =&gt; {
+      openTimeout = null;
+      pendingTrigger = null;
+      openTooltip(trigger);
+    }, delay);
+  };
+  const handlePointerOpen = (event) =&gt; {
+    if (event.pointerType === &quot;touch&quot;) {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    requestOpen(trigger);
+  };
+  const handleLeave = (event) =&gt; {
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const handleFocusIn = (event) =&gt; {
+    const trigger = getTrigger(event.target);
+    if (trigger?.matches(&quot;:focus-visible&quot;)) {
+      requestOpen(trigger, true);
+    }
+  };
+  const handleKeyDown = (event) =&gt; {
+    if (event.key === &quot;Escape&quot;) {
+      closeTooltip();
+    }
+  };
+  const handleContextMenu = (event) =&gt; {
+    const trigger = getTrigger(event.target);
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const destroy = () =&gt; {
+    closeTooltip(false);
+    document.removeEventListener(&quot;pointerover&quot;, handlePointerOpen);
+    document.removeEventListener(&quot;pointerout&quot;, handleLeave);
+    document.removeEventListener(&quot;focusin&quot;, handleFocusIn);
+    document.removeEventListener(&quot;focusout&quot;, handleLeave);
+    document.removeEventListener(&quot;keydown&quot;, handleKeyDown);
+    document.removeEventListener(&quot;contextmenu&quot;, handleContextMenu);
+    tooltip = null;
+  };
+
+  document.addEventListener(&quot;pointerover&quot;, handlePointerOpen);
+  document.addEventListener(&quot;pointerout&quot;, handleLeave);
+  document.addEventListener(&quot;focusin&quot;, handleFocusIn);
+  document.addEventListener(&quot;focusout&quot;, handleLeave);
+  document.addEventListener(&quot;keydown&quot;, handleKeyDown);
+  document.addEventListener(&quot;contextmenu&quot;, handleContextMenu);
+  window.addEventListener(&quot;pagehide&quot;, destroy, { once: true });
+})();
+&lt;/script&gt;
+&lt;script id=&quot;codex-visualization-lucide&quot; async src=&quot;https://unpkg.com/lucide@1.17.0/dist/umd/lucide.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  const initialize = () =&gt; {
+    globalThis.lucide?.createIcons({ attrs: { width: 16, height: 16 } });
+  };
+  if (globalThis.lucide != null) {
+    initialize();
+    return;
+  }
+  document
+    .getElementById(&quot;codex-visualization-lucide&quot;)
+    ?.addEventListener(&quot;load&quot;, initialize, { once: true });
+})();
+&lt;/script&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
+</body>
+</html>
