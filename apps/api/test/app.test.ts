@@ -409,6 +409,54 @@ describe("teams and field assignments API", () => {
     });
     expect(redeemed.json().sessionToken.length).toBeGreaterThanOrEqual(32);
 
+    const assessmentPayload = {
+      clientMutationId: "0198a03d-c08f-7e4a-91ee-102c68bff201",
+      deviceId: "field-device-001",
+      observedAt: "2026-08-13T12:15:00-05:00",
+      damageTypes: ["housing", "utilities"],
+      severity: "high",
+      needTypes: ["shelter", "construction_materials"],
+      urgency: "urgent",
+      affectedHouseholds: 4,
+      affectedPeople: 13,
+      notes: "Cubiertas colapsadas y servicio eléctrico interrumpido.",
+    };
+    const unauthorizedAssessment = await app.inject({
+      method: "POST",
+      url: "/v1/field-assessments",
+      payload: assessmentPayload,
+    });
+    expect(unauthorizedAssessment.statusCode).toBe(401);
+
+    const recordedAssessment = await app.inject({
+      method: "POST",
+      url: "/v1/field-assessments",
+      headers: { authorization: `Bearer ${redeemed.json().sessionToken}` },
+      payload: assessmentPayload,
+    });
+    const retriedAssessment = await app.inject({
+      method: "POST",
+      url: "/v1/field-assessments",
+      headers: { authorization: `Bearer ${redeemed.json().sessionToken}` },
+      payload: assessmentPayload,
+    });
+    expect(recordedAssessment.statusCode).toBe(201);
+    expect(recordedAssessment.json()).toMatchObject({
+      actorId: leader.json().id,
+      assignmentId: assigned.json().id,
+      damageTypes: ["housing", "utilities"],
+      urgency: "urgent",
+      affectedPeople: 13,
+    });
+    expect(retriedAssessment.json().id).toBe(recordedAssessment.json().id);
+
+    const assignmentAssessments = await app.inject({
+      method: "GET",
+      url: "/v1/field-assessments",
+      headers: { authorization: `Bearer ${redeemed.json().sessionToken}` },
+    });
+    expect(assignmentAssessments.json()).toHaveLength(1);
+
     const reused = await app.inject({
       method: "POST",
       url: "/v1/field-access/redeem",

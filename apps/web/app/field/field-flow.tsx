@@ -15,6 +15,8 @@ import {
   cacheMissionPackage,
   getLatestCachedMission,
   queueFieldVisit,
+  queueRapidAssessment,
+  syncQueuedAssessments,
 } from "../lib/offline-visit-queue";
 import styles from "./field.module.css";
 
@@ -63,6 +65,28 @@ const trustLabels: Record<TrustProfile["assuranceLevel"], string> = {
   A4: "Auditoría reforzada",
 };
 
+const damageOptions = [
+  ["housing", "Viviendas"],
+  ["infrastructure", "Infraestructura"],
+  ["access", "Vías o acceso"],
+  ["utilities", "Servicios"],
+  ["health", "Salud"],
+  ["livelihoods", "Medios de vida"],
+  ["animals", "Animales"],
+] as const;
+
+const needOptions = [
+  ["shelter", "Alojamiento"],
+  ["water", "Agua"],
+  ["food", "Alimentos"],
+  ["healthcare", "Atención médica"],
+  ["sanitation", "Saneamiento"],
+  ["construction_materials", "Materiales"],
+  ["animal_care", "Atención animal"],
+  ["communications", "Comunicación"],
+  ["transport", "Transporte"],
+] as const;
+
 const getDeviceId = () => {
   const existing = localStorage.getItem("pulso-device-id");
   if (existing) return existing;
@@ -93,6 +117,17 @@ export function FieldFlow() {
   const [passkeyAvailable, setPasskeyAvailable] = useState(false);
   const [passkeyProtected, setPasskeyProtected] = useState(false);
   const [completedTasks, setCompletedTasks] = useState<string[]>([]);
+  const [assessmentOpen, setAssessmentOpen] = useState(false);
+  const [damageTypes, setDamageTypes] = useState<string[]>([]);
+  const [needTypes, setNeedTypes] = useState<string[]>([]);
+  const [severity, setSeverity] = useState<"low" | "medium" | "high" | "critical">("medium");
+  const [urgency, setUrgency] = useState<"routine" | "priority" | "urgent" | "immediate">(
+    "priority",
+  );
+  const [affectedHouseholds, setAffectedHouseholds] = useState(0);
+  const [affectedPeople, setAffectedPeople] = useState(0);
+  const [assessmentNotes, setAssessmentNotes] = useState("");
+  const [assessmentMessage, setAssessmentMessage] = useState("");
   const invitationOpened = useRef(false);
   const mission = session?.mission ?? null;
 
@@ -165,6 +200,19 @@ export function FieldFlow() {
       })
       .catch(() => undefined);
     return () => controller.abort();
+  }, [isOnline, session]);
+
+  useEffect(() => {
+    if (!session || !isOnline) return;
+    void syncQueuedAssessments(apiUrl, session.sessionToken)
+      .then((result) => {
+        if (result.synced > 0) {
+          setAssessmentMessage(
+            `${result.synced} reporte${result.synced === 1 ? " fue enviado" : "s fueron enviados"}.`,
+          );
+        }
+      })
+      .catch(() => undefined);
   }, [isOnline, session]);
 
   useEffect(() => {
@@ -343,6 +391,54 @@ export function FieldFlow() {
     setCompletedTasks((current) =>
       current.includes(task) ? current.filter((item) => item !== task) : [...current, task],
     );
+  };
+
+  const toggleOption = (value: string, current: string[], update: (next: string[]) => void) => {
+    update(
+      current.includes(value) ? current.filter((item) => item !== value) : [...current, value],
+    );
+  };
+
+  const saveAssessment = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!session || damageTypes.length + needTypes.length === 0) {
+      setAssessmentMessage("Selecciona al menos un daño o una necesidad.");
+      return;
+    }
+    setBusy(true);
+    setAssessmentMessage("");
+    try {
+      await queueRapidAssessment({
+        clientMutationId: crypto.randomUUID(),
+        deviceId: getDeviceId(),
+        observedAt: new Date().toISOString(),
+        damageTypes,
+        severity,
+        needTypes,
+        urgency,
+        affectedHouseholds,
+        affectedPeople,
+        notes: assessmentNotes.trim() || null,
+      });
+      const result = isOnline
+        ? await syncQueuedAssessments(apiUrl, session.sessionToken)
+        : { synced: 0, pending: 1 };
+      setAssessmentMessage(
+        result.pending === 0
+          ? "Reporte enviado. Puedes registrar otro hallazgo."
+          : "Reporte guardado en este dispositivo. Se enviará al recuperar señal.",
+      );
+      setAssessmentOpen(false);
+      setDamageTypes([]);
+      setNeedTypes([]);
+      setAffectedHouseholds(0);
+      setAffectedPeople(0);
+      setAssessmentNotes("");
+    } catch {
+      setAssessmentMessage("No pudimos guardar el reporte en este dispositivo.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   const missionWindow = mission
@@ -562,6 +658,130 @@ export function FieldFlow() {
               })}
             </ul>
           </div>
+          <section className={styles.assessmentPanel} aria-labelledby="assessment-title">
+            <div>
+              <p className={styles.eyebrow}>Hallazgos</p>
+              <h2 id="assessment-title">Daños y necesidades</h2>
+              <p>Registra lo esencial. No pidas documentos ni datos personales.</p>
+            </div>
+            {!assessmentOpen ? (
+              <button
+                type="button"
+                className={styles.reportButton}
+                onClick={() => {
+                  setAssessmentMessage("");
+                  setAssessmentOpen(true);
+                }}
+              >
+                + Registrar hallazgo
+              </button>
+            ) : (
+              <form className={styles.assessmentForm} onSubmit={saveAssessment}>
+                <fieldset>
+                  <legend>¿Qué daños observaste?</legend>
+                  <div className={styles.optionGrid}>
+                    {damageOptions.map(([value, label]) => (
+                      <button
+                        key={value}
+                        type="button"
+                        aria-pressed={damageTypes.includes(value)}
+                        onClick={() => toggleOption(value, damageTypes, setDamageTypes)}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </fieldset>
+                <div className={styles.twoColumns}>
+                  <label>
+                    Gravedad
+                    <select
+                      value={severity}
+                      onChange={(event) => setSeverity(event.target.value as typeof severity)}
+                    >
+                      <option value="low">Baja</option>
+                      <option value="medium">Media</option>
+                      <option value="high">Alta</option>
+                      <option value="critical">Crítica</option>
+                    </select>
+                  </label>
+                  <label>
+                    Urgencia
+                    <select
+                      value={urgency}
+                      onChange={(event) => setUrgency(event.target.value as typeof urgency)}
+                    >
+                      <option value="routine">Puede esperar</option>
+                      <option value="priority">Prioritaria</option>
+                      <option value="urgent">Urgente</option>
+                      <option value="immediate">Inmediata</option>
+                    </select>
+                  </label>
+                </div>
+                <fieldset>
+                  <legend>¿Qué necesitan?</legend>
+                  <div className={styles.optionGrid}>
+                    {needOptions.map(([value, label]) => (
+                      <button
+                        key={value}
+                        type="button"
+                        aria-pressed={needTypes.includes(value)}
+                        onClick={() => toggleOption(value, needTypes, setNeedTypes)}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </fieldset>
+                <div className={styles.twoColumns}>
+                  <label>
+                    Hogares afectados
+                    <input
+                      type="number"
+                      min="0"
+                      inputMode="numeric"
+                      value={affectedHouseholds}
+                      onChange={(event) => setAffectedHouseholds(Number(event.target.value))}
+                    />
+                  </label>
+                  <label>
+                    Personas aproximadas
+                    <input
+                      type="number"
+                      min="0"
+                      inputMode="numeric"
+                      value={affectedPeople}
+                      onChange={(event) => setAffectedPeople(Number(event.target.value))}
+                    />
+                  </label>
+                </div>
+                <label>
+                  Nota breve <span>(opcional)</span>
+                  <textarea
+                    value={assessmentNotes}
+                    onChange={(event) => setAssessmentNotes(event.target.value)}
+                    maxLength={1000}
+                    rows={3}
+                    placeholder="Ej. cuatro cubiertas colapsadas"
+                  />
+                </label>
+                {assessmentMessage && <p className={styles.error}>{assessmentMessage}</p>}
+                <div className={styles.formActions}>
+                  <button type="button" onClick={() => setAssessmentOpen(false)}>
+                    Cancelar
+                  </button>
+                  <button type="submit" disabled={busy}>
+                    {busy ? "Guardando…" : "Guardar reporte"}
+                  </button>
+                </div>
+              </form>
+            )}
+            {!assessmentOpen && assessmentMessage && (
+              <p className={styles.savedMessage} role="status">
+                ✓ {assessmentMessage}
+              </p>
+            )}
+          </section>
           <div className={styles.activeFooter}>
             <span>
               {completedTasks.length} de {fieldTasks.length} puntos marcados

@@ -28,13 +28,33 @@ export type CachedMissionPackage = {
   downloadedAt: string;
 };
 
+export type RapidAssessmentInput = {
+  clientMutationId: string;
+  deviceId: string;
+  observedAt: string;
+  damageTypes: string[];
+  severity: "low" | "medium" | "high" | "critical";
+  needTypes: string[];
+  urgency: "routine" | "priority" | "urgent" | "immediate";
+  affectedHouseholds: number;
+  affectedPeople: number;
+  notes: string | null;
+};
+
+export type QueuedRapidAssessment = RapidAssessmentInput & {
+  operation: "rapid_assessment.record";
+  queuedAt: string;
+  attempts: number;
+};
+
 const databaseName = "pulso-atlas-field";
 const storeName = "mutations";
 const missionStoreName = "missions";
+const assessmentStoreName = "assessments";
 
 const openDatabase = () =>
   new Promise<IDBDatabase>((resolve, reject) => {
-    const request = indexedDB.open(databaseName, 2);
+    const request = indexedDB.open(databaseName, 3);
     request.onupgradeneeded = () => {
       const database = request.result;
       if (!database.objectStoreNames.contains(storeName)) {
@@ -42,6 +62,9 @@ const openDatabase = () =>
       }
       if (!database.objectStoreNames.contains(missionStoreName)) {
         database.createObjectStore(missionStoreName, { keyPath: "code" });
+      }
+      if (!database.objectStoreNames.contains(assessmentStoreName)) {
+        database.createObjectStore(assessmentStoreName, { keyPath: "clientMutationId" });
       }
     };
     request.onsuccess = () => resolve(request.result);
@@ -109,4 +132,74 @@ export async function getLatestCachedMission(): Promise<CachedMissionPackage | n
   });
   database.close();
   return missions.sort((a, b) => b.downloadedAt.localeCompare(a.downloadedAt))[0] ?? null;
+}
+
+export async function queueRapidAssessment(
+  input: RapidAssessmentInput,
+): Promise<QueuedRapidAssessment> {
+  const database = await openDatabase();
+  const queued: QueuedRapidAssessment = {
+    ...input,
+    operation: "rapid_assessment.record",
+    queuedAt: new Date().toISOString(),
+    attempts: 0,
+  };
+  await new Promise<void>((resolve, reject) => {
+    const transaction = database.transaction(assessmentStoreName, "readwrite");
+    transaction.objectStore(assessmentStoreName).put(queued);
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error);
+  });
+  database.close();
+  return queued;
+}
+
+export async function listQueuedAssessments(): Promise<QueuedRapidAssessment[]> {
+  const database = await openDatabase();
+  const queued = await new Promise<QueuedRapidAssessment[]>((resolve, reject) => {
+    const request = database
+      .transaction(assessmentStoreName, "readonly")
+      .objectStore(assessmentStoreName)
+      .getAll();
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+  database.close();
+  return queued.sort((a, b) => a.queuedAt.localeCompare(b.queuedAt));
+}
+
+export async function syncQueuedAssessments(apiUrl: string, sessionToken: string) {
+  const queued = await listQueuedAssessments();
+  let synced = 0;
+  for (const assessment of queued) {
+    const {
+      operation: _operation,
+      queuedAt: _queuedAt,
+      attempts: _attempts,
+      ...payload
+    } = assessment;
+    try {
+      const response = await fetch(`${apiUrl}/v1/field-assessments`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${sessionToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) continue;
+      const database = await openDatabase();
+      await new Promise<void>((resolve, reject) => {
+        const transaction = database.transaction(assessmentStoreName, "readwrite");
+        transaction.objectStore(assessmentStoreName).delete(assessment.clientMutationId);
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = () => reject(transaction.error);
+      });
+      database.close();
+      synced += 1;
+    } catch {
+      break;
+    }
+  }
+  return { synced, pending: queued.length - synced };
 }

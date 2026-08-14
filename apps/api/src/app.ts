@@ -1,5 +1,7 @@
 import cors from "@fastify/cors";
 import {
+  AssessmentNotFoundError,
+  type AssessmentRepository,
   FieldVisitConflictError,
   FieldVisitNotFoundError,
   IdentityTrustConflictError,
@@ -37,6 +39,7 @@ import {
   createOperationalZoneSchema,
   createOrganizationSchema,
   createProfessionalCredentialSchema,
+  createRapidAssessmentSchema,
   createTeamMembershipSchema,
   createTeamSchema,
   fieldAssignmentSchema,
@@ -52,6 +55,7 @@ import {
   passkeyRegistrationResponseSchema,
   passkeyVerificationResultSchema,
   professionalCredentialSchema,
+  rapidAssessmentSchema,
   redeemMissionInvitationSchema,
   teamMembershipSchema,
   teamSchema,
@@ -71,6 +75,7 @@ import {
 } from "@simplewebauthn/server";
 import Fastify from "fastify";
 import { ZodError } from "zod";
+import { MemoryAssessmentRepository } from "./assessment-repositories.js";
 import { MemoryIdentityTrustRepository } from "./memory-identity-trust-repository.js";
 import { MemoryIncidentRepository } from "./memory-incident-repository.js";
 import { MemoryOperationsRepository } from "./memory-operations-repository.js";
@@ -83,6 +88,7 @@ export type BuildAppOptions = {
   operationsRepository?: OperationsRepository;
   missionAccessRepository?: MissionAccessRepository;
   identityTrustRepository?: IdentityTrustRepository;
+  assessmentRepository?: AssessmentRepository;
   persistence?: "memory" | "postgres";
   logger?: boolean;
   missionInvitationSecret?: string;
@@ -114,6 +120,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
         "pulso-test-identity-fingerprint-secret-2026",
       operations,
     );
+  const assessments = options.assessmentRepository ?? new MemoryAssessmentRepository();
   const siteUrl = options.siteUrl ?? "http://localhost:3000";
   const rpID = options.webauthnRpId ?? "localhost";
   const origin = options.webauthnOrigin ?? "http://localhost:3000";
@@ -217,6 +224,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
       error instanceof IncidentNotFoundError ||
       error instanceof OperationalZoneNotFoundError ||
       error instanceof FieldVisitNotFoundError ||
+      error instanceof AssessmentNotFoundError ||
       error instanceof IdentityTrustNotFoundError ||
       error instanceof OperationsResourceNotFoundError
     ) {
@@ -568,6 +576,29 @@ export async function buildApp(options: BuildAppOptions = {}) {
       await missionAccess.redeemInvitation(input, request.ip),
     );
     return reply.status(201).send(session);
+  });
+
+  app.post("/v1/field-assessments", async (request, reply) => {
+    const session = await missionAccess.resolveSession(bearerToken(request.headers.authorization));
+    const input = createRapidAssessmentSchema.parse(request.body);
+    const assessment = await assessments.create(
+      {
+        incidentId: session.mission.incidentId,
+        assignmentId: session.mission.assignmentId,
+        zoneId: session.mission.zoneId,
+        teamId: session.mission.teamId,
+        actorId: session.actorId,
+      },
+      input,
+    );
+    return reply.status(201).send(rapidAssessmentSchema.parse(assessment));
+  });
+
+  app.get("/v1/field-assessments", async (request) => {
+    const session = await missionAccess.resolveSession(bearerToken(request.headers.authorization));
+    return rapidAssessmentSchema
+      .array()
+      .parse(await assessments.listByAssignment(session.mission.assignmentId));
   });
 
   app.post("/v1/field-access/passkeys/authentication/options", async (request) => {

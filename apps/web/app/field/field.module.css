@@ -466,6 +466,150 @@
   color: white;
 }
 
+.assessmentPanel {
+  margin-top: 18px;
+  border: 1px solid #d8d8cd;
+  border-radius: 16px;
+  background: #fffdf7;
+  padding: 22px;
+}
+
+.assessmentPanel h2 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.assessmentPanel > div > p:last-child {
+  margin: 5px 0 18px;
+  color: #5f6f68;
+  font-size: 13px;
+}
+
+.reportButton {
+  width: 100%;
+  min-height: 54px;
+  border: 1px solid #006a4e;
+  border-radius: 11px;
+  background: #006a4e;
+  color: white;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.assessmentForm {
+  display: grid;
+  gap: 20px;
+  margin-top: 18px;
+}
+
+.assessmentForm fieldset {
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+.assessmentForm legend,
+.assessmentForm label {
+  color: #10231c;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.assessmentForm label {
+  display: grid;
+  gap: 7px;
+}
+
+.assessmentForm label span {
+  color: #68766f;
+  font-weight: 400;
+}
+
+.optionGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.optionGrid button {
+  min-height: 40px;
+  border: 1px solid #bfc8c2;
+  border-radius: 999px;
+  background: white;
+  padding: 0 13px;
+  color: #394b44;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.optionGrid button[aria-pressed="true"] {
+  border-color: #006a4e;
+  background: #e7f2ec;
+  color: #004d39;
+}
+
+.twoColumns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.assessmentForm select,
+.assessmentForm input,
+.assessmentForm textarea {
+  width: 100%;
+  border: 1px solid #aeb8b2;
+  border-radius: 9px;
+  background: white;
+  padding: 11px 12px;
+  color: #10231c;
+  font: inherit;
+  font-weight: 400;
+}
+
+.assessmentForm select,
+.assessmentForm input {
+  min-height: 46px;
+}
+
+.assessmentForm textarea {
+  resize: vertical;
+}
+
+.formActions {
+  display: grid;
+  grid-template-columns: 0.7fr 1.3fr;
+  gap: 9px;
+}
+
+.formActions button {
+  min-height: 50px;
+  border: 1px solid #006a4e;
+  border-radius: 10px;
+  background: transparent;
+  color: #006a4e;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.formActions button[type="submit"] {
+  background: #006a4e;
+  color: white;
+}
+
+.savedMessage {
+  margin: 14px 0 0;
+  border-radius: 9px;
+  background: #f2f8f4;
+  padding: 10px 12px;
+  color: #1b6341;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
 .activeFooter {
   display: flex;
   align-items: center;
@@ -510,6 +654,10 @@
   .activeFooter {
     align-items: stretch;
     flex-direction: column;
+  }
+  .twoColumns,
+  .formActions {
+    grid-template-columns: 1fr;
   }
   .secondaryButton {
     width: 100%;

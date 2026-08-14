@@ -175,6 +175,7 @@ La [guía de desarrollo](docs/08-development.md) explica la estructura, los coma
 - [Experiencia de campo con cero fricción](docs/16-zero-friction-field-ux.md)
 - [Invitaciones de misión y passkeys](docs/17-mission-access-passkeys.md)
 - [Identidad y confianza operacional](docs/18-identity-trust-p0.md)
+- [Evaluación rápida offline](docs/19-rapid-assessments-offline.md)
 
 ### Confianza y decisiones
 
