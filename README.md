@@ -6,7 +6,7 @@
 
 Infraestructura abierta y local-first para coordinar emergencias, hacer visible lo que ocurre en el territorio y demostrar cómo llega la ayuda.
 
-[**pulso.my**](https://pulso.my) · [Informe público](docs/24-public-situation-report.md) · [Arquitectura](docs/02-technical-architecture.md) · [Construir](docs/08-development.md)
+[**pulso.my**](https://pulso.my) · [Operación desde el día 4](docs/25-day-four-affected-people.md) · [Informe público](docs/24-public-situation-report.md) · [Arquitectura](docs/02-technical-architecture.md)
 
 ![Estado P0](https://img.shields.io/badge/estado-P0%20en%20construcci%C3%B3n-d08b25)
 ![Implementación Colombia](https://img.shields.io/badge/implementaci%C3%B3n-Colombia-006a4e)
@@ -31,6 +31,8 @@ El sistema responde seis preguntas esenciales:
 4. ¿Qué insumos y donaciones fueron recibidos, asignados o entregados?
 5. ¿Qué equipos están trabajando y qué evidencia respalda su actividad?
 6. ¿El informe público conserva la misma integridad con la que fue publicado?
+
+Desde el cuarto día, PULSO VIDA no crea un censo digital paralelo: enlaza señales comunitarias, visitas de campo y referencias oficiales en un expediente común. Una persona puede ser atendida sin documento; una referencia no se convierte automáticamente en beneficiario y una posible duplicidad siempre pasa por revisión humana.
 
 ## Informe público
 
@@ -199,6 +201,7 @@ research/              Investigación territorial con fuentes
 - [Donaciones de materiales](docs/10-material-donations.md)
 - [Experiencia de campo sin fricción](docs/16-zero-friction-field-ux.md)
 - [Informe público territorial](docs/24-public-situation-report.md)
+- [Día 4: personas afectadas, coordinación y ayuda trazable](docs/25-day-four-affected-people.md)
 
 ### Ingeniería y confianza
 
