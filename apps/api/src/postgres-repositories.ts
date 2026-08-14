@@ -38,6 +38,7 @@ import type {
 import postgres from "postgres";
 import { v7 as uuidv7 } from "uuid";
 import { PostgresMissionAccessRepository } from "./mission-access-repositories.js";
+import { PostgresIdentityTrustRepository } from "./postgres-identity-trust-repository.js";
 
 type DbRow = Record<string, unknown>;
 
@@ -749,9 +750,14 @@ class PostgresOperationsRepository implements OperationsRepository {
   }
 }
 
-export function createPostgresRepositories(databaseUrl: string, missionInvitationSecret: string) {
+export function createPostgresRepositories(
+  databaseUrl: string,
+  missionInvitationSecret: string,
+  identityFingerprintSecret = missionInvitationSecret,
+) {
   const sql = postgres(databaseUrl, { max: 10, idle_timeout: 20, connect_timeout: 10 });
   return {
+    identityTrust: new PostgresIdentityTrustRepository(identityFingerprintSecret, sql),
     incidents: new PostgresIncidentRepository(sql),
     missionAccess: new PostgresMissionAccessRepository(missionInvitationSecret, sql),
     operations: new PostgresOperationsRepository(sql),

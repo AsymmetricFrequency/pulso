@@ -2,6 +2,9 @@ import cors from "@fastify/cors";
 import {
   FieldVisitConflictError,
   FieldVisitNotFoundError,
+  IdentityTrustConflictError,
+  IdentityTrustNotFoundError,
+  type IdentityTrustRepository,
   IncidentCodeAlreadyExistsError,
   IncidentNotFoundError,
   type IncidentRepository,
@@ -17,23 +20,30 @@ import {
 } from "@pulso/domain";
 import {
   acceptFieldAssignmentSchema,
+  actorEndorsementSchema,
   actorSchema,
+  actorTrustProfileSchema,
   beginPasskeyAuthenticationSchema,
   completeFieldVisitSchema,
   coverageEventSchema,
+  createActorEndorsementSchema,
   createActorSchema,
   createCoverageEventSchema,
   createFieldAssignmentSchema,
   createFieldVisitSchema,
+  createIdentityClaimSchema,
   createIncidentSchema,
   createMissionInvitationSchema,
   createOperationalZoneSchema,
   createOrganizationSchema,
+  createProfessionalCredentialSchema,
   createTeamMembershipSchema,
   createTeamSchema,
   fieldAssignmentSchema,
   fieldSessionSchema,
   fieldVisitSchema,
+  identityClaimSchema,
+  identityVerificationSchema,
   incidentListSchema,
   incidentSchema,
   issuedMissionInvitationSchema,
@@ -41,12 +51,14 @@ import {
   organizationSchema,
   passkeyRegistrationResponseSchema,
   passkeyVerificationResultSchema,
+  professionalCredentialSchema,
   redeemMissionInvitationSchema,
   teamMembershipSchema,
   teamSchema,
   territoryImportResultSchema,
   territoryImportSchema,
   territorySchema,
+  verifyIdentityClaimSchema,
   verifyPasskeyAuthenticationSchema,
 } from "@pulso/schemas";
 import {
@@ -59,6 +71,7 @@ import {
 } from "@simplewebauthn/server";
 import Fastify from "fastify";
 import { ZodError } from "zod";
+import { MemoryIdentityTrustRepository } from "./memory-identity-trust-repository.js";
 import { MemoryIncidentRepository } from "./memory-incident-repository.js";
 import { MemoryOperationsRepository } from "./memory-operations-repository.js";
 import { MemoryTerritoryRepository } from "./memory-territory-repository.js";
@@ -69,9 +82,11 @@ export type BuildAppOptions = {
   territoryRepository?: TerritoryRepository;
   operationsRepository?: OperationsRepository;
   missionAccessRepository?: MissionAccessRepository;
+  identityTrustRepository?: IdentityTrustRepository;
   persistence?: "memory" | "postgres";
   logger?: boolean;
   missionInvitationSecret?: string;
+  identityFingerprintSecret?: string;
   missionAdminKey?: string;
   siteUrl?: string;
   webauthnRpId?: string;
@@ -90,6 +105,14 @@ export async function buildApp(options: BuildAppOptions = {}) {
       options.missionInvitationSecret ?? "pulso-test-invitation-secret-change-me-2026",
       operations,
       territories,
+    );
+  const identityTrust =
+    options.identityTrustRepository ??
+    new MemoryIdentityTrustRepository(
+      options.identityFingerprintSecret ??
+        options.missionInvitationSecret ??
+        "pulso-test-identity-fingerprint-secret-2026",
+      operations,
     );
   const siteUrl = options.siteUrl ?? "http://localhost:3000";
   const rpID = options.webauthnRpId ?? "localhost";
@@ -131,6 +154,45 @@ export async function buildApp(options: BuildAppOptions = {}) {
     return token;
   };
 
+  const requireTrustOfficer = async (
+    subjectActorId: string,
+    providedAdminKey: string | string[] | undefined,
+    providedActorId: string | string[] | undefined,
+  ) => {
+    requireAdmin(providedAdminKey);
+    if (typeof providedActorId !== "string") {
+      throw new MissionAccessDeniedError("Falta identificar a la persona verificadora.");
+    }
+    const [subject, verifier] = await Promise.all([
+      operations.findActor(subjectActorId),
+      operations.findActor(providedActorId),
+    ]);
+    if (
+      !subject ||
+      !verifier ||
+      subject.incidentId !== verifier.incidentId ||
+      verifier.status !== "active" ||
+      !["coordinator", "auditor", "incident_admin"].includes(verifier.role)
+    ) {
+      throw new MissionAccessDeniedError("Esta persona no puede verificar identidad.");
+    }
+    return verifier.id;
+  };
+
+  const requireSelfOrTrustOfficer = async (
+    subjectActorId: string,
+    authorization: string | undefined,
+    providedAdminKey: string | string[] | undefined,
+    providedActorId: string | string[] | undefined,
+  ) => {
+    if (authorization) {
+      const session = await missionAccess.resolveSession(bearerToken(authorization));
+      if (session.actorId !== subjectActorId) throw new MissionAccessDeniedError();
+      return session.actorId;
+    }
+    return requireTrustOfficer(subjectActorId, providedAdminKey, providedActorId);
+  };
+
   await app.register(cors, {
     origin: process.env.NODE_ENV === "production" ? siteUrl : true,
   });
@@ -155,6 +217,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
       error instanceof IncidentNotFoundError ||
       error instanceof OperationalZoneNotFoundError ||
       error instanceof FieldVisitNotFoundError ||
+      error instanceof IdentityTrustNotFoundError ||
       error instanceof OperationsResourceNotFoundError
     ) {
       return reply.status(404).send({
@@ -163,7 +226,11 @@ export async function buildApp(options: BuildAppOptions = {}) {
       });
     }
 
-    if (error instanceof FieldVisitConflictError || error instanceof OperationsConflictError) {
+    if (
+      error instanceof FieldVisitConflictError ||
+      error instanceof OperationsConflictError ||
+      error instanceof IdentityTrustConflictError
+    ) {
       return reply.status(409).send({
         error: "operation_conflict",
         message: error.message,
@@ -255,6 +322,120 @@ export async function buildApp(options: BuildAppOptions = {}) {
 
   app.get<{ Params: { incidentId: string } }>("/v1/incidents/:incidentId/actors", async (request) =>
     actorSchema.array().parse(await operations.listActors(request.params.incidentId)),
+  );
+
+  app.get<{ Params: { actorId: string } }>("/v1/actors/:actorId/trust-profile", async (request) =>
+    actorTrustProfileSchema.parse(await identityTrust.getTrustProfile(request.params.actorId)),
+  );
+
+  app.get<{ Params: { actorId: string } }>("/v1/actors/:actorId/identity-claims", async (request) =>
+    identityClaimSchema.array().parse(await identityTrust.listClaims(request.params.actorId)),
+  );
+
+  app.post<{ Params: { actorId: string } }>(
+    "/v1/actors/:actorId/identity-claims",
+    async (request, reply) => {
+      await requireSelfOrTrustOfficer(
+        request.params.actorId,
+        request.headers.authorization,
+        request.headers["x-pulso-admin-key"],
+        request.headers["x-pulso-actor-id"],
+      );
+      const input = createIdentityClaimSchema.parse(request.body);
+      return reply
+        .status(201)
+        .send(
+          identityClaimSchema.parse(await identityTrust.createClaim(request.params.actorId, input)),
+        );
+    },
+  );
+
+  app.get<{ Params: { actorId: string } }>(
+    "/v1/actors/:actorId/identity-verifications",
+    async (request) =>
+      identityVerificationSchema
+        .array()
+        .parse(await identityTrust.listVerifications(request.params.actorId)),
+  );
+
+  app.post<{ Params: { actorId: string; claimId: string } }>(
+    "/v1/actors/:actorId/identity-claims/:claimId/verifications",
+    async (request, reply) => {
+      const verifierId = await requireTrustOfficer(
+        request.params.actorId,
+        request.headers["x-pulso-admin-key"],
+        request.headers["x-pulso-actor-id"],
+      );
+      const input = verifyIdentityClaimSchema.parse(request.body);
+      return reply
+        .status(201)
+        .send(
+          identityVerificationSchema.parse(
+            await identityTrust.verifyClaim(
+              request.params.actorId,
+              request.params.claimId,
+              verifierId,
+              input,
+            ),
+          ),
+        );
+    },
+  );
+
+  app.get<{ Params: { actorId: string } }>("/v1/actors/:actorId/endorsements", async (request) =>
+    actorEndorsementSchema
+      .array()
+      .parse(await identityTrust.listEndorsements(request.params.actorId)),
+  );
+
+  app.post<{ Params: { actorId: string } }>(
+    "/v1/actors/:actorId/endorsements",
+    async (request, reply) => {
+      const issuerId = await requireTrustOfficer(
+        request.params.actorId,
+        request.headers["x-pulso-admin-key"],
+        request.headers["x-pulso-actor-id"],
+      );
+      const input = createActorEndorsementSchema.parse(request.body);
+      return reply
+        .status(201)
+        .send(
+          actorEndorsementSchema.parse(
+            await identityTrust.createEndorsement(request.params.actorId, issuerId, input),
+          ),
+        );
+    },
+  );
+
+  app.get<{ Params: { actorId: string } }>(
+    "/v1/actors/:actorId/professional-credentials",
+    async (request) =>
+      professionalCredentialSchema
+        .array()
+        .parse(await identityTrust.listProfessionalCredentials(request.params.actorId)),
+  );
+
+  app.post<{ Params: { actorId: string } }>(
+    "/v1/actors/:actorId/professional-credentials",
+    async (request, reply) => {
+      const verifierId = await requireTrustOfficer(
+        request.params.actorId,
+        request.headers["x-pulso-admin-key"],
+        request.headers["x-pulso-actor-id"],
+      );
+      const input = createProfessionalCredentialSchema.parse(request.body);
+      return reply
+        .status(201)
+        .send(
+          professionalCredentialSchema.parse(
+            await identityTrust.addProfessionalCredential(
+              request.params.actorId,
+              verifierId,
+              input,
+            ),
+          ),
+        );
+    },
   );
 
   app.post<{ Params: { incidentId: string } }>(

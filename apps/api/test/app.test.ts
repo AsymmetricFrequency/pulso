@@ -450,3 +450,141 @@ describe("teams and field assignments API", () => {
     expect(coverage.json()[0]).toMatchObject({ coverageStatus: "assigned", revision: 2 });
   });
 });
+
+describe("identity and trust API", () => {
+  it("deduplicates identities and reaches A3 without exposing raw identifiers", async () => {
+    const app = await buildApp();
+    apps.push(app);
+    const incident = await app.inject({
+      method: "POST",
+      url: "/v1/incidents",
+      payload: {
+        code: "identity-trust",
+        name: "Confianza operacional",
+        disasterType: "earthquake",
+        countryCode: "CO",
+        timezone: "America/Bogota",
+        startedAt: "2026-08-14T08:00:00-05:00",
+      },
+    });
+    const incidentId = incident.json().id as string;
+    const organization = await app.inject({
+      method: "POST",
+      url: `/v1/incidents/${incidentId}/organizations`,
+      payload: { name: "Ingeniería Solidaria", type: "ngo" },
+    });
+    const organizationId = organization.json().id as string;
+    const professional = await app.inject({
+      method: "POST",
+      url: `/v1/incidents/${incidentId}/actors`,
+      payload: { organizationId, displayName: "Profesional de campo", role: "professional" },
+    });
+    const other = await app.inject({
+      method: "POST",
+      url: `/v1/incidents/${incidentId}/actors`,
+      payload: { organizationId, displayName: "Persona duplicada", role: "field_worker" },
+    });
+    const coordinator = await app.inject({
+      method: "POST",
+      url: `/v1/incidents/${incidentId}/actors`,
+      payload: { organizationId, displayName: "Coordinación", role: "coordinator" },
+    });
+    const actorId = professional.json().id as string;
+    const coordinatorId = coordinator.json().id as string;
+    const headers = {
+      "x-pulso-admin-key": "pulso-local-admin",
+      "x-pulso-actor-id": coordinatorId,
+    };
+    const documentNumber = "1.234.567.890";
+
+    const claim = await app.inject({
+      method: "POST",
+      url: `/v1/actors/${actorId}/identity-claims`,
+      headers,
+      payload: {
+        type: "government_id",
+        value: documentNumber,
+        documentType: "CC",
+        countryCode: "CO",
+      },
+    });
+    expect(claim.statusCode).toBe(201);
+    expect(claim.json()).toMatchObject({ displayHint: "***7890", status: "asserted" });
+    expect(claim.body).not.toContain(documentNumber);
+
+    const duplicate = await app.inject({
+      method: "POST",
+      url: `/v1/actors/${other.json().id}/identity-claims`,
+      headers,
+      payload: {
+        type: "government_id",
+        value: "1234567890",
+        documentType: "CC",
+        countryCode: "CO",
+      },
+    });
+    expect(duplicate.statusCode).toBe(409);
+
+    const unauthorizedVerification = await app.inject({
+      method: "POST",
+      url: `/v1/actors/${actorId}/identity-claims/${claim.json().id}/verifications`,
+      payload: {
+        method: "document_review",
+        provider: "Coordinación PULSO",
+        result: "passed",
+        checkedAt: "2026-08-14T09:00:00-05:00",
+      },
+    });
+    expect(unauthorizedVerification.statusCode).toBe(401);
+
+    const verification = await app.inject({
+      method: "POST",
+      url: `/v1/actors/${actorId}/identity-claims/${claim.json().id}/verifications`,
+      headers,
+      payload: {
+        method: "document_review",
+        provider: "Coordinación PULSO",
+        result: "passed",
+        checkedAt: "2026-08-14T09:00:00-05:00",
+      },
+    });
+    expect(verification.statusCode).toBe(201);
+
+    const endorsement = await app.inject({
+      method: "POST",
+      url: `/v1/actors/${actorId}/endorsements`,
+      headers,
+      payload: { scope: "professional", notes: "Miembro activo de la brigada." },
+    });
+    expect(endorsement.statusCode).toBe(201);
+
+    const credential = await app.inject({
+      method: "POST",
+      url: `/v1/actors/${actorId}/professional-credentials`,
+      headers,
+      payload: {
+        registry: "COPNIA",
+        profession: "Ingeniería civil",
+        registrationNumber: "COPNIA-123456",
+        status: "active",
+        checkedAt: "2026-08-14T09:05:00-05:00",
+        sourceUrl:
+          "https://tramites.copnia.gov.co/copnia_microsite/certificateofgoodstanding/certificateofgoodstandingstart",
+      },
+    });
+    expect(credential.statusCode).toBe(201);
+    expect(credential.json()).toMatchObject({ registry: "COPNIA", registrationHint: "***3456" });
+    expect(credential.body).not.toContain("COPNIA-123456");
+
+    const profile = await app.inject({
+      method: "GET",
+      url: `/v1/actors/${actorId}/trust-profile`,
+    });
+    expect(profile.json()).toMatchObject({
+      assuranceLevel: "A3",
+      identityVerified: true,
+      activeEndorsements: 1,
+      validProfessionalCredentials: 1,
+    });
+  });
+});
