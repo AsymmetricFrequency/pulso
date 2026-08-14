@@ -18,6 +18,7 @@ import {
   MissionInvitationConflictError,
   MissionRateLimitError,
   OperationalZoneNotFoundError,
+  type OperationsAccessRepository,
   OperationsConflictError,
   type OperationsRepository,
   OperationsResourceNotFoundError,
@@ -42,6 +43,7 @@ import {
   createIncidentSchema,
   createMissionInvitationSchema,
   createOperationalZoneSchema,
+  createOperationsInvitationSchema,
   createOrganizationSchema,
   createProfessionalCredentialSchema,
   createRapidAssessmentSchema,
@@ -56,13 +58,16 @@ import {
   incidentListSchema,
   incidentSchema,
   issuedMissionInvitationSchema,
+  issuedOperationsInvitationSchema,
   operationalZoneSchema,
+  operationsSessionSchema,
   organizationSchema,
   passkeyRegistrationResponseSchema,
   passkeyVerificationResultSchema,
   professionalCredentialSchema,
   rapidAssessmentSchema,
   redeemMissionInvitationSchema,
+  redeemOperationsInvitationSchema,
   teamMembershipSchema,
   teamSchema,
   territoryImportResultSchema,
@@ -88,18 +93,21 @@ import { MemoryIncidentRepository } from "./memory-incident-repository.js";
 import { MemoryOperationsRepository } from "./memory-operations-repository.js";
 import { MemoryTerritoryRepository } from "./memory-territory-repository.js";
 import { MemoryMissionAccessRepository } from "./mission-access-repositories.js";
+import { MemoryOperationsAccessRepository } from "./operations-access-repositories.js";
 
 export type BuildAppOptions = {
   incidentRepository?: IncidentRepository;
   territoryRepository?: TerritoryRepository;
   operationsRepository?: OperationsRepository;
   missionAccessRepository?: MissionAccessRepository;
+  operationsAccessRepository?: OperationsAccessRepository;
   identityTrustRepository?: IdentityTrustRepository;
   assessmentRepository?: AssessmentRepository;
   evidenceRepository?: EvidenceRepository;
   persistence?: "memory" | "postgres";
   logger?: boolean;
   missionInvitationSecret?: string;
+  operationsAccessSecret?: string;
   identityFingerprintSecret?: string;
   missionAdminKey?: string;
   siteUrl?: string;
@@ -119,6 +127,15 @@ export async function buildApp(options: BuildAppOptions = {}) {
       options.missionInvitationSecret ?? "pulso-test-invitation-secret-change-me-2026",
       operations,
       territories,
+    );
+  const operationsAccess =
+    options.operationsAccessRepository ??
+    new MemoryOperationsAccessRepository(
+      options.operationsAccessSecret ??
+        options.missionInvitationSecret ??
+        "pulso-test-operations-access-secret-2026",
+      incidents,
+      operations,
     );
   const identityTrust =
     options.identityTrustRepository ??
@@ -160,6 +177,27 @@ export async function buildApp(options: BuildAppOptions = {}) {
       actor.status !== "active"
     ) {
       throw new MissionAccessDeniedError("Esta persona no puede coordinar la misión.");
+    }
+    return actor.id;
+  };
+
+  const requireOperationsIssuer = async (
+    incidentId: string,
+    providedAdminKey: string | string[] | undefined,
+    providedActorId: string | string[] | undefined,
+  ) => {
+    requireAdmin(providedAdminKey);
+    if (typeof providedActorId !== "string") {
+      throw new MissionAccessDeniedError("Falta identificar a la persona administradora.");
+    }
+    const actor = await operations.findActor(providedActorId);
+    if (
+      !actor ||
+      actor.incidentId !== incidentId ||
+      actor.status !== "active" ||
+      !["coordinator", "incident_admin"].includes(actor.role)
+    ) {
+      throw new MissionAccessDeniedError("Esta persona no puede habilitar acceso operacional.");
     }
     return actor.id;
   };
@@ -581,6 +619,54 @@ export async function buildApp(options: BuildAppOptions = {}) {
         ),
       );
       return reply.status(201).send(invitation);
+    },
+  );
+
+  app.post<{ Params: { incidentId: string } }>(
+    "/v1/incidents/:incidentId/operations-access/invitations",
+    async (request, reply) => {
+      const issuedBy = await requireOperationsIssuer(
+        request.params.incidentId,
+        request.headers["x-pulso-admin-key"],
+        request.headers["x-pulso-actor-id"],
+      );
+      const input = createOperationsInvitationSchema.parse(request.body);
+      return reply
+        .status(201)
+        .send(
+          issuedOperationsInvitationSchema.parse(
+            await operationsAccess.issueInvitation(
+              request.params.incidentId,
+              input,
+              siteUrl,
+              issuedBy,
+            ),
+          ),
+        );
+    },
+  );
+
+  app.post("/v1/operations-access/redeem", async (request, reply) => {
+    const input = redeemOperationsInvitationSchema.parse(request.body);
+    return reply
+      .status(201)
+      .send(
+        operationsSessionSchema.parse(await operationsAccess.redeemInvitation(input, request.ip)),
+      );
+  });
+
+  app.get<{ Params: { incidentId: string } }>(
+    "/v1/operations/incidents/:incidentId/assessment-summary",
+    async (request) => {
+      const session = await operationsAccess.resolveSession(
+        bearerToken(request.headers.authorization),
+      );
+      if (session.incidentId !== request.params.incidentId) {
+        throw new MissionAccessDeniedError("La sesión pertenece a otra emergencia.");
+      }
+      return assessmentSummarySchema.parse(
+        await assessments.summarizeIncident(request.params.incidentId),
+      );
     },
   );
 

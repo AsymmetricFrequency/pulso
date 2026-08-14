@@ -178,11 +178,13 @@ La [guía de desarrollo](docs/08-development.md) explica la estructura, los coma
 - [Evaluación rápida offline](docs/19-rapid-assessments-offline.md)
 - [Evidencia fotográfica offline](docs/20-offline-photo-evidence.md)
 - [Resumen operacional por misión](docs/21-mission-operational-summary.md)
+- [Acceso y tablero operacional](docs/22-operations-access-dashboard.md)
 
 ### Confianza y decisiones
 
 - [Confianza, fraude y privacidad](docs/05-trust-fraud-privacy.md)
 - [Decisiones de arquitectura](docs/decisions/)
+- [ADR-007: Base para anclaje público de auditoría](docs/decisions/ADR-007-base-audit-anchoring.md)
 - [Documento fundacional v0.2](docs/foundation/RecoveryChain_Protocol_v0.2.docx)
 
 ## Principios

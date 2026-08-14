@@ -46,9 +46,9 @@ export default function OperationsHome() {
           </p>
         </div>
         <div className="actions">
-          <button type="button" className="button secondary">
-            Crear zona
-          </button>
+          <a href="/operations" className="button secondary">
+            Acceso operaciones
+          </a>
           <FieldEntryLink />
         </div>
       </section>

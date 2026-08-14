@@ -40,6 +40,7 @@ import { v7 as uuidv7 } from "uuid";
 import { PostgresAssessmentRepository } from "./assessment-repositories.js";
 import { PostgresEvidenceRepository } from "./evidence-repositories.js";
 import { PostgresMissionAccessRepository } from "./mission-access-repositories.js";
+import { PostgresOperationsAccessRepository } from "./operations-access-repositories.js";
 import { PostgresIdentityTrustRepository } from "./postgres-identity-trust-repository.js";
 
 type DbRow = Record<string, unknown>;
@@ -764,6 +765,7 @@ export function createPostgresRepositories(
     identityTrust: new PostgresIdentityTrustRepository(identityFingerprintSecret, sql),
     incidents: new PostgresIncidentRepository(sql),
     missionAccess: new PostgresMissionAccessRepository(missionInvitationSecret, sql),
+    operationsAccess: new PostgresOperationsAccessRepository(missionInvitationSecret, sql),
     operations: new PostgresOperationsRepository(sql),
     territories: new PostgresTerritoryRepository(sql),
     close: () => sql.end({ timeout: 5 }),

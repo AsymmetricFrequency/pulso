@@ -484,6 +484,84 @@ describe("teams and field assignments API", () => {
       ],
     });
 
+    const unauthorizedOperationsInvitation = await app.inject({
+      method: "POST",
+      url: `/v1/incidents/${incidentId}/operations-access/invitations`,
+      payload: { actorId: coordinator.json().id, expiresInMinutes: 30 },
+    });
+    expect(unauthorizedOperationsInvitation.statusCode).toBe(401);
+    const invalidOperationsActor = await app.inject({
+      method: "POST",
+      url: `/v1/incidents/${incidentId}/operations-access/invitations`,
+      headers: {
+        "x-pulso-admin-key": "pulso-local-admin",
+        "x-pulso-actor-id": coordinator.json().id,
+      },
+      payload: { actorId: outsider.json().id, expiresInMinutes: 30 },
+    });
+    expect(invalidOperationsActor.statusCode).toBe(409);
+    const operationsInvitation = await app.inject({
+      method: "POST",
+      url: `/v1/incidents/${incidentId}/operations-access/invitations`,
+      headers: {
+        "x-pulso-admin-key": "pulso-local-admin",
+        "x-pulso-actor-id": coordinator.json().id,
+      },
+      payload: { actorId: coordinator.json().id, expiresInMinutes: 30 },
+    });
+    expect(operationsInvitation.statusCode).toBe(201);
+    const operationsSession = await app.inject({
+      method: "POST",
+      url: "/v1/operations-access/redeem",
+      payload: { code: operationsInvitation.json().code, deviceId: "operations-browser-01" },
+    });
+    expect(operationsSession.statusCode).toBe(201);
+    expect(operationsSession.json()).toMatchObject({
+      actor: { id: coordinator.json().id, role: "coordinator" },
+      incident: { id: incidentId, code: "mission-control" },
+    });
+    const reusedOperationsInvitation = await app.inject({
+      method: "POST",
+      url: "/v1/operations-access/redeem",
+      payload: { code: operationsInvitation.json().code, deviceId: "operations-browser-02" },
+    });
+    expect(reusedOperationsInvitation.statusCode).toBe(401);
+    const unauthorizedIncidentSummary = await app.inject({
+      method: "GET",
+      url: `/v1/operations/incidents/${incidentId}/assessment-summary`,
+    });
+    expect(unauthorizedIncidentSummary.statusCode).toBe(401);
+    const incidentSummary = await app.inject({
+      method: "GET",
+      url: `/v1/operations/incidents/${incidentId}/assessment-summary`,
+      headers: { authorization: `Bearer ${operationsSession.json().sessionToken}` },
+    });
+    expect(incidentSummary.statusCode).toBe(200);
+    expect(incidentSummary.json()).toMatchObject({
+      incidentId,
+      totalAssessments: 1,
+      affectedHouseholds: 4,
+      affectedPeople: 13,
+    });
+    const otherIncident = await app.inject({
+      method: "POST",
+      url: "/v1/incidents",
+      payload: {
+        code: "other-incident",
+        name: "Otra emergencia",
+        disasterType: "flood",
+        countryCode: "CO",
+        timezone: "America/Bogota",
+        startedAt: "2026-08-13T09:00:00-05:00",
+      },
+    });
+    const crossIncidentSummary = await app.inject({
+      method: "GET",
+      url: `/v1/operations/incidents/${otherIncident.json().id}/assessment-summary`,
+      headers: { authorization: `Bearer ${operationsSession.json().sessionToken}` },
+    });
+    expect(crossIncidentSummary.statusCode).toBe(401);
+
     const jpegBytes = Buffer.from([0xff, 0xd8, 0xff, 0xd9]);
     const evidencePayload = {
       clientMutationId: "0198a03d-c08f-7e4a-91ee-102c68bff301",

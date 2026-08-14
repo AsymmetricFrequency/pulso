@@ -140,6 +140,21 @@ export class MemoryAssessmentRepository implements AssessmentRepository {
     );
     return summarize(incidentId, items);
   }
+
+  async summarizeIncident(incidentId: string) {
+    const assessments = [...this.#assessments.values()].filter(
+      (item) => item.incidentId === incidentId && item.status !== "duplicate",
+    );
+    const items = await Promise.all(
+      assessments.map(async (assessment) => ({
+        assessment,
+        zoneName:
+          (await this.territories?.findOperationalZone(assessment.zoneId))?.name ??
+          "Zona operativa",
+      })),
+    );
+    return summarize(incidentId, items);
+  }
 }
 
 export class PostgresAssessmentRepository implements AssessmentRepository {
@@ -213,6 +228,19 @@ export class PostgresAssessmentRepository implements AssessmentRepository {
       JOIN operational_zones oz ON oz.id = ra.zone_id
       WHERE ra.incident_id = ${incidentId} AND ra.assignment_id = ${assignmentId}
         AND ra.status <> 'duplicate'
+      ORDER BY ra.observed_at DESC
+    `;
+    return summarize(
+      incidentId,
+      rows.map((row) => ({ assessment: fromRow(row), zoneName: String(row.zone_name) })),
+    );
+  }
+
+  async summarizeIncident(incidentId: string) {
+    const rows = await this.sql<DbRow[]>`
+      SELECT ra.*, oz.name AS zone_name FROM rapid_assessments ra
+      JOIN operational_zones oz ON oz.id = ra.zone_id
+      WHERE ra.incident_id = ${incidentId} AND ra.status <> 'duplicate'
       ORDER BY ra.observed_at DESC
     `;
     return summarize(

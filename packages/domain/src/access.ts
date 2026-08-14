@@ -1,11 +1,24 @@
 import type {
   BeginPasskeyAuthenticationInput,
   CreateMissionInvitationInput,
+  CreateOperationsInvitationInput,
   FieldSessionDto,
   IssuedMissionInvitationDto,
+  IssuedOperationsInvitationDto,
   MissionPackageDto,
+  OperationsSessionDto,
   RedeemMissionInvitationInput,
+  RedeemOperationsInvitationInput,
 } from "@pulso/schemas";
+
+export type ResolvedOperationsSession = {
+  id: string;
+  actorId: string;
+  incidentId: string;
+  deviceId: string;
+  role: "coordinator" | "auditor" | "incident_admin";
+  expiresAt: string;
+};
 
 export type ResolvedFieldSession = {
   id: string;
@@ -58,6 +71,20 @@ export interface MissionAccessRepository {
     assignmentId: string,
     deviceId: string,
   ): Promise<FieldSessionDto>;
+}
+
+export interface OperationsAccessRepository {
+  issueInvitation(
+    incidentId: string,
+    input: CreateOperationsInvitationInput,
+    siteUrl: string,
+    issuedByActorId: string,
+  ): Promise<IssuedOperationsInvitationDto>;
+  redeemInvitation(
+    input: RedeemOperationsInvitationInput,
+    sourceIp: string,
+  ): Promise<OperationsSessionDto>;
+  resolveSession(token: string): Promise<ResolvedOperationsSession>;
 }
 
 export class MissionAccessDeniedError extends Error {

@@ -46,6 +46,7 @@ const app = await buildApp({
         evidenceRepository: postgresRepositories.evidence,
         identityTrustRepository: postgresRepositories.identityTrust,
         missionAccessRepository: postgresRepositories.missionAccess,
+        operationsAccessRepository: postgresRepositories.operationsAccess,
         operationsRepository: postgresRepositories.operations,
         territoryRepository: postgresRepositories.territories,
       }

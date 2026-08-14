@@ -23,6 +23,7 @@ export interface AssessmentRepository {
     clientMutationId: string,
   ): Promise<RapidAssessmentDto | undefined>;
   summarizeAssignment(incidentId: string, assignmentId: string): Promise<AssessmentSummaryDto>;
+  summarizeIncident(incidentId: string): Promise<AssessmentSummaryDto>;
 }
 
 export class AssessmentNotFoundError extends Error {

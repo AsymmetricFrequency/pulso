@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+export const operationsRoleSchema = z.enum(["coordinator", "auditor", "incident_admin"]);
+
 export const createMissionInvitationSchema = z.object({
   actorId: z.uuid(),
   expiresInMinutes: z.int().min(5).max(10_080).default(1_440),
@@ -17,6 +19,37 @@ export const issuedMissionInvitationSchema = z.object({
 export const redeemMissionInvitationSchema = z.object({
   code: z.string().trim().min(6).max(16),
   deviceId: z.string().trim().min(8).max(120),
+});
+
+export const createOperationsInvitationSchema = z.object({
+  actorId: z.uuid(),
+  expiresInMinutes: z.int().min(5).max(1_440).default(30),
+});
+
+export const issuedOperationsInvitationSchema = z.object({
+  id: z.uuid(),
+  incidentId: z.uuid(),
+  actorId: z.uuid(),
+  code: z.string().length(10),
+  link: z.url(),
+  expiresAt: z.iso.datetime({ offset: true }),
+});
+
+export const redeemOperationsInvitationSchema = z.object({
+  code: z.string().trim().min(6).max(16),
+  deviceId: z.string().trim().min(8).max(120),
+});
+
+export const operationsSessionSchema = z.object({
+  sessionToken: z.string().min(32),
+  sessionExpiresAt: z.iso.datetime({ offset: true }),
+  actor: z.object({
+    id: z.uuid(),
+    incidentId: z.uuid(),
+    displayName: z.string(),
+    role: operationsRoleSchema,
+  }),
+  incident: z.object({ id: z.uuid(), code: z.string(), name: z.string() }),
 });
 
 export const missionPackageSchema = z.object({
@@ -89,6 +122,10 @@ export const verifyPasskeyAuthenticationSchema = z.object({
 export type CreateMissionInvitationInput = z.infer<typeof createMissionInvitationSchema>;
 export type IssuedMissionInvitationDto = z.infer<typeof issuedMissionInvitationSchema>;
 export type RedeemMissionInvitationInput = z.infer<typeof redeemMissionInvitationSchema>;
+export type CreateOperationsInvitationInput = z.infer<typeof createOperationsInvitationSchema>;
+export type IssuedOperationsInvitationDto = z.infer<typeof issuedOperationsInvitationSchema>;
+export type RedeemOperationsInvitationInput = z.infer<typeof redeemOperationsInvitationSchema>;
+export type OperationsSessionDto = z.infer<typeof operationsSessionSchema>;
 export type MissionPackageDto = z.infer<typeof missionPackageSchema>;
 export type FieldSessionDto = z.infer<typeof fieldSessionSchema>;
 export type BeginPasskeyAuthenticationInput = z.infer<typeof beginPasskeyAuthenticationSchema>;
