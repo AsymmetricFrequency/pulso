@@ -127,6 +127,7 @@ La [guía de desarrollo](docs/08-development.md) explica la estructura, los coma
 <details>
 <summary><strong>Endpoints implementados</strong></summary>
 
+- `GET /v1/public/incidents/:incidentCode/report`
 - `GET|POST /v1/incidents`
 - `GET /v1/incidents/:incidentId/territories`
 - `POST /v1/incidents/:incidentId/territories/import`

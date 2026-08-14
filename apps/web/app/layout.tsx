@@ -14,6 +14,20 @@ export const metadata: Metadata = {
     siteName: "PULSO ATLAS",
     type: "website",
     url: "/",
+    images: [
+      {
+        url: "/og.png",
+        width: 1731,
+        height: 909,
+        alt: "PULSO — Información territorial para actuar",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "PULSO",
+    description: "Información territorial para actuar",
+    images: ["/og.png"],
   },
 };
 

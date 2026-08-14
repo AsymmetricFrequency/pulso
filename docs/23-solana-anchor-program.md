@@ -4,7 +4,7 @@
 
 El programa mínimo `pulso_anchor` está implementado en Anchor, compila para SBF y fue validado con pruebas unitarias y transacciones reales sobre un validador Solana local.
 
-- **Program ID del piloto:** `DBfKewHG6MgNjuiRhUhMUZrgq2Qh3ZRjwbCVxBbBodHx`
+- **Program ID vanity del piloto:** `PuLsRBUdu4JxfP9tPU4WyNvWx7Vu2dS7NfCipm8YBmh`
 - **Red habilitada actualmente:** local; Devnet es el siguiente entorno.
 - **Datos personales en cadena:** ninguno.
 - **Custodia de fondos:** ninguna.

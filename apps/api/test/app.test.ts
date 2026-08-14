@@ -66,6 +66,42 @@ describe("incident API", () => {
   });
 });
 
+describe("public situation report API", () => {
+  it("publishes a cacheable, privacy-safe demo snapshot", async () => {
+    const app = await buildApp();
+    apps.push(app);
+
+    const response = await app.inject({
+      method: "GET",
+      url: "/v1/public/incidents/colombia-2026/report",
+    });
+    const body = response.json();
+
+    expect(response.statusCode).toBe(200);
+    expect(response.headers["cache-control"]).toContain("stale-while-revalidate");
+    expect(response.headers["x-pulso-data-mode"]).toBe("demo");
+    expect(body).toMatchObject({
+      schemaVersion: 1,
+      incident: { code: "colombia-2026", dataMode: "demo" },
+      integrity: { status: "pending", network: "none" },
+    });
+    expect(JSON.stringify(body)).not.toMatch(/phone|email|documentNumber|latitude|longitude/i);
+  });
+
+  it("returns 404 for an unpublished incident", async () => {
+    const app = await buildApp();
+    apps.push(app);
+
+    const response = await app.inject({
+      method: "GET",
+      url: "/v1/public/incidents/not-published/report",
+    });
+
+    expect(response.statusCode).toBe(404);
+    expect(response.json()).toMatchObject({ error: "public_report_not_found" });
+  });
+});
+
 describe("territory and coverage API", () => {
   it("imports territory, creates a zone, and records its coverage history", async () => {
     const app = await buildApp();

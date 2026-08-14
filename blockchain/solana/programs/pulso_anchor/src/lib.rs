@@ -2,7 +2,7 @@
 
 use anchor_lang::prelude::*;
 
-declare_id!("DBfKewHG6MgNjuiRhUhMUZrgq2Qh3ZRjwbCVxBbBodHx");
+declare_id!("PuLsRBUdu4JxfP9tPU4WyNvWx7Vu2dS7NfCipm8YBmh");
 
 const REGISTRY_VERSION: u8 = 1;
 const BATCH_VERSION: u8 = 1;

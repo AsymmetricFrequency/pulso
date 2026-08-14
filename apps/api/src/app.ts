@@ -22,6 +22,7 @@ import {
   OperationsConflictError,
   type OperationsRepository,
   OperationsResourceNotFoundError,
+  type PublicReportRepository,
   type TerritoryRepository,
 } from "@pulso/domain";
 import {
@@ -65,6 +66,7 @@ import {
   passkeyRegistrationResponseSchema,
   passkeyVerificationResultSchema,
   professionalCredentialSchema,
+  publicSituationReportSchema,
   rapidAssessmentSchema,
   redeemMissionInvitationSchema,
   redeemOperationsInvitationSchema,
@@ -91,6 +93,7 @@ import { MemoryEvidenceRepository } from "./evidence-repositories.js";
 import { MemoryIdentityTrustRepository } from "./memory-identity-trust-repository.js";
 import { MemoryIncidentRepository } from "./memory-incident-repository.js";
 import { MemoryOperationsRepository } from "./memory-operations-repository.js";
+import { MemoryPublicReportRepository } from "./memory-public-report-repository.js";
 import { MemoryTerritoryRepository } from "./memory-territory-repository.js";
 import { MemoryMissionAccessRepository } from "./mission-access-repositories.js";
 import { MemoryOperationsAccessRepository } from "./operations-access-repositories.js";
@@ -104,6 +107,7 @@ export type BuildAppOptions = {
   identityTrustRepository?: IdentityTrustRepository;
   assessmentRepository?: AssessmentRepository;
   evidenceRepository?: EvidenceRepository;
+  publicReportRepository?: PublicReportRepository;
   persistence?: "memory" | "postgres";
   logger?: boolean;
   missionInvitationSecret?: string;
@@ -147,6 +151,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
     );
   const assessments = options.assessmentRepository ?? new MemoryAssessmentRepository(territories);
   const evidence = options.evidenceRepository ?? new MemoryEvidenceRepository(assessments);
+  const publicReports = options.publicReportRepository ?? new MemoryPublicReportRepository();
   const siteUrl = options.siteUrl ?? "http://localhost:3000";
   const rpID = options.webauthnRpId ?? "localhost";
   const origin = options.webauthnOrigin ?? "http://localhost:3000";
@@ -327,6 +332,24 @@ export async function buildApp(options: BuildAppOptions = {}) {
     timestamp: new Date().toISOString(),
     persistence: options.persistence ?? "memory",
   }));
+
+  app.get<{ Params: { incidentCode: string } }>(
+    "/v1/public/incidents/:incidentCode/report",
+    async (request, reply) => {
+      const report = await publicReports.findPublishedByIncidentCode(request.params.incidentCode);
+      if (!report) {
+        return reply.status(404).send({
+          error: "public_report_not_found",
+          message: "No existe un informe público para esta emergencia.",
+        });
+      }
+
+      return reply
+        .header("Cache-Control", "public, max-age=60, s-maxage=300, stale-while-revalidate=900")
+        .header("X-Pulso-Data-Mode", report.incident.dataMode)
+        .send(publicSituationReportSchema.parse(report));
+    },
+  );
 
   app.get("/v1/incidents", async () => incidentListSchema.parse(await incidents.list()));
 

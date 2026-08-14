@@ -5,14 +5,17 @@ package_manager = "pnpm"
 resolution = false
 skip-lint = false
 
-[programs.localnet]
-pulso_anchor = "DBfKewHG6MgNjuiRhUhMUZrgq2Qh3ZRjwbCVxBbBodHx"
-
 [programs.devnet]
-pulso_anchor = "DBfKewHG6MgNjuiRhUhMUZrgq2Qh3ZRjwbCVxBbBodHx"
+pulso_anchor = "PuLsRBUdu4JxfP9tPU4WyNvWx7Vu2dS7NfCipm8YBmh"
+
+[programs.localnet]
+pulso_anchor = "PuLsRBUdu4JxfP9tPU4WyNvWx7Vu2dS7NfCipm8YBmh"
+
+[registry]
+url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
+cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]

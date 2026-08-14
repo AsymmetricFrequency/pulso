@@ -42,6 +42,7 @@ import { PostgresEvidenceRepository } from "./evidence-repositories.js";
 import { PostgresMissionAccessRepository } from "./mission-access-repositories.js";
 import { PostgresOperationsAccessRepository } from "./operations-access-repositories.js";
 import { PostgresIdentityTrustRepository } from "./postgres-identity-trust-repository.js";
+import { PostgresPublicReportRepository } from "./postgres-public-report-repository.js";
 
 type DbRow = Record<string, unknown>;
 
@@ -767,6 +768,7 @@ export function createPostgresRepositories(
     missionAccess: new PostgresMissionAccessRepository(missionInvitationSecret, sql),
     operationsAccess: new PostgresOperationsAccessRepository(missionInvitationSecret, sql),
     operations: new PostgresOperationsRepository(sql),
+    publicReports: new PostgresPublicReportRepository(sql),
     territories: new PostgresTerritoryRepository(sql),
     close: () => sql.end({ timeout: 5 }),
   };

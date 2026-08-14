@@ -10,7 +10,13 @@ La portada de `pulso.my` es el informe público de la emergencia. Debe permitir 
 4. ¿Qué ocurrió con cada donación monetaria o en especie?
 5. ¿Qué equipos están desplegados y qué trabajo completaron?
 
-La primera interfaz está implementada con datos sintéticos. No debe presentarse como información real hasta conectar fuentes verificadas y activar el flujo editorial.
+La primera interfaz y el contrato de API están implementados con datos sintéticos. No debe presentarse como información real hasta conectar fuentes verificadas y activar el flujo editorial.
+
+El endpoint público actual es:
+
+`GET /v1/public/incidents/:incidentCode/report`
+
+La respuesta declara `dataMode: demo | live`, versión de esquema, fecha de corte, publicación, métricas, territorios, actualizaciones, balances de ayuda e integridad. Se entrega con caché pública y nunca contiene campos de identidad personal.
 
 ## Jerarquía territorial
 
@@ -92,7 +98,7 @@ Blockchain prueba que un lote no fue alterado después de publicarse; no prueba 
 5. Vistas de lectura generan el informe público y sus cortes históricos.
 6. El relayer agrupa eventos publicados, calcula la raíz Merkle y la ancla en Solana.
 
-La landing nunca consulta directamente tablas operacionales sensibles. Consume una API pública de solo lectura, limitada y cacheable.
+La landing nunca consulta directamente tablas operacionales sensibles. Consume una API pública de solo lectura, limitada y cacheable. Si el servicio no está disponible, la interfaz puede conservar un corte público firmado previamente; no retrocede a tablas privadas.
 
 ## Protección contra fraude y duplicidad
 
@@ -111,7 +117,7 @@ La landing nunca consulta directamente tablas operacionales sensibles. Consume u
 ### P0 — informe real
 
 - incorporar geometrías oficiales de municipios, distritos y zonas operativas;
-- crear las vistas agregadas y la API pública de solo lectura;
+- crear las vistas agregadas que alimentarán la API pública de solo lectura ya implementada;
 - conectar reportes, evaluaciones, necesidades, inventario, entregas y equipos reales;
 - implementar flujo editorial `borrador → revisado → publicado → corregido`;
 - definir umbral mínimo de privacidad y reglas de desplazamiento geográfico;

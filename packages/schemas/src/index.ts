@@ -4,4 +4,5 @@ export * from "./evidence.js";
 export * from "./identity.js";
 export * from "./incident.js";
 export * from "./operations.js";
+export * from "./public-report.js";
 export * from "./territory.js";

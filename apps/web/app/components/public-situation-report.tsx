@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AtlasMap, type PublicMapLayer } from "./atlas-map";
 
 const defaultLayer: { id: PublicMapLayer; label: string; description: string } = {
@@ -35,6 +35,53 @@ type TerritoryProfile = {
   supplies: string;
   donations: string;
   teams: string;
+};
+
+type PublicReportPayload = {
+  incident: {
+    name: string;
+    dataMode: "demo" | "live";
+    cutoffAt: string;
+  };
+  metrics: Array<{ id: string; label: string; value: string; note: string }>;
+  territories: Array<{
+    code: string;
+    name: string;
+    municipalities: Array<{ code: string; name: string; localities: string[] }>;
+    updatedAt: string;
+    confidenceLabel: string;
+    coverage: string;
+    damage: string;
+    supplies: string;
+    donations: string;
+    teams: string;
+  }>;
+  updates: Array<{
+    id: string;
+    title: string;
+    territory: string;
+    detail: string;
+    verificationLabel: string;
+    observedAt: string;
+  }>;
+  aidBalances: Array<{
+    catalogCode: string;
+    label: string;
+    unit: string;
+    validatedNeed: number;
+    inTransit: number;
+    deliveredUsable: number;
+    rejected: number;
+    openGap: number;
+  }>;
+  donationFlow: {
+    currency: string;
+    registered: number;
+    reconciled: number;
+    allocated: number;
+    delivered: number;
+  };
+  integrity: { status: "pending" | "anchored"; network: string };
 };
 
 const territoryProfiles: Record<string, TerritoryProfile> = {
@@ -131,11 +178,70 @@ const aidBalances = [
   { label: "Refugio temporal", requested: "310 kits", delivered: "124", progress: 40 },
 ];
 
+const formatDateTime = (value: string) =>
+  new Intl.DateTimeFormat("es-CO", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "America/Bogota",
+  }).format(new Date(value));
+
+const formatQuantity = (value: number) =>
+  new Intl.NumberFormat("es-CO", { maximumFractionDigits: 2 }).format(value);
+
+const formatMoney = (value: number) => `$${Math.round(value / 1_000_000)} M`;
+
 export function PublicSituationReport() {
+  const [report, setReport] = useState<PublicReportPayload | null>(null);
+  const [reportSource, setReportSource] = useState<"fallback" | "api">("fallback");
   const [layer, setLayer] = useState<PublicMapLayer>("coverage");
   const [departmentCode, setDepartmentCode] = useState("27");
   const [departmentName, setDepartmentName] = useState("Chocó");
-  const profile = territoryProfiles[departmentCode] ?? fallbackProfile;
+  useEffect(() => {
+    const controller = new AbortController();
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+    fetch(`${apiUrl}/v1/public/incidents/colombia-2026/report`, { signal: controller.signal })
+      .then((response) => {
+        if (!response.ok) throw new Error("Public report is unavailable");
+        return response.json() as Promise<PublicReportPayload>;
+      })
+      .then((payload) => {
+        setReport(payload);
+        setReportSource("api");
+      })
+      .catch((error: unknown) => {
+        if (!(error instanceof DOMException && error.name === "AbortError")) {
+          setReportSource("fallback");
+        }
+      });
+    return () => controller.abort();
+  }, []);
+
+  const publishedProfiles = useMemo<Record<string, TerritoryProfile>>(() => {
+    if (!report) return territoryProfiles;
+    return Object.fromEntries(
+      report.territories.map((territory) => [
+        territory.code,
+        {
+          municipalities: territory.municipalities.map((municipality) => ({
+            name: municipality.name,
+            localities: municipality.localities,
+          })),
+          update: formatDateTime(territory.updatedAt),
+          confidence: territory.confidenceLabel,
+          coverage: territory.coverage,
+          damage: territory.damage,
+          supplies: territory.supplies,
+          donations: territory.donations,
+          teams: territory.teams,
+        },
+      ]),
+    );
+  }, [report]);
+  const profile = publishedProfiles[departmentCode] ?? fallbackProfile;
   const [municipalityIndex, setMunicipalityIndex] = useState(0);
   const [localityIndex, setLocalityIndex] = useState(0);
   const municipality =
@@ -153,6 +259,29 @@ export function PublicSituationReport() {
     setLocalityIndex(0);
   };
 
+  const visibleMetrics: Array<{ id?: string; label: string; value: string; note: string }> =
+    report?.metrics ?? headlineMetrics;
+  const visibleUpdates =
+    report?.updates.map((update) => ({
+      title: update.title,
+      territory: update.territory,
+      detail: update.detail,
+      state: update.verificationLabel,
+      time: `Observado ${formatDateTime(update.observedAt)}`,
+    })) ?? situationRows;
+  const visibleAidBalances =
+    report?.aidBalances.map((balance) => ({
+      label: balance.label,
+      requested: `${formatQuantity(balance.validatedNeed)} ${balance.unit}`,
+      delivered: formatQuantity(balance.deliveredUsable),
+      progress:
+        balance.validatedNeed === 0
+          ? 0
+          : Math.min(100, Math.round((balance.deliveredUsable / balance.validatedNeed) * 100)),
+    })) ?? aidBalances;
+  const donationFlow = report?.donationFlow;
+  const cutoffLabel = report ? formatDateTime(report.incident.cutoffAt) : "14 ago 2026 · 11:30";
+
   return (
     <>
       <section className="publicReport" id="informe" aria-labelledby="public-report-title">
@@ -164,15 +293,22 @@ export function PublicSituationReport() {
           <div className="publicationState">
             <span className="liveDot" aria-hidden="true" />
             <div>
-              <strong>Demostración · datos sintéticos</strong>
-              <span>Último corte: 14 ago 2026 · 11:30 COT</span>
+              <strong>
+                {report?.incident.dataMode === "live"
+                  ? "Informe público"
+                  : "Demostración · datos sintéticos"}
+              </strong>
+              <span>
+                {reportSource === "api" ? "API pública conectada" : "Respaldo local"} · Último
+                corte: {cutoffLabel} COT
+              </span>
             </div>
           </div>
         </div>
 
         <div className="headlineGrid">
-          {headlineMetrics.map((metric) => (
-            <article className="headlineMetric" key={metric.label}>
+          {visibleMetrics.map((metric) => (
+            <article className="headlineMetric" key={metric.id ?? metric.label}>
               <span>{metric.label}</span>
               <strong>{metric.value}</strong>
               <small>{metric.note}</small>
@@ -285,7 +421,7 @@ export function PublicSituationReport() {
           <span className="sectionNote">La identidad personal está protegida</span>
         </div>
         <div className="situationList">
-          {situationRows.map((row) => (
+          {visibleUpdates.map((row) => (
             <article key={row.title}>
               <div>
                 <span className="recordType">Reporte territorial</span>
@@ -312,7 +448,7 @@ export function PublicSituationReport() {
         </div>
         <div className="aidLayout">
           <div className="aidBalances">
-            {aidBalances.map((item) => (
+            {visibleAidBalances.map((item) => (
               <article key={item.label}>
                 <div>
                   <strong>{item.label}</strong>
@@ -338,19 +474,19 @@ export function PublicSituationReport() {
             <p className="eyebrow">Donaciones monetarias y en especie</p>
             <div>
               <span>Registradas</span>
-              <strong>$428 M</strong>
+              <strong>{formatMoney(donationFlow?.registered ?? 428_000_000)}</strong>
             </div>
             <div>
               <span>Conciliadas</span>
-              <strong>$391 M</strong>
+              <strong>{formatMoney(donationFlow?.reconciled ?? 391_000_000)}</strong>
             </div>
             <div>
               <span>Asignadas</span>
-              <strong>$276 M</strong>
+              <strong>{formatMoney(donationFlow?.allocated ?? 276_000_000)}</strong>
             </div>
             <div>
               <span>Entrega verificada</span>
-              <strong>$184 M</strong>
+              <strong>{formatMoney(donationFlow?.delivered ?? 184_000_000)}</strong>
             </div>
             <small>
               Cifras COP sintéticas. Cada entrega conserva unidad, cantidad, origen, destino,
