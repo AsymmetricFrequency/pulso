@@ -324,12 +324,31 @@ export async function buildApp(options: BuildAppOptions = {}) {
     actorSchema.array().parse(await operations.listActors(request.params.incidentId)),
   );
 
-  app.get<{ Params: { actorId: string } }>("/v1/actors/:actorId/trust-profile", async (request) =>
-    actorTrustProfileSchema.parse(await identityTrust.getTrustProfile(request.params.actorId)),
-  );
+  app.get<{ Params: { actorId: string } }>("/v1/actors/:actorId/trust-profile", async (request) => {
+    await requireSelfOrTrustOfficer(
+      request.params.actorId,
+      request.headers.authorization,
+      request.headers["x-pulso-admin-key"],
+      request.headers["x-pulso-actor-id"],
+    );
+    return actorTrustProfileSchema.parse(
+      await identityTrust.getTrustProfile(request.params.actorId),
+    );
+  });
 
-  app.get<{ Params: { actorId: string } }>("/v1/actors/:actorId/identity-claims", async (request) =>
-    identityClaimSchema.array().parse(await identityTrust.listClaims(request.params.actorId)),
+  app.get<{ Params: { actorId: string } }>(
+    "/v1/actors/:actorId/identity-claims",
+    async (request) => {
+      await requireSelfOrTrustOfficer(
+        request.params.actorId,
+        request.headers.authorization,
+        request.headers["x-pulso-admin-key"],
+        request.headers["x-pulso-actor-id"],
+      );
+      return identityClaimSchema
+        .array()
+        .parse(await identityTrust.listClaims(request.params.actorId));
+    },
   );
 
   app.post<{ Params: { actorId: string } }>(
@@ -352,10 +371,17 @@ export async function buildApp(options: BuildAppOptions = {}) {
 
   app.get<{ Params: { actorId: string } }>(
     "/v1/actors/:actorId/identity-verifications",
-    async (request) =>
-      identityVerificationSchema
+    async (request) => {
+      await requireSelfOrTrustOfficer(
+        request.params.actorId,
+        request.headers.authorization,
+        request.headers["x-pulso-admin-key"],
+        request.headers["x-pulso-actor-id"],
+      );
+      return identityVerificationSchema
         .array()
-        .parse(await identityTrust.listVerifications(request.params.actorId)),
+        .parse(await identityTrust.listVerifications(request.params.actorId));
+    },
   );
 
   app.post<{ Params: { actorId: string; claimId: string } }>(
@@ -382,11 +408,17 @@ export async function buildApp(options: BuildAppOptions = {}) {
     },
   );
 
-  app.get<{ Params: { actorId: string } }>("/v1/actors/:actorId/endorsements", async (request) =>
-    actorEndorsementSchema
+  app.get<{ Params: { actorId: string } }>("/v1/actors/:actorId/endorsements", async (request) => {
+    await requireSelfOrTrustOfficer(
+      request.params.actorId,
+      request.headers.authorization,
+      request.headers["x-pulso-admin-key"],
+      request.headers["x-pulso-actor-id"],
+    );
+    return actorEndorsementSchema
       .array()
-      .parse(await identityTrust.listEndorsements(request.params.actorId)),
-  );
+      .parse(await identityTrust.listEndorsements(request.params.actorId));
+  });
 
   app.post<{ Params: { actorId: string } }>(
     "/v1/actors/:actorId/endorsements",
@@ -409,10 +441,17 @@ export async function buildApp(options: BuildAppOptions = {}) {
 
   app.get<{ Params: { actorId: string } }>(
     "/v1/actors/:actorId/professional-credentials",
-    async (request) =>
-      professionalCredentialSchema
+    async (request) => {
+      await requireSelfOrTrustOfficer(
+        request.params.actorId,
+        request.headers.authorization,
+        request.headers["x-pulso-admin-key"],
+        request.headers["x-pulso-actor-id"],
+      );
+      return professionalCredentialSchema
         .array()
-        .parse(await identityTrust.listProfessionalCredentials(request.params.actorId)),
+        .parse(await identityTrust.listProfessionalCredentials(request.params.actorId));
+    },
   );
 
   app.post<{ Params: { actorId: string } }>(

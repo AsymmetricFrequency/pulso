@@ -42,12 +42,26 @@ type FieldSession = {
   mission: Mission;
 };
 
+type TrustProfile = {
+  actorId: string;
+  assuranceLevel: "A0" | "A1" | "A2" | "A3" | "A4";
+  badges: string[];
+};
+
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 const fieldTasks = [
   "Confirmar acceso a la zona",
   "Registrar viviendas observadas",
   "Guardar evidencia esencial",
 ];
+
+const trustLabels: Record<TrustProfile["assuranceLevel"], string> = {
+  A0: "Registro de misión",
+  A1: "Contacto verificado",
+  A2: "Brigada respaldada",
+  A3: "Profesional verificado",
+  A4: "Auditoría reforzada",
+};
 
 const getDeviceId = () => {
   const existing = localStorage.getItem("pulso-device-id");
@@ -72,6 +86,7 @@ export function FieldFlow() {
   const [step, setStep] = useState<FlowStep>("access");
   const [code, setCode] = useState("");
   const [session, setSession] = useState<FieldSession | null>(null);
+  const [trustProfile, setTrustProfile] = useState<TrustProfile | null>(null);
   const [error, setError] = useState("");
   const [isOnline, setIsOnline] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -104,6 +119,7 @@ export function FieldFlow() {
     }
     setBusy(true);
     setError("");
+    setTrustProfile(null);
     try {
       const response = await fetch(`${apiUrl}/v1/field-access/redeem`, {
         method: "POST",
@@ -132,6 +148,24 @@ export function FieldFlow() {
       setBusy(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (!session || !isOnline) return;
+    const controller = new AbortController();
+    void fetch(`${apiUrl}/v1/actors/${session.mission.actorId}/trust-profile`, {
+      headers: { Authorization: `Bearer ${session.sessionToken}` },
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) return null;
+        return (await response.json()) as TrustProfile;
+      })
+      .then((profile) => {
+        if (profile) setTrustProfile(profile);
+      })
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, [isOnline, session]);
 
   useEffect(() => {
     if (invitationOpened.current) return;
@@ -384,6 +418,23 @@ export function FieldFlow() {
             <strong>{mission.zoneReference}</strong>
             <p>{mission.location}</p>
           </div>
+          {trustProfile && (
+            <section className={styles.trustCard} aria-label="Confianza para esta misión">
+              <span className={styles.trustMark} aria-hidden="true">
+                ✓
+              </span>
+              <div>
+                <span>Validación para esta misión</span>
+                <strong>{trustLabels[trustProfile.assuranceLevel]}</strong>
+                <p>
+                  {trustProfile.badges.length > 0
+                    ? trustProfile.badges.slice(0, 2).join(" · ")
+                    : "Puedes reportar y trabajar en las tareas asignadas."}
+                </p>
+              </div>
+              <small>{trustProfile.assuranceLevel}</small>
+            </section>
+          )}
           <dl className={styles.details}>
             <div>
               <dt>Objetivo</dt>

@@ -576,9 +576,21 @@ describe("identity and trust API", () => {
     expect(credential.json()).toMatchObject({ registry: "COPNIA", registrationHint: "***3456" });
     expect(credential.body).not.toContain("COPNIA-123456");
 
+    const privateIdentityResponses = await Promise.all(
+      [
+        "trust-profile",
+        "identity-claims",
+        "identity-verifications",
+        "endorsements",
+        "professional-credentials",
+      ].map((resource) => app.inject({ method: "GET", url: `/v1/actors/${actorId}/${resource}` })),
+    );
+    expect(privateIdentityResponses.every((response) => response.statusCode === 401)).toBe(true);
+
     const profile = await app.inject({
       method: "GET",
       url: `/v1/actors/${actorId}/trust-profile`,
+      headers,
     });
     expect(profile.json()).toMatchObject({
       assuranceLevel: "A3",
