@@ -1,3 +1,5 @@
+import { AtlasMap } from "./components/atlas-map";
+
 const coverage = [
   { label: "Sin verificar", value: 18, className: "unknown" },
   { label: "Asignadas", value: 7, className: "assigned" },
@@ -74,19 +76,7 @@ export default function OperationsHome() {
 
       <section className="workspace" aria-label="Vista territorial y prioridades">
         <div className="mapPanel">
-          <div
-            className="mapPlaceholder"
-            role="img"
-            aria-label="Vista previa del futuro mapa operacional"
-          >
-            <span className="mapPulse one" />
-            <span className="mapPulse two" />
-            <span className="mapPulse three" />
-            <div className="mapMessage">
-              <strong>Atlas Map</strong>
-              <span>La capa PostGIS se conectará en el siguiente vertical.</span>
-            </div>
-          </div>
+          <AtlasMap />
           <ul className="mapLegend" aria-label="Leyenda de cobertura">
             <li>
               <i className="statusDot unknown" /> Sin verificar
@@ -99,6 +89,9 @@ export default function OperationsHome() {
             </li>
             <li>
               <i className="statusDot visited" /> Visitada
+            </li>
+            <li>
+              <i className="statusDot inaccessible" /> Acceso restringido
             </li>
           </ul>
         </div>

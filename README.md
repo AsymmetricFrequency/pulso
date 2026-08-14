@@ -52,6 +52,7 @@ La implementación inicial será un **monolito modular con workers**, desplegado
 - [Donaciones de materiales de construcción](docs/10-material-donations.md)
 - [Flujos, eventos y contratos de API](docs/11-operational-events-api.md)
 - [Seguridad, confiabilidad y preparación de producción](docs/12-production-readiness.md)
+- [Vertical territorial y de cobertura](docs/13-territory-coverage-vertical.md)
 - [Decisiones de arquitectura](docs/decisions/)
 - [Documento fundacional v0.2](docs/foundation/RecoveryChain_Protocol_v0.2.docx)
 - [Mapa preliminar de afectación](research/colombia-2026/mapa-impacto-terremoto.html)
@@ -74,6 +75,8 @@ pnpm dev
 - API: `http://localhost:3001`
 - Salud de API: `GET /health`
 - Incidentes: `GET|POST /v1/incidents`
+- Territorios: `GET /v1/incidents/:incidentId/territories` e importación en `POST /v1/incidents/:incidentId/territories/import`
+- Zonas operativas y cobertura: `GET|POST /v1/incidents/:incidentId/operational-zones`
 
 Para verificar todo el repositorio:
 

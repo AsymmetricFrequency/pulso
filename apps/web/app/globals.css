@@ -233,6 +233,10 @@ h2 {
   background: var(--green);
 }
 
+.statusDot.inaccessible {
+  background: #6b4d83;
+}
+
 .workspace {
   display: grid;
   grid-template-columns: minmax(0, 1.7fr) minmax(280px, 0.8fr);
@@ -245,68 +249,135 @@ h2 {
   min-width: 0;
 }
 
-.mapPlaceholder {
+.atlasMap {
   position: relative;
   min-height: 480px;
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 12px;
-  background:
-    linear-gradient(120deg, transparent 49%, rgba(0, 106, 78, 0.12) 50%, transparent 51%),
-    linear-gradient(30deg, transparent 49%, rgba(0, 106, 78, 0.09) 50%, transparent 51%),
-    var(--surface);
-  background-size:
-    90px 90px,
-    120px 120px,
-    auto;
+  background: var(--surface);
   box-shadow: var(--shadow);
 }
 
-.mapMessage {
-  position: absolute;
-  left: 24px;
-  bottom: 24px;
-  max-width: 310px;
+.atlasMap svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: radial-gradient(circle at center, #f5f5ea 0, #ececdf 70%, #e4e5d8 100%);
+}
+
+.mapToolbar {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--line);
+  padding: 16px 18px;
+}
+
+.mapToolbar > div,
+.mapToolbar label {
   display: grid;
-  gap: 6px;
-  border-left: 4px solid var(--primary);
-  background: rgba(255, 253, 247, 0.92);
-  padding: 14px 16px;
+  gap: 4px;
 }
 
-.mapMessage span {
+.mapToolbar label span,
+.mapKicker,
+.mapSelection > span:first-child {
   color: var(--muted);
-  font-size: 13px;
-  line-height: 1.45;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-.mapPulse {
+.mapToolbar select {
+  max-width: 240px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: white;
+  padding: 7px 30px 7px 9px;
+  color: var(--ink);
+}
+
+.department {
+  stroke: rgba(255, 253, 247, 0.92);
+  stroke-width: 1.2;
+  transition:
+    filter 140ms ease,
+    opacity 140ms ease;
+}
+
+.department:hover,
+.department.selected {
+  filter: brightness(0.78) saturate(1.2);
+  stroke: var(--ink);
+  stroke-width: 2.5;
+}
+
+.status-unknown {
+  fill: #d9d2c2;
+}
+
+.status-assigned {
+  fill: var(--amber);
+}
+
+.status-partial {
+  fill: var(--blue);
+}
+
+.status-visited {
+  fill: var(--green);
+}
+
+.status-inaccessible {
+  fill: #6b4d83;
+}
+
+.mapSelection {
   position: absolute;
-  width: 18px;
-  height: 18px;
-  border: 5px solid var(--surface);
-  border-radius: 50%;
-  background: var(--signal);
-  box-shadow: 0 0 0 9px rgba(224, 82, 63, 0.18);
+  right: 18px;
+  bottom: 18px;
+  display: grid;
+  min-width: 190px;
+  gap: 5px;
+  border-left: 4px solid var(--primary);
+  background: rgba(255, 253, 247, 0.94);
+  padding: 12px 14px;
+  box-shadow: var(--shadow);
 }
 
-.mapPulse.one {
-  top: 26%;
-  left: 34%;
+.coverageBadge {
+  width: fit-content;
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: #eee9dd;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 700;
 }
 
-.mapPulse.two {
-  top: 47%;
-  left: 58%;
-  background: var(--amber);
-  box-shadow: 0 0 0 9px rgba(208, 139, 37, 0.18);
+.coverageBadge.assigned {
+  color: #765019;
+}
+.coverageBadge.partial {
+  color: #245d80;
+}
+.coverageBadge.visited {
+  color: #1b6341;
+}
+.coverageBadge.inaccessible {
+  color: #6b4d83;
 }
 
-.mapPulse.three {
-  top: 66%;
-  left: 44%;
-  background: var(--blue);
-  box-shadow: 0 0 0 9px rgba(57, 119, 156, 0.18);
+.mapLoading {
+  display: grid;
+  min-height: 480px;
+  place-items: center;
+  color: var(--muted);
 }
 
 .mapLegend {
@@ -422,8 +493,18 @@ footer {
     border-bottom: 0;
   }
 
-  .mapPlaceholder {
+  .atlasMap {
     min-height: 390px;
+  }
+
+  .mapToolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .mapToolbar select {
+    max-width: none;
+    width: 100%;
   }
 
   footer {
