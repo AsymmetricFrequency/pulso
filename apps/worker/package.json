@@ -11,11 +11,22 @@
     "test": "vitest run --passWithNoTests",
     "ingest:cali": "tsx src/ingest-cali.ts",
     "ingest:sgc": "tsx src/ingest-sgc.ts",
-    "ingest:dane": "tsx src/ingest-dane.ts"
+    "ingest:dane": "tsx src/ingest-dane.ts",
+    "ingest:contemos": "tsx src/ingest-contemos.ts",
+    "ingest:gravitas": "tsx src/ingest-gravitas.ts",
+    "ingest:ayudaspereira": "tsx src/ingest-ayudaspereira.ts",
+    "ingest:terremotocolombia": "tsx src/ingest-terremotocolombia.ts",
+    "ingest:redcaliayuda": "tsx src/ingest-redcaliayuda.ts",
+    "ingest:redcaliayuda-acopio": "tsx src/ingest-redcaliayuda-acopio.ts",
+    "publish:situation-report": "tsx src/publish-situation-report-entrypoint.ts",
+    "seed:material-catalog": "tsx src/seed-material-catalog-entrypoint.ts",
+    "seed:cali-suppliers": "tsx src/seed-cali-suppliers-entrypoint.ts"
   },
   "dependencies": {
+    "@pulso/schemas": "workspace:*",
     "bullmq": "6.1.0",
     "cheerio": "^1.2.0",
+    "dotenv": "^17.4.2",
     "ioredis": "6.0.0",
     "postgres": "3.4.9"
   },

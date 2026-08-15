@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AtlasMap, type PublicMapLayer } from "./atlas-map";
+import { CommunityReportDetailCard } from "./community-report-detail";
+import type { PublicCommunityReport } from "./community-report-form";
 
 const defaultLayer: { id: PublicMapLayer; label: string; description: string } = {
   id: "coverage",
@@ -27,7 +29,7 @@ const headlineMetrics = [
 ];
 
 type TerritoryProfile = {
-  municipalities: Array<{ name: string; localities: string[] }>;
+  municipalities: Array<{ code?: string; name: string; localities: string[] }>;
   update: string;
   confidence: string;
   coverage: string;
@@ -87,8 +89,12 @@ type PublicReportPayload = {
 const territoryProfiles: Record<string, TerritoryProfile> = {
   "27": {
     municipalities: [
-      { name: "Quibdó", localities: ["Cabecera municipal", "Zona rural norte"] },
-      { name: "Istmina", localities: ["Cabecera municipal", "Corregimientos priorizados"] },
+      { code: "27001", name: "Quibdó", localities: ["Cabecera municipal", "Zona rural norte"] },
+      {
+        code: "27361",
+        name: "Istmina",
+        localities: ["Cabecera municipal", "Corregimientos priorizados"],
+      },
     ],
     update: "Hace 18 minutos",
     confidence: "Validación parcial",
@@ -100,8 +106,12 @@ const territoryProfiles: Record<string, TerritoryProfile> = {
   },
   "76": {
     municipalities: [
-      { name: "Cali", localities: ["Comuna priorizada", "Zona de ladera"] },
-      { name: "Buenaventura", localities: ["Cabecera distrital", "Zona rural"] },
+      { code: "76001", name: "Cali", localities: ["Comuna priorizada", "Zona de ladera"] },
+      {
+        code: "76109",
+        name: "Buenaventura",
+        localities: ["Cabecera distrital", "Zona rural"],
+      },
     ],
     update: "Hace 26 minutos",
     confidence: "Datos corroborados",
@@ -113,8 +123,8 @@ const territoryProfiles: Record<string, TerritoryProfile> = {
   },
   "63": {
     municipalities: [
-      { name: "Armenia", localities: ["Cabecera municipal", "Periferia"] },
-      { name: "Calarcá", localities: ["Cabecera municipal", "Zona rural"] },
+      { code: "63001", name: "Armenia", localities: ["Cabecera municipal", "Periferia"] },
+      { code: "63130", name: "Calarcá", localities: ["Cabecera municipal", "Zona rural"] },
     ],
     update: "Hace 41 minutos",
     confidence: "Datos corroborados",
@@ -126,7 +136,7 @@ const territoryProfiles: Record<string, TerritoryProfile> = {
   },
 };
 
-const defaultMunicipality = {
+const defaultMunicipality: TerritoryProfile["municipalities"][number] = {
   name: "Todos los municipios",
   localities: ["Todas las localidades"],
 };
@@ -200,6 +210,7 @@ export function PublicSituationReport() {
   const [layer, setLayer] = useState<PublicMapLayer>("coverage");
   const [departmentCode, setDepartmentCode] = useState("27");
   const [departmentName, setDepartmentName] = useState("Chocó");
+  const [activeReport, setActiveReport] = useState<PublicCommunityReport | null>(null);
   useEffect(() => {
     const controller = new AbortController();
     const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
@@ -227,6 +238,7 @@ export function PublicSituationReport() {
         territory.code,
         {
           municipalities: territory.municipalities.map((municipality) => ({
+            code: municipality.code,
             name: municipality.name,
             localities: municipality.localities,
           })),
@@ -370,44 +382,59 @@ export function PublicSituationReport() {
         </nav>
 
         <div className="publicMapWorkspace">
-          <AtlasMap layer={layer} selectedCode={departmentCode} onSelectCode={changeDepartment} />
+          <AtlasMap
+            layer={layer}
+            selectedCode={departmentCode}
+            onSelectCode={changeDepartment}
+            onActiveReportChange={setActiveReport}
+            {...(municipality.code ? { focusMunicipalityCode: municipality.code } : {})}
+          />
           <aside className="territorySummary" aria-live="polite">
-            <p className="eyebrow">Resumen territorial</p>
-            <h3>{departmentName}</h3>
-            <p className="territoryPath">
-              {municipality.name} · {locality}
-            </p>
-            <div className="confidenceLine">
-              <span>{profile.confidence}</span>
-              <small>{profile.update}</small>
-            </div>
-            <dl>
-              <div>
-                <dt>Cobertura</dt>
-                <dd>{profile.coverage}</dd>
-              </div>
-              <div>
-                <dt>Daños</dt>
-                <dd>{profile.damage}</dd>
-              </div>
-              <div>
-                <dt>Insumos</dt>
-                <dd>{profile.supplies}</dd>
-              </div>
-              <div>
-                <dt>Donaciones</dt>
-                <dd>{profile.donations}</dd>
-              </div>
-              <div>
-                <dt>Equipos</dt>
-                <dd>{profile.teams}</dd>
-              </div>
-            </dl>
-            <div className="selectedLayerCallout">
-              <span>Capa visible</span>
-              <strong>{selectedLayer.label}</strong>
-              <p>{selectedLayer.description}</p>
-            </div>
+            {activeReport ? (
+              <CommunityReportDetailCard
+                report={activeReport}
+                onClose={() => setActiveReport(null)}
+              />
+            ) : (
+              <>
+                <p className="eyebrow">Resumen territorial</p>
+                <h3>{departmentName}</h3>
+                <p className="territoryPath">
+                  {municipality.name} · {locality}
+                </p>
+                <div className="confidenceLine">
+                  <span>{profile.confidence}</span>
+                  <small>{profile.update}</small>
+                </div>
+                <dl>
+                  <div>
+                    <dt>Cobertura</dt>
+                    <dd>{profile.coverage}</dd>
+                  </div>
+                  <div>
+                    <dt>Daños</dt>
+                    <dd>{profile.damage}</dd>
+                  </div>
+                  <div>
+                    <dt>Insumos</dt>
+                    <dd>{profile.supplies}</dd>
+                  </div>
+                  <div>
+                    <dt>Donaciones</dt>
+                    <dd>{profile.donations}</dd>
+                  </div>
+                  <div>
+                    <dt>Equipos</dt>
+                    <dd>{profile.teams}</dd>
+                  </div>
+                </dl>
+                <div className="selectedLayerCallout">
+                  <span>Capa visible</span>
+                  <strong>{selectedLayer.label}</strong>
+                  <p>{selectedLayer.description}</p>
+                </div>
+              </>
+            )}
           </aside>
         </div>
       </section>

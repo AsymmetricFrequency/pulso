@@ -43,15 +43,19 @@ const app = await buildApp({
     ? {
         incidentRepository: postgresRepositories.incidents,
         assessmentRepository: postgresRepositories.assessments,
+        communityReportRepository: postgresRepositories.communityReports,
         evidenceRepository: postgresRepositories.evidence,
         identityTrustRepository: postgresRepositories.identityTrust,
+        materialSupplierRepository: postgresRepositories.materialSuppliers,
         missionAccessRepository: postgresRepositories.missionAccess,
         operationsAccessRepository: postgresRepositories.operationsAccess,
         operationsRepository: postgresRepositories.operations,
         publicReportRepository: postgresRepositories.publicReports,
         caliPublicSourceRepository: postgresRepositories.caliPublicSource,
+        reconstructionProgressRepository: postgresRepositories.reconstructionProgress,
         sgcPublicSourceRepository: postgresRepositories.sgcPublicSource,
         territoryRepository: postgresRepositories.territories,
+        workforceProfileRepository: postgresRepositories.workforceProfiles,
       }
     : {}),
 });

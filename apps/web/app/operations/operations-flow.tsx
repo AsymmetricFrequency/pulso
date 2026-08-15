@@ -140,7 +140,7 @@ export function OperationsFlow() {
       <main className={styles.shell}>
         <header className={styles.topbar}>
           <a href="/" className={styles.brand}>
-            PULSO VIDA
+            PULSO
           </a>
           <span>Acceso protegido</span>
         </header>
@@ -178,7 +178,7 @@ export function OperationsFlow() {
     <main className={styles.shell}>
       <header className={styles.topbar}>
         <a href="/" className={styles.brand}>
-          PULSO VIDA
+          PULSO
         </a>
         <button type="button" className={styles.leave} onClick={leave}>
           Salir

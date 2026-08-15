@@ -1,7 +1,11 @@
+import { createHash } from "node:crypto";
 import cors from "@fastify/cors";
 import {
   AssessmentNotFoundError,
   type AssessmentRepository,
+  CommunityReportNotFoundError,
+  CommunityReportRateLimitError,
+  type CommunityReportRepository,
   EvidenceAssessmentNotFoundError,
   EvidenceIntegrityError,
   type EvidenceRepository,
@@ -13,6 +17,8 @@ import {
   IncidentCodeAlreadyExistsError,
   IncidentNotFoundError,
   type IncidentRepository,
+  MaterialSupplierRateLimitError,
+  type MaterialSupplierRepository,
   MissionAccessDeniedError,
   type MissionAccessRepository,
   MissionInvitationConflictError,
@@ -23,7 +29,10 @@ import {
   type OperationsRepository,
   OperationsResourceNotFoundError,
   type PublicReportRepository,
+  type ReconstructionProgressRepository,
   type TerritoryRepository,
+  WorkforceProfileRateLimitError,
+  type WorkforceProfileRepository,
 } from "@pulso/domain";
 import {
   acceptFieldAssignmentSchema,
@@ -32,16 +41,19 @@ import {
   actorTrustProfileSchema,
   assessmentSummarySchema,
   beginPasskeyAuthenticationSchema,
+  communityReportSchema,
   completeFieldVisitSchema,
   coverageEventSchema,
   createActorEndorsementSchema,
   createActorSchema,
+  createCommunityReportSchema,
   createCoverageEventSchema,
   createFieldAssignmentSchema,
   createFieldEvidenceSchema,
   createFieldVisitSchema,
   createIdentityClaimSchema,
   createIncidentSchema,
+  createMaterialSupplierSchema,
   createMissionInvitationSchema,
   createOperationalZoneSchema,
   createOperationsInvitationSchema,
@@ -50,6 +62,7 @@ import {
   createRapidAssessmentSchema,
   createTeamMembershipSchema,
   createTeamSchema,
+  createWorkforceProfileSchema,
   fieldAssignmentSchema,
   fieldEvidenceSchema,
   fieldSessionSchema,
@@ -62,14 +75,20 @@ import {
   issuedOperationsInvitationSchema,
   operationalZoneSchema,
   operationsSessionSchema,
+  operationsWorkforceProfileSchema,
   organizationSchema,
   passkeyRegistrationResponseSchema,
   passkeyVerificationResultSchema,
   professionalCredentialSchema,
+  publicCommunityReportSchema,
+  publicMaterialSupplierSchema,
   publicSituationReportSchema,
+  publicWorkforceProfileSchema,
   rapidAssessmentSchema,
+  reconstructionProgressSchema,
   redeemMissionInvitationSchema,
   redeemOperationsInvitationSchema,
+  reviewCommunityReportSchema,
   teamMembershipSchema,
   teamSchema,
   territoryImportResultSchema,
@@ -94,11 +113,15 @@ import {
   EmptyCaliPublicSourceRepository,
 } from "./cali-public-source-repositories.js";
 import { MemoryEvidenceRepository } from "./evidence-repositories.js";
+import { MemoryCommunityReportRepository } from "./memory-community-report-repository.js";
 import { MemoryIdentityTrustRepository } from "./memory-identity-trust-repository.js";
 import { MemoryIncidentRepository } from "./memory-incident-repository.js";
+import { MemoryMaterialSupplierRepository } from "./memory-material-supplier-repository.js";
 import { MemoryOperationsRepository } from "./memory-operations-repository.js";
 import { MemoryPublicReportRepository } from "./memory-public-report-repository.js";
+import { MemoryReconstructionProgressRepository } from "./memory-reconstruction-progress-repository.js";
 import { MemoryTerritoryRepository } from "./memory-territory-repository.js";
+import { MemoryWorkforceProfileRepository } from "./memory-workforce-profile-repository.js";
 import { MemoryMissionAccessRepository } from "./mission-access-repositories.js";
 import { MemoryOperationsAccessRepository } from "./operations-access-repositories.js";
 import {
@@ -115,9 +138,13 @@ export type BuildAppOptions = {
   identityTrustRepository?: IdentityTrustRepository;
   assessmentRepository?: AssessmentRepository;
   evidenceRepository?: EvidenceRepository;
+  communityReportRepository?: CommunityReportRepository;
   publicReportRepository?: PublicReportRepository;
   caliPublicSourceRepository?: CaliPublicSourceRepository;
   sgcPublicSourceRepository?: SgcPublicSourceRepository;
+  materialSupplierRepository?: MaterialSupplierRepository;
+  workforceProfileRepository?: WorkforceProfileRepository;
+  reconstructionProgressRepository?: ReconstructionProgressRepository;
   persistence?: "memory" | "postgres";
   logger?: boolean;
   missionInvitationSecret?: string;
@@ -161,6 +188,15 @@ export async function buildApp(options: BuildAppOptions = {}) {
     );
   const assessments = options.assessmentRepository ?? new MemoryAssessmentRepository(territories);
   const evidence = options.evidenceRepository ?? new MemoryEvidenceRepository(assessments);
+  const communityReports =
+    options.communityReportRepository ?? new MemoryCommunityReportRepository(incidents);
+  const materialSuppliers =
+    options.materialSupplierRepository ?? new MemoryMaterialSupplierRepository(incidents);
+  const workforceProfiles =
+    options.workforceProfileRepository ?? new MemoryWorkforceProfileRepository(incidents);
+  const reconstructionProgress =
+    options.reconstructionProgressRepository ??
+    new MemoryReconstructionProgressRepository(incidents, materialSuppliers, workforceProfiles);
   const publicReports = options.publicReportRepository ?? new MemoryPublicReportRepository();
   const caliPublicSource =
     options.caliPublicSourceRepository ?? new EmptyCaliPublicSourceRepository();
@@ -296,7 +332,8 @@ export async function buildApp(options: BuildAppOptions = {}) {
       error instanceof AssessmentNotFoundError ||
       error instanceof EvidenceAssessmentNotFoundError ||
       error instanceof IdentityTrustNotFoundError ||
-      error instanceof OperationsResourceNotFoundError
+      error instanceof OperationsResourceNotFoundError ||
+      error instanceof CommunityReportNotFoundError
     ) {
       return reply.status(404).send({
         error: "resource_not_found",
@@ -330,6 +367,27 @@ export async function buildApp(options: BuildAppOptions = {}) {
         .header("Retry-After", String(error.retryAfterSeconds))
         .status(429)
         .send({ error: "mission_rate_limited", message: error.message });
+    }
+
+    if (error instanceof CommunityReportRateLimitError) {
+      return reply
+        .header("Retry-After", String(error.retryAfterSeconds))
+        .status(429)
+        .send({ error: "community_report_rate_limited", message: error.message });
+    }
+
+    if (error instanceof MaterialSupplierRateLimitError) {
+      return reply
+        .header("Retry-After", String(error.retryAfterSeconds))
+        .status(429)
+        .send({ error: "material_supplier_rate_limited", message: error.message });
+    }
+
+    if (error instanceof WorkforceProfileRateLimitError) {
+      return reply
+        .header("Retry-After", String(error.retryAfterSeconds))
+        .status(429)
+        .send({ error: "workforce_profile_rate_limited", message: error.message });
     }
 
     app.log.error(error);
@@ -445,6 +503,130 @@ export async function buildApp(options: BuildAppOptions = {}) {
         }),
       });
   });
+
+  app.post<{ Params: { incidentCode: string } }>(
+    "/v1/public/incidents/:incidentCode/community-reports",
+    async (request, reply) => {
+      const incident = await incidents.findByCode(request.params.incidentCode);
+      if (!incident) {
+        return reply
+          .status(404)
+          .send({ error: "incident_not_found", message: "La emergencia no existe." });
+      }
+      const input = createCommunityReportSchema.parse(request.body);
+      const sourceIpHash = request.ip
+        ? createHash("sha256").update(`community-report:${request.ip}`).digest("hex")
+        : null;
+      const report = await communityReports.create(incident.id, input, { sourceIpHash });
+      return reply.status(201).send(publicCommunityReportSchema.parse(report));
+    },
+  );
+
+  app.get<{ Params: { incidentCode: string } }>(
+    "/v1/public/incidents/:incidentCode/community-reports",
+    async (request, reply) => {
+      const incident = await incidents.findByCode(request.params.incidentCode);
+      if (!incident) {
+        return reply
+          .status(404)
+          .send({ error: "incident_not_found", message: "La emergencia no existe." });
+      }
+      return reply
+        .header("Cache-Control", "public, max-age=15, s-maxage=30, stale-while-revalidate=60")
+        .send(
+          publicCommunityReportSchema
+            .array()
+            .parse(await communityReports.listPublicByIncident(incident.id)),
+        );
+    },
+  );
+
+  app.post<{ Params: { incidentCode: string } }>(
+    "/v1/public/incidents/:incidentCode/material-suppliers",
+    async (request, reply) => {
+      const incident = await incidents.findByCode(request.params.incidentCode);
+      if (!incident) {
+        return reply
+          .status(404)
+          .send({ error: "incident_not_found", message: "La emergencia no existe." });
+      }
+      const input = createMaterialSupplierSchema.parse(request.body);
+      const sourceIpHash = request.ip
+        ? createHash("sha256").update(`material-supplier:${request.ip}`).digest("hex")
+        : null;
+      const supplier = await materialSuppliers.create(incident.id, input, { sourceIpHash });
+      return reply.status(201).send(publicMaterialSupplierSchema.parse(supplier));
+    },
+  );
+
+  app.get<{ Params: { incidentCode: string } }>(
+    "/v1/public/incidents/:incidentCode/material-suppliers",
+    async (request, reply) => {
+      const incident = await incidents.findByCode(request.params.incidentCode);
+      if (!incident) {
+        return reply
+          .status(404)
+          .send({ error: "incident_not_found", message: "La emergencia no existe." });
+      }
+      return reply
+        .header("Cache-Control", "public, max-age=30, s-maxage=60, stale-while-revalidate=120")
+        .send(
+          publicMaterialSupplierSchema
+            .array()
+            .parse(await materialSuppliers.listPublicByIncident(incident.id)),
+        );
+    },
+  );
+
+  app.post<{ Params: { incidentCode: string } }>(
+    "/v1/public/incidents/:incidentCode/workforce-profiles",
+    async (request, reply) => {
+      const incident = await incidents.findByCode(request.params.incidentCode);
+      if (!incident) {
+        return reply
+          .status(404)
+          .send({ error: "incident_not_found", message: "La emergencia no existe." });
+      }
+      const input = createWorkforceProfileSchema.parse(request.body);
+      const sourceIpHash = request.ip
+        ? createHash("sha256").update(`workforce-profile:${request.ip}`).digest("hex")
+        : null;
+      const profile = await workforceProfiles.create(incident.id, input, { sourceIpHash });
+      return reply.status(201).send(publicWorkforceProfileSchema.parse(profile));
+    },
+  );
+
+  app.get<{ Params: { incidentCode: string } }>(
+    "/v1/public/incidents/:incidentCode/workforce-profiles",
+    async (request, reply) => {
+      const incident = await incidents.findByCode(request.params.incidentCode);
+      if (!incident) {
+        return reply
+          .status(404)
+          .send({ error: "incident_not_found", message: "La emergencia no existe." });
+      }
+      return reply
+        .header("Cache-Control", "public, max-age=30, s-maxage=60, stale-while-revalidate=120")
+        .send(
+          publicWorkforceProfileSchema
+            .array()
+            .parse(await workforceProfiles.listPublicByIncident(incident.id)),
+        );
+    },
+  );
+
+  app.get<{ Params: { incidentCode: string } }>(
+    "/v1/public/incidents/:incidentCode/reconstruction-progress",
+    async (request, reply) => {
+      return reply
+        .header("Cache-Control", "public, max-age=60, s-maxage=120, stale-while-revalidate=300")
+        .send(
+          reconstructionProgressSchema.parse(
+            await reconstructionProgress.getByIncidentCode(request.params.incidentCode),
+          ),
+        );
+    },
+  );
 
   app.get("/v1/incidents", async () => incidentListSchema.parse(await incidents.list()));
 
@@ -784,6 +966,55 @@ export async function buildApp(options: BuildAppOptions = {}) {
       }
       return assessmentSummarySchema.parse(
         await assessments.summarizeIncident(request.params.incidentId),
+      );
+    },
+  );
+
+  app.get<{ Params: { incidentId: string } }>(
+    "/v1/operations/incidents/:incidentId/community-reports",
+    async (request) => {
+      const session = await operationsAccess.resolveSession(
+        bearerToken(request.headers.authorization),
+      );
+      if (session.incidentId !== request.params.incidentId) {
+        throw new MissionAccessDeniedError("La sesión pertenece a otra emergencia.");
+      }
+      return communityReportSchema
+        .array()
+        .parse(await communityReports.listByIncident(request.params.incidentId));
+    },
+  );
+
+  app.get<{ Params: { incidentId: string } }>(
+    "/v1/operations/incidents/:incidentId/workforce-profiles",
+    async (request) => {
+      const session = await operationsAccess.resolveSession(
+        bearerToken(request.headers.authorization),
+      );
+      if (session.incidentId !== request.params.incidentId) {
+        throw new MissionAccessDeniedError("La sesión pertenece a otra emergencia.");
+      }
+      return operationsWorkforceProfileSchema
+        .array()
+        .parse(await workforceProfiles.listByIncident(request.params.incidentId));
+    },
+  );
+
+  app.post<{ Params: { incidentId: string; reportId: string } }>(
+    "/v1/operations/incidents/:incidentId/community-reports/:reportId/review",
+    async (request) => {
+      const session = await operationsAccess.resolveSession(
+        bearerToken(request.headers.authorization),
+      );
+      if (session.incidentId !== request.params.incidentId) {
+        throw new MissionAccessDeniedError("La sesión pertenece a otra emergencia.");
+      }
+      if (!["coordinator", "incident_admin"].includes(session.role)) {
+        throw new MissionAccessDeniedError("Este rol no puede corroborar reportes ciudadanos.");
+      }
+      const input = reviewCommunityReportSchema.parse(request.body);
+      return communityReportSchema.parse(
+        await communityReports.review(request.params.reportId, session.actorId, input),
       );
     },
   );

@@ -3,8 +3,8 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "https://pulso.my/",
-    name: "PULSO VIDA",
-    short_name: "PULSO VIDA",
+    name: "PULSO",
+    short_name: "PULSO",
     description: "Coordinación territorial verificable para emergencias y recuperación.",
     start_url: "/",
     scope: "/",

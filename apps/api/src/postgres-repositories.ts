@@ -42,8 +42,12 @@ import { PostgresCaliPublicSourceRepository } from "./cali-public-source-reposit
 import { PostgresEvidenceRepository } from "./evidence-repositories.js";
 import { PostgresMissionAccessRepository } from "./mission-access-repositories.js";
 import { PostgresOperationsAccessRepository } from "./operations-access-repositories.js";
+import { PostgresCommunityReportRepository } from "./postgres-community-report-repository.js";
 import { PostgresIdentityTrustRepository } from "./postgres-identity-trust-repository.js";
+import { PostgresMaterialSupplierRepository } from "./postgres-material-supplier-repository.js";
 import { PostgresPublicReportRepository } from "./postgres-public-report-repository.js";
+import { PostgresReconstructionProgressRepository } from "./postgres-reconstruction-progress-repository.js";
+import { PostgresWorkforceProfileRepository } from "./postgres-workforce-profile-repository.js";
 import { PostgresSgcPublicSourceRepository } from "./sgc-public-source-repositories.js";
 
 type DbRow = Record<string, unknown>;
@@ -764,16 +768,20 @@ export function createPostgresRepositories(
   const sql = postgres(databaseUrl, { max: 10, idle_timeout: 20, connect_timeout: 10 });
   return {
     assessments: new PostgresAssessmentRepository(sql),
+    communityReports: new PostgresCommunityReportRepository(sql),
     evidence: new PostgresEvidenceRepository(sql),
     identityTrust: new PostgresIdentityTrustRepository(identityFingerprintSecret, sql),
     incidents: new PostgresIncidentRepository(sql),
+    materialSuppliers: new PostgresMaterialSupplierRepository(sql),
     missionAccess: new PostgresMissionAccessRepository(missionInvitationSecret, sql),
     operationsAccess: new PostgresOperationsAccessRepository(missionInvitationSecret, sql),
     operations: new PostgresOperationsRepository(sql),
     publicReports: new PostgresPublicReportRepository(sql),
     caliPublicSource: new PostgresCaliPublicSourceRepository(sql),
+    reconstructionProgress: new PostgresReconstructionProgressRepository(sql),
     sgcPublicSource: new PostgresSgcPublicSourceRepository(sql),
     territories: new PostgresTerritoryRepository(sql),
+    workforceProfiles: new PostgresWorkforceProfileRepository(identityFingerprintSecret, sql),
     close: () => sql.end({ timeout: 5 }),
   };
 }

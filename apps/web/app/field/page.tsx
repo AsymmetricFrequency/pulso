@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { FieldFlow } from "./field-flow";
 
 export const metadata: Metadata = {
-  title: "Mi misión | PULSO VIDA",
+  title: "Mi misión | PULSO",
   description: "Activa y comienza una misión de campo sin contraseñas ni formularios largos.",
 };
 

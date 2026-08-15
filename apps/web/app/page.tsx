@@ -1,3 +1,4 @@
+import { Footer } from "./components/footer";
 import { FieldEntryLink } from "./components/offline-visit-button";
 import { PublicSituationReport } from "./components/public-situation-report";
 
@@ -5,13 +6,14 @@ export default function PublicHome() {
   return (
     <main>
       <header className="topbar">
-        <a className="brand" href="#top" aria-label="Inicio de PULSO VIDA">
+        <a className="brand" href="#top" aria-label="Inicio de PULSO">
           <span className="brandMark" aria-hidden="true" />
-          <span>PULSO VIDA</span>
+          <span>PULSO</span>
         </a>
         <nav className="publicNav" aria-label="Navegación principal">
           <a href="#informe">Informe público</a>
           <a href="#ayuda">Ayuda y donaciones</a>
+          <a href="/reconstruccion">Reconstrucción</a>
           <a href="#metodologia">Cómo verificamos</a>
         </nav>
         <a className="textLink" href="/operations">
@@ -38,10 +40,8 @@ export default function PublicHome() {
 
       <PublicSituationReport />
 
-      <footer>
-        <span>PULSO VIDA · Infraestructura abierta para emergencias</span>
-        <span>Demostración con datos sintéticos · Sin información personal</span>
-      </footer>
+      <p className="demoNotice">Demostración con datos sintéticos · Sin información personal</p>
+      <Footer />
     </main>
   );
 }
