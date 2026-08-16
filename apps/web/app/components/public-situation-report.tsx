@@ -204,6 +204,9 @@ const formatQuantity = (value: number) =>
 
 const formatMoney = (value: number) => `$${Math.round(value / 1_000_000)} M`;
 
+/** Cuántas entradas del feed se ven sin desplegar el histórico. */
+const FEED_PREVIEW_COUNT = 8;
+
 export function PublicSituationReport() {
   const [report, setReport] = useState<PublicReportPayload | null>(null);
   // Tres estados, no dos: mientras el fetch está en vuelo el sitio no puede afirmar ni que los
@@ -214,6 +217,7 @@ export function PublicSituationReport() {
   const [departmentCode, setDepartmentCode] = useState("27");
   const [departmentName, setDepartmentName] = useState("Chocó");
   const [activeReport, setActiveReport] = useState<PublicCommunityReport | null>(null);
+  const [feedExpanded, setFeedExpanded] = useState(false);
   useEffect(() => {
     const controller = new AbortController();
     const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
@@ -278,12 +282,16 @@ export function PublicSituationReport() {
     report?.metrics ?? headlineMetrics;
   const visibleUpdates =
     report?.updates.map((update) => ({
+      // Los títulos se repiten entre reportes ("Cda Los Bucaros" aparece muchas veces), así que
+      // usarlos como key de React colapsaba entradas distintas en una sola.
+      id: update.id,
       title: update.title,
       territory: update.territory,
       detail: update.detail,
       state: update.verificationLabel,
       time: `Observado ${formatDateTime(update.observedAt)}`,
-    })) ?? situationRows;
+    })) ?? situationRows.map((row, index) => ({ ...row, id: `fallback-${index}` }));
+  const shownUpdates = feedExpanded ? visibleUpdates : visibleUpdates.slice(0, FEED_PREVIEW_COUNT);
   const visibleAidBalances =
     report?.aidBalances.map((balance) => ({
       label: balance.label,
@@ -350,8 +358,8 @@ export function PublicSituationReport() {
           <span className="sectionNote">La identidad personal está protegida</span>
         </div>
         <div className="situationList">
-          {visibleUpdates.map((row, index) => (
-            <article key={row.title} style={{ "--stagger": index } as CSSProperties}>
+          {shownUpdates.map((row, index) => (
+            <article key={row.id} style={{ "--stagger": index } as CSSProperties}>
               <div>
                 <span className="recordType">Reporte territorial</span>
                 <h3>{row.title}</h3>
@@ -365,6 +373,18 @@ export function PublicSituationReport() {
             </article>
           ))}
         </div>
+        {visibleUpdates.length > FEED_PREVIEW_COUNT ? (
+          <button
+            type="button"
+            className="feedToggle"
+            onClick={() => setFeedExpanded((current) => !current)}
+            aria-expanded={feedExpanded}
+          >
+            {feedExpanded
+              ? "Mostrar menos"
+              : `Ver las ${visibleUpdates.length} actualizaciones del histórico`}
+          </button>
+        ) : null}
       </section>
 
       <section className="mapSection" id="mapa" aria-labelledby="map-section-title">

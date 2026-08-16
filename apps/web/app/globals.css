@@ -2333,3 +2333,25 @@ button:active:not(:disabled),
     min-height: 44px;
   }
 }
+
+.feedToggle {
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  padding: 12px;
+  color: var(--primary-dark);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out);
+}
+
+.feedToggle:hover {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { geoBounds, geoContains, geoIdentity, geoPath } from "d3-geo";
+import { geoBounds, geoIdentity, geoPath } from "d3-geo";
 import type { Feature, FeatureCollection, Geometry } from "geojson";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -160,6 +160,42 @@ type AtlasMapProps = {
 };
 
 const MAX_SPREAD_RING = 8;
+
+// Contención punto-en-polígono en el plano, por lanzamiento de rayo.
+//
+// No se usa `geoContains` de d3-geo a propósito: ese resuelve en la esfera y ahí el sentido de
+// giro del anillo decide qué lado es "adentro". Los polígonos del MGN del DANE no vienen con un
+// sentido consistente, así que un municipio con el giro invertido se comporta como todo el globo
+// menos el municipio, y el mapa terminaba diciendo que estabas parado en Alto Baudó cuando la
+// vista estaba sobre Acandí. A escala municipal la diferencia entre plano y esfera es
+// despreciable; la del sentido de giro no lo es.
+function ringContains(ring: number[][], point: [number, number]): boolean {
+  const [x, y] = point;
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const current = ring[i];
+    const previous = ring[j];
+    if (!current || !previous) continue;
+    const [xi, yi] = current as [number, number];
+    const [xj, yj] = previous as [number, number];
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+
+function polygonContains(rings: number[][][], point: [number, number]): boolean {
+  const [outer, ...holes] = rings;
+  if (!outer || !ringContains(outer, point)) return false;
+  return !holes.some((hole) => ringContains(hole, point));
+}
+
+function geometryContains(geometry: Geometry, point: [number, number]): boolean {
+  if (geometry.type === "Polygon") return polygonContains(geometry.coordinates, point);
+  if (geometry.type === "MultiPolygon") {
+    return geometry.coordinates.some((rings) => polygonContains(rings, point));
+  }
+  return false;
+}
 
 type DeclusteredPoint<T> =
   | { kind: "point"; x: number; y: number; item: T }
@@ -507,12 +543,16 @@ export function AtlasMap({
     if (!zoomedCode || !mapCenter) return null;
     const collection = municipalitiesByDept[zoomedCode];
     if (!collection) return null;
-    const match = collection.features.find((feature) => geoContains(feature, mapCenter));
+    const match = collection.features.find((feature) =>
+      geometryContains(feature.geometry, mapCenter),
+    );
     return match?.properties.mpio_cnmbre ?? null;
   }, [zoomedCode, mapCenter, municipalitiesByDept]);
 
   const formatLatLng = ([lng, lat]: [number, number]) =>
-    `${Math.abs(lat).toFixed(3)}° ${lat >= 0 ? "N" : "S"}, ${Math.abs(lng).toFixed(3)}° ${lng >= 0 ? "O" : "E"}`;
+    // Longitud negativa es oeste. Colombia está entera al oeste de Greenwich, así que invertir
+    // esto imprimía "E" en todo el país.
+    `${Math.abs(lat).toFixed(3)}° ${lat >= 0 ? "N" : "S"}, ${Math.abs(lng).toFixed(3)}° ${lng >= 0 ? "E" : "O"}`;
 
   // Colocar el punto con la ubicación del dispositivo: en campo, con una mano y sin saber
   // leer un mapa, es la vía más corta para reportar donde uno está.
@@ -529,7 +569,7 @@ export function AtlasMap({
         setLocating(false);
         setReportMode(true);
         setMapCenter(point);
-        const containing = departments.find((feature) => geoContains(feature, point));
+        const containing = departments.find((feature) => geometryContains(feature.geometry, point));
         if (containing) {
           const code = containing.properties.dpto_ccdgo;
           selectDepartment(code);

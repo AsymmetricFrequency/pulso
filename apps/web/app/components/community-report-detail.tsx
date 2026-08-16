@@ -52,7 +52,8 @@ type CommunityReportDetailCardProps = {
 };
 
 const formatCoordinates = ([lng, lat]: [number, number]) =>
-  `${Math.abs(lat).toFixed(4)}° ${lat >= 0 ? "N" : "S"}, ${Math.abs(lng).toFixed(4)}° ${lng >= 0 ? "O" : "E"}`;
+  // Longitud negativa es oeste; invertirlo imprimía "E" en todo el territorio colombiano.
+  `${Math.abs(lat).toFixed(4)}° ${lat >= 0 ? "N" : "S"}, ${Math.abs(lng).toFixed(4)}° ${lng >= 0 ? "E" : "O"}`;
 
 export function CommunityReportDetailCard({ report, onClose }: CommunityReportDetailCardProps) {
   const metadata = report.metadata;

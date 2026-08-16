@@ -31,6 +31,7 @@ type UpdateRow = {
   status: string;
   created_at: Date;
   metadata: { city?: string; department?: string; address?: string } | null;
+  territory_name: string | null;
 };
 
 const asNumber = (value: string | number | null | undefined) => Number(value ?? 0) || 0;
@@ -89,13 +90,28 @@ async function fetchDamageStats(sql: Sql, incidentId: string): Promise<DamageSta
   `;
 }
 
+/**
+ * El feed público era de cinco entradas, así que cada publicación reemplazaba la anterior y no
+ * quedaba histórico: lo que alguien leyó hace una hora ya no existía en ninguna parte. Con una
+ * ventana de 60 el informe carga una cronología real y la interfaz decide cuántas muestra.
+ *
+ * El territorio se resuelve por geometría (`ST_Within` contra los polígonos de departamento del
+ * DANE) y no solo por lo que traiga `metadata`: la mayoría de las fuentes externas no publican
+ * ciudad ni departamento, y sin esto el feed entero decía "Colombia".
+ */
 async function fetchRecentUpdates(sql: Sql, incidentId: string): Promise<UpdateRow[]> {
   return sql<UpdateRow[]>`
-    SELECT id, title, description, status, created_at, metadata
-    FROM community_reports
-    WHERE incident_id = ${incidentId} AND status IN ('corroborated', 'validated')
-    ORDER BY created_at DESC
-    LIMIT 5
+    SELECT cr.id, cr.title, cr.description, cr.status, cr.created_at, cr.metadata,
+           t.name AS territory_name
+    FROM community_reports cr
+    LEFT JOIN territories t
+      ON t.incident_id = cr.incident_id
+     AND t.territory_type = 'department'
+     AND t.deleted_at IS NULL
+     AND ST_Within(cr.location, t.geometry)
+    WHERE cr.incident_id = ${incidentId} AND cr.status IN ('corroborated', 'validated')
+    ORDER BY cr.created_at DESC
+    LIMIT 60
   `;
 }
 
@@ -255,10 +271,12 @@ export async function runPublishSituationReport(options: {
       updates: updates.map((update) => ({
         id: update.id,
         title: update.title.slice(0, 160),
-        territory: (update.metadata?.city ?? update.metadata?.department ?? "Colombia").slice(
-          0,
-          240,
-        ),
+        territory: (
+          update.metadata?.city ??
+          update.metadata?.department ??
+          update.territory_name ??
+          "Colombia"
+        ).slice(0, 240),
         detail: (update.description ?? update.title).slice(0, 500),
         verificationLabel: update.status === "validated" ? "Validado" : "Corroborado",
         observedAt: update.created_at.toISOString(),
