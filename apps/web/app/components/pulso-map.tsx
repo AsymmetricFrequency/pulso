@@ -140,9 +140,16 @@ export function PulsoMap({
     const container = containerRef.current;
     if (!container) return;
 
+    const style = buildPulsoMapStyle();
+    console.info("[PulsoMap] estilo", {
+      version: style.version,
+      capas: style.layers?.length,
+      fuentes: Object.keys(style.sources ?? {}),
+    });
+
     const map = new maplibregl.Map({
       container,
-      style: buildPulsoMapStyle(),
+      style,
       bounds: COLOMBIA_BOUNDS,
       fitBoundsOptions: { padding: 24 },
       minZoom: 4,
