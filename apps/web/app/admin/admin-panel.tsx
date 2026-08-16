@@ -76,6 +76,39 @@ type Member = {
 
 type Role = { id: string; name: string; color: number };
 
+type Capability = {
+  priority: string;
+  name: string;
+  status: string;
+  note: string | null;
+  taskCode: string | null;
+};
+
+/**
+ * Las cuatro prioridades, en orden y con lo que responde cada una.
+ *
+ * El orden no es negociable ni configurable: es una decisión de producto documentada en
+ * `docs/32-direccion.md`, y una pantalla que las mostrara por porcentaje de avance pondría primero
+ * la que menos importa — que es exactamente el error que el proyecto ya cometió una vez.
+ */
+const PRIORITIES = [
+  { id: "P0", title: "Salvar vidas", question: "¿Dónde hay gente atrapada y quién puede llegar?" },
+  { id: "P1", title: "Saber quién quedó afectado", question: "¿Quiénes son y qué necesitan?" },
+  { id: "P2", title: "Conectar la ayuda", question: "¿Qué hay, dónde falta y llegó?" },
+  {
+    id: "P3",
+    title: "Trazar la plata pública",
+    question: "¿En qué se gasta y llegó al territorio?",
+  },
+  { id: "PL", title: "Plataforma", question: "Lo que sostiene a las cuatro anteriores." },
+];
+
+const CAP_STATUS_LABEL: Record<string, string> = {
+  listo: "Listo",
+  parcial: "A medias",
+  falta: "Falta",
+};
+
 const STATUS_LABEL: Record<string, string> = {
   libre: "Libre",
   tomado: "Tomado",
@@ -93,7 +126,7 @@ const HORIZON_LABEL: Record<string, string> = {
 /** Roles de área, los que reparten trabajo. `maintainer` y `contributor` no lo son. */
 const AREA_ROLES = ["frontend", "backend", "data", "gis", "devops", "ai", "blockchain"];
 
-type Section = "operacion" | "equipo" | "tareas";
+type Section = "operacion" | "proyecto" | "equipo" | "tareas";
 type TaskFilter = "todas" | "libres" | "activas" | "mias";
 
 const TASK_FILTERS: Array<{ id: TaskFilter; label: string }> = [
@@ -135,6 +168,7 @@ export function AdminPanel() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
+  const [capabilities, setCapabilities] = useState<Capability[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [section, setSection] = useState<Section>("operacion");
@@ -148,13 +182,15 @@ export function AdminPanel() {
   }, []);
 
   const loadAll = useCallback(async () => {
-    const [pulseResponse, tasksResponse, teamResponse] = await Promise.all([
+    const [pulseResponse, tasksResponse, teamResponse, capsResponse] = await Promise.all([
       api("/v1/admin/pulse"),
       api("/v1/admin/tasks"),
       api("/v1/admin/team"),
+      api("/v1/admin/capabilities"),
     ]);
     if (pulseResponse.ok) setPulse((await pulseResponse.json()) as Pulse);
     if (tasksResponse.ok) setTasks((await tasksResponse.json()) as Task[]);
+    if (capsResponse.ok) setCapabilities((await capsResponse.json()) as Capability[]);
     if (teamResponse.ok) {
       const team = (await teamResponse.json()) as { members: Member[]; roles: Role[] };
       setMembers(team.members);
@@ -255,6 +291,12 @@ export function AdminPanel() {
 
   // Los roles de área sin nadie detrás. Es la información que decide a quién invitar mañana, así
   // que vive en la navegación y no escondida al final de una lista.
+  const missing = capabilities.filter((cap) => cap.status === "falta").length;
+  const partial = capabilities.filter((cap) => cap.status === "parcial").length;
+  const p0Missing = capabilities.filter(
+    (cap) => cap.priority === "P0" && cap.status !== "listo",
+  ).length;
+
   const emptyRoles = roles.filter(
     (role) =>
       AREA_ROLES.includes(role.name.toLowerCase()) &&
@@ -267,6 +309,14 @@ export function AdminPanel() {
       label: "Operación",
       badge: pulse?.rescues.open ?? null,
       alert: (pulse?.rescues.open ?? 0) > 0,
+    },
+    {
+      // El contador cuenta lo que falta, no lo que está hecho. Un panel que celebra el avance
+      // esconde justo la información por la que alguien lo abre.
+      id: "proyecto" as const,
+      label: "Proyecto",
+      badge: missing + partial || null,
+      alert: p0Missing > 0,
     },
     {
       id: "equipo" as const,
@@ -455,6 +505,85 @@ export function AdminPanel() {
                 </tbody>
               </table>
             )}
+          </section>
+        )}
+
+        {/* --- Proyecto: qué hay y qué falta ---------------------------------- */}
+        {section === "proyecto" && (
+          <section className={styles.section} aria-labelledby="proyecto">
+            <h2 id="proyecto">Qué hay y qué falta</h2>
+            <p className={styles.sectionNote}>
+              Inventario verificado contra el código, no deducido del backlog. Las prioridades van
+              en su orden y no por avance: una pantalla ordenada por porcentaje pondría primero la
+              que menos importa.
+            </p>
+
+            <div className={styles.metrics}>
+              <div className={styles.metric}>
+                <strong>{capabilities.filter((cap) => cap.status === "listo").length}</strong>
+                <span>funcionando</span>
+              </div>
+              <div className={styles.metric}>
+                <strong>{partial}</strong>
+                <span>a medias</span>
+                <small>construido pero no usable</small>
+              </div>
+              <div className={styles.metric}>
+                <strong>{missing}</strong>
+                <span>sin empezar</span>
+              </div>
+              <div className={styles.metric}>
+                <strong className={p0Missing > 0 ? styles.stale : undefined}>{p0Missing}</strong>
+                <span>huecos en P0</span>
+                <small>la prioridad declarada</small>
+              </div>
+            </div>
+
+            {PRIORITIES.map((priority) => {
+              const group = capabilities.filter((cap) => cap.priority === priority.id);
+              if (group.length === 0) return null;
+              const done = group.filter((cap) => cap.status === "listo").length;
+              return (
+                <div className={styles.priorityBlock} key={priority.id} data-priority={priority.id}>
+                  <header>
+                    <span className={styles.taskCode}>{priority.id}</span>
+                    <strong>{priority.title}</strong>
+                    <span className={styles.taskMeta}>{priority.question}</span>
+                    <span className={styles.priorityCount}>
+                      {done}/{group.length}
+                    </span>
+                  </header>
+                  <ul className={styles.capList}>
+                    {group.map((cap) => (
+                      <li className={styles.cap} key={cap.name} data-status={cap.status}>
+                        <span className={`${styles.badge} ${styles[`c_${cap.status}`]}`}>
+                          {CAP_STATUS_LABEL[cap.status] ?? cap.status}
+                        </span>
+                        <div>
+                          <strong>{cap.name}</strong>
+                          {/* La nota es lo que separa «a medias» de «falta». Sin ella los dos
+                              estados dicen lo mismo. */}
+                          {cap.note && <p>{cap.note}</p>}
+                        </div>
+                        {cap.taskCode && (
+                          <button
+                            type="button"
+                            className={styles.capTask}
+                            onClick={() => {
+                              setSection("tareas");
+                              setTaskFilter("todas");
+                              setRoleFilter("todos");
+                            }}
+                          >
+                            {cap.taskCode}
+                          </button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
           </section>
         )}
 

@@ -39,6 +39,14 @@ export type ProjectTask = {
   completedAt: string | null;
 };
 
+export type Capability = {
+  priority: string;
+  name: string;
+  status: string;
+  note: string | null;
+  taskCode: string | null;
+};
+
 export type OperationPulse = {
   rescues: { open: number; withSignsOfLife: number; oldestOpenHours: number | null };
   reports: { last24h: number; total: number; byType: Array<{ type: string; count: number }> };
@@ -134,6 +142,28 @@ export class PostgresAdminRepository {
         sort_order
     `;
     return rows.map(taskFromRow);
+  }
+
+  /**
+   * Qué hace Pulso y qué todavía no.
+   *
+   * Va ordenado por prioridad y no por estado: el orden de lectura tiene que ser el orden en que
+   * importa, no «primero lo bonito que ya está hecho».
+   */
+  async listCapabilities(): Promise<Capability[]> {
+    const rows = await this.sql<Record<string, unknown>[]>`
+      SELECT priority, name, status, note, task_code FROM project_capabilities
+      ORDER BY
+        CASE priority WHEN 'P0' THEN 0 WHEN 'P1' THEN 1 WHEN 'P2' THEN 2 WHEN 'P3' THEN 3 ELSE 4 END,
+        sort_order
+    `;
+    return rows.map((row) => ({
+      priority: String(row.priority),
+      name: String(row.name),
+      status: String(row.status),
+      note: asString(row.note),
+      taskCode: asString(row.task_code),
+    }));
   }
 
   /**

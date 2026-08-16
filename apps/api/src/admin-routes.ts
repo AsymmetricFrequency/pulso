@@ -257,6 +257,12 @@ export function registerAdminRoutes(app: FastifyInstance, options: AdminRoutesOp
     return admin.listTasks();
   });
 
+  app.get("/v1/admin/capabilities", async (request, reply) => {
+    if (!admin) return reply.status(503).send({ error: "database_not_configured" });
+    if (!(await requireSession(request, reply))) return;
+    return admin.listCapabilities();
+  });
+
   app.get("/v1/admin/team", async (request, reply) => {
     const deps = ready();
     if (!deps) return reply.status(503).send({ error: "discord_not_configured" });

@@ -456,6 +456,121 @@
   color: var(--muted);
 }
 
+/* --- Proyecto: qué hay y qué falta ---------------------------------------- */
+
+.priorityBlock {
+  margin-top: 24px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--line-strong);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+/* El mismo código de color que los tickets: la prioridad significa lo mismo en las dos pantallas. */
+.priorityBlock[data-priority="P0"] {
+  border-left-color: var(--status-critical);
+}
+.priorityBlock[data-priority="P1"] {
+  border-left-color: var(--status-strong);
+}
+.priorityBlock[data-priority="P2"] {
+  border-left-color: var(--status-moderate);
+}
+.priorityBlock[data-priority="P3"] {
+  border-left-color: var(--status-light);
+}
+
+.priorityBlock header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  border-bottom: 1px solid var(--line);
+  padding: 12px 16px;
+}
+
+.priorityCount {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.capList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cap {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+  padding: 11px 16px;
+}
+
+.cap:last-child {
+  border-bottom: 0;
+}
+
+/* Lo que falta se lee primero. Lo ya hecho baja de contraste: sigue estando, deja de competir. */
+.cap[data-status="listo"] {
+  opacity: 0.62;
+}
+
+.cap > div {
+  flex: 1;
+}
+
+.cap strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.cap p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.cap .badge {
+  flex: 0 0 auto;
+  min-width: 68px;
+  text-align: center;
+}
+
+.c_listo {
+  background: var(--status-light-soft);
+  color: var(--status-light-ink);
+}
+
+.c_parcial {
+  background: var(--status-strong-soft);
+  color: var(--status-strong-ink);
+}
+
+.c_falta {
+  background: var(--status-critical-soft);
+  color: var(--status-critical-ink);
+}
+
+.capTask {
+  flex: 0 0 auto;
+  min-height: 28px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--paper-deep);
+  padding: 0 9px;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 /* --- Equipo --------------------------------------------------------------- */
 
 .memberGrid {
