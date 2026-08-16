@@ -84,6 +84,33 @@ que cada autor se acuerde no es una invariante. Va en la base.
 
 ---
 
+## Candidatas: rastreadas el 16 de agosto, ninguna conectada todavía
+
+Cinco plataformas más están publicando sobre este sismo. Ninguna se ingiere aún, y la razón importa:
+**solo una tiene datos abiertos con licencia de reutilización.** Las otras exigirían deducir su API
+interna, que es exactamente lo mismo que rodear el 403 de Cali — y eso ya está decidido que no se
+hace.
+
+| Candidata | Qué tiene | Cómo se accede | Qué hacer |
+| --- | --- | --- | --- |
+| [mapadelterremoto.com](https://www.mapadelterremoto.com/) | **3.110 puntos en 363 municipios**: 66 edificios colapsados, 2.838 escuelas, 285 centros de salud, 407 vías | Next.js, sin API pública. `robots.txt` permite rastreo | **Escribirles.** Dicen que publicarán en formato abierto tras el 30/11/2026 |
+| [Datos Abiertos Bogotá](https://datosabiertos.bogota.gov.co/) (IDECA) | Centros de acopio oficiales con qué falta y horarios | Portal oficial con licencia de reutilización | **Ingerir.** Es la única lista para conectar hoy |
+| [cuidarcolombia.vercel.app](https://cuidarcolombia.vercel.app/) | 219 registros verificados de 111 fuentes, 13 municipios | Sin API | **Escribirles.** Ya no publican datos personales: misma postura que nosotros |
+| [Un Ladrillo por Colombia](https://unladrilloporcolombia.com) | Contadores de ladrillos y casas completadas | Sin API. Publica nombres de donantes | Enlazar. Es reconstrucción (P2), no emergencia |
+| [El Tiempo · mapa de acopios](https://www.eltiempo.com/datos/este-es-el-mapa-completo-de-los-centros-de-acopio-habilitados-en-colombia-para-ayudar-a-los-damnificados-del-terremoto-de-magnitud-7-3577654) | Mapa nacional de acopios | Medio de comunicación, no fuente primaria | Usar para localizar la fuente original |
+
+### Lo que este rastreo dejó claro
+
+**Los 66 edificios colapsados de `mapadelterremoto.com` son P0 puro** —es donde puede haber gente
+debajo— y cubren 363 municipios frente a nuestro foco en Cali. Es el dato que más nos falta.
+
+Y no se saca con un scraper. La postura correcta es la misma de siempre: **pedirlo.** Ellos tienen
+3.110 puntos y nosotros tenemos procedencia por dato, una regla de privacidad que cumplimos incluso
+cuando nos cuesta, y código abierto bajo Apache-2.0. Un intercambio sirve a los dos y sobrevive a
+que cambien su frontend; un scraper se rompe el martes y quema la relación.
+
+Ver [`35-alianzas.md`](35-alianzas.md) para cómo se abre esa conversación.
+
 ## Calidad conocida
 
 **677 necesidades caen en la categoría `otro`** — el 30 % del total. Al mirarlas no son necesidades:
