@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { CommunityReportMetadata } from "@pulso/schemas";
 import postgres, { type Sql } from "postgres";
 import { isWithinColombia } from "./colombia-bounds.js";
+import { normalizeNeeds } from "./needs-list.js";
 
 export const REDCALIAYUDA_ACOPIO_SOURCE = {
   id: "redcaliayuda-acopio",
@@ -119,7 +120,7 @@ export function mapAcopioArticle(
   const metadata: CommunityReportMetadata = {
     address: parsed.address && parsed.address !== parsed.name ? parsed.address : undefined,
     schedule: parsed.hours ?? undefined,
-    needs: parsed.needs.length > 0 ? parsed.needs.slice(0, 40) : undefined,
+    needs: parsed.needs.length > 0 ? normalizeNeeds(parsed.needs) : undefined,
     subSource: "Red Cali Ayuda",
   };
 

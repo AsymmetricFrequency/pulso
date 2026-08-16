@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { CommunityReportMetadata } from "@pulso/schemas";
 import postgres, { type Sql } from "postgres";
 import { isWithinColombia } from "./colombia-bounds.js";
+import { toNeedsList } from "./needs-list.js";
 
 export const GRAVITAS_SOURCE = {
   id: "gravitas-mapa-ciudadano",
@@ -116,13 +117,7 @@ export function mapGravitasFeature(feature: GravitasFeature): MappedGravitasPoin
   const status = trustLevel >= 2 ? "validated" : trustLevel >= 1 ? "corroborated" : "reported";
 
   const necesita = text(properties.category_fields?.necesita);
-  const needs = necesita
-    ? necesita
-        .split(/[,|]/)
-        .map((item) => item.trim())
-        .filter(Boolean)
-        .slice(0, 40)
-    : undefined;
+  const needs = toNeedsList(necesita, /[,|]/);
 
   const metadata: CommunityReportMetadata = {
     address,

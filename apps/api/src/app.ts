@@ -611,14 +611,30 @@ export async function buildApp(options: BuildAppOptions = {}) {
         ...(boundingBox ? { boundingBox } : {}),
         ...(mapView ? { view: "map" as const } : {}),
       });
+      // Validar el lote con `.parse()` hacía que **una** fila mala dejara sin lista a las 2.300
+      // buenas: un importador guardó una necesidad con un texto más largo del que admite el
+      // esquema y la ruta entera pasó a devolver `validation_error`. En una emergencia, servir
+      // 2.299 puntos vale más que servir cero, así que cada fila se valida sola. Lo que no se
+      // hace es esconderlo: las descartadas se cuentan en `unavailable` y se registran con su
+      // identificador, porque un punto que desaparece en silencio es peor que uno que falta.
+      const schema = mapView ? mapCommunityReportSchema : publicCommunityReportSchema;
+      const reports: unknown[] = [];
+      let unavailable = 0;
+      for (const report of page.reports) {
+        const parsed = schema.safeParse(report);
+        if (parsed.success) {
+          reports.push(parsed.data);
+          continue;
+        }
+        unavailable += 1;
+        request.log.error(
+          { reportId: (report as { id?: string }).id, issues: parsed.error.issues },
+          "Reporte descartado de la lista pública por no pasar su propio esquema",
+        );
+      }
       return reply
         .header("Cache-Control", "public, max-age=15, s-maxage=30, stale-while-revalidate=60")
-        .send({
-          reports: mapView
-            ? mapCommunityReportSchema.array().parse(page.reports)
-            : publicCommunityReportSchema.array().parse(page.reports),
-          total: page.total,
-        });
+        .send({ reports, total: page.total, ...(unavailable > 0 ? { unavailable } : {}) });
     },
   );
 

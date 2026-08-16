@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { CommunityReportMetadata } from "@pulso/schemas";
 import postgres, { type Sql } from "postgres";
 import { isWithinColombia } from "./colombia-bounds.js";
+import { toNeedsList } from "./needs-list.js";
 
 export const REDCALIAYUDA_SOURCE = {
   id: "redcaliayuda-necesidades",
@@ -146,13 +147,7 @@ export function mapRedCaliAyudaRecord(
     .join(" — ")
     .slice(0, 2_000);
 
-  const needs = record.cantidad
-    ? record.cantidad
-        .split(",")
-        .map((item) => item.trim())
-        .filter(Boolean)
-        .slice(0, 40)
-    : undefined;
+  const needs = toNeedsList(record.cantidad, ",");
 
   const metadata: CommunityReportMetadata = {
     address: record.zona?.trim() || undefined,
