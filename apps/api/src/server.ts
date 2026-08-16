@@ -50,6 +50,7 @@ const app = await buildApp({
         missionAccessRepository: postgresRepositories.missionAccess,
         operationsAccessRepository: postgresRepositories.operationsAccess,
         operationsRepository: postgresRepositories.operations,
+        publicFundsRepository: postgresRepositories.publicFunds,
         publicReportRepository: postgresRepositories.publicReports,
         caliPublicSourceRepository: postgresRepositories.caliPublicSource,
         reconstructionProgressRepository: postgresRepositories.reconstructionProgress,

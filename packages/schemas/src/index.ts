@@ -6,6 +6,7 @@ export * from "./identity.js";
 export * from "./incident.js";
 export * from "./material-supplier.js";
 export * from "./operations.js";
+export * from "./public-funds.js";
 export * from "./public-report.js";
 export * from "./reconstruction-progress.js";
 export * from "./territory.js";

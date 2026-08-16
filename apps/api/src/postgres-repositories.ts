@@ -45,6 +45,7 @@ import { PostgresOperationsAccessRepository } from "./operations-access-reposito
 import { PostgresCommunityReportRepository } from "./postgres-community-report-repository.js";
 import { PostgresIdentityTrustRepository } from "./postgres-identity-trust-repository.js";
 import { PostgresMaterialSupplierRepository } from "./postgres-material-supplier-repository.js";
+import { PostgresPublicFundsRepository } from "./postgres-public-funds-repository.js";
 import { PostgresPublicReportRepository } from "./postgres-public-report-repository.js";
 import { PostgresReconstructionProgressRepository } from "./postgres-reconstruction-progress-repository.js";
 import { PostgresWorkforceProfileRepository } from "./postgres-workforce-profile-repository.js";
@@ -778,6 +779,7 @@ export function createPostgresRepositories(
     operations: new PostgresOperationsRepository(sql),
     publicReports: new PostgresPublicReportRepository(sql),
     caliPublicSource: new PostgresCaliPublicSourceRepository(sql),
+    publicFunds: new PostgresPublicFundsRepository(sql),
     reconstructionProgress: new PostgresReconstructionProgressRepository(sql),
     sgcPublicSource: new PostgresSgcPublicSourceRepository(sql),
     territories: new PostgresTerritoryRepository(sql),

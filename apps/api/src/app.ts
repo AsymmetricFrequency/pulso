@@ -29,6 +29,7 @@ import {
   OperationsConflictError,
   type OperationsRepository,
   OperationsResourceNotFoundError,
+  type PublicFundsRepository,
   type PublicReportRepository,
   type ReconstructionProgressRepository,
   type TerritoryRepository,
@@ -64,6 +65,7 @@ import {
   createTeamMembershipSchema,
   createTeamSchema,
   createWorkforceProfileSchema,
+  type EmergencyRelevance,
   fieldAssignmentSchema,
   fieldEvidenceSchema,
   fieldSessionSchema,
@@ -82,6 +84,8 @@ import {
   passkeyVerificationResultSchema,
   professionalCredentialSchema,
   publicCommunityReportSchema,
+  publicContractSchema,
+  publicFundsSummarySchema,
   publicMaterialSupplierSchema,
   publicSituationReportSchema,
   publicWorkforceProfileSchema,
@@ -113,6 +117,7 @@ import {
   type CaliPublicSourceRepository,
   EmptyCaliPublicSourceRepository,
 } from "./cali-public-source-repositories.js";
+import { EmptyPublicFundsRepository } from "./empty-public-funds-repository.js";
 import { MemoryEvidenceRepository } from "./evidence-repositories.js";
 import { MemoryCommunityReportRepository } from "./memory-community-report-repository.js";
 import { MemoryIdentityTrustRepository } from "./memory-identity-trust-repository.js";
@@ -155,6 +160,7 @@ export type BuildAppOptions = {
   assessmentRepository?: AssessmentRepository;
   evidenceRepository?: EvidenceRepository;
   communityReportRepository?: CommunityReportRepository;
+  publicFundsRepository?: PublicFundsRepository;
   publicReportRepository?: PublicReportRepository;
   caliPublicSourceRepository?: CaliPublicSourceRepository;
   sgcPublicSourceRepository?: SgcPublicSourceRepository;
@@ -213,6 +219,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
   const reconstructionProgress =
     options.reconstructionProgressRepository ??
     new MemoryReconstructionProgressRepository(incidents, materialSuppliers, workforceProfiles);
+  const publicFunds = options.publicFundsRepository ?? new EmptyPublicFundsRepository();
   const publicReports = options.publicReportRepository ?? new MemoryPublicReportRepository();
   const caliPublicSource =
     options.caliPublicSourceRepository ?? new EmptyCaliPublicSourceRepository();
@@ -653,6 +660,56 @@ export async function buildApp(options: BuildAppOptions = {}) {
         );
     },
   );
+
+  // Trazabilidad de recursos públicos (P0).
+  //
+  // El resumen solo suma contratos cuya relación con la emergencia confirmó una persona, y publica
+  // cuántos quedan por revisar. La lista, en cambio, no filtra por defecto: esconder lo no revisado
+  // lo volvería invisible y nadie podría revisarlo.
+  app.get<{ Params: { incidentCode: string } }>(
+    "/v1/public/incidents/:incidentCode/funds",
+    async (request, reply) => {
+      const incident = await incidents.findByCode(request.params.incidentCode);
+      if (!incident) {
+        return reply
+          .status(404)
+          .send({ error: "incident_not_found", message: "La emergencia no existe." });
+      }
+      return reply
+        .header("Cache-Control", "public, max-age=60, s-maxage=120, stale-while-revalidate=300")
+        .send(publicFundsSummarySchema.parse(await publicFunds.summarizeByIncident(incident.id)));
+    },
+  );
+
+  app.get<{
+    Params: { incidentCode: string };
+    Querystring: { relevance?: string; territoryCode?: string; limit?: string };
+  }>("/v1/public/incidents/:incidentCode/contracts", async (request, reply) => {
+    const incident = await incidents.findByCode(request.params.incidentCode);
+    if (!incident) {
+      return reply
+        .status(404)
+        .send({ error: "incident_not_found", message: "La emergencia no existe." });
+    }
+    const relevance = request.query.relevance
+      ?.split(",")
+      .map((value) => value.trim())
+      .filter((value): value is EmergencyRelevance =>
+        ["confirmed", "probable", "unrelated", "unreviewed"].includes(value),
+      );
+    const limit = Number.parseInt(request.query.limit ?? "", 10);
+    return reply
+      .header("Cache-Control", "public, max-age=60, s-maxage=120, stale-while-revalidate=300")
+      .send(
+        publicContractSchema.array().parse(
+          await publicFunds.listContractsByIncident(incident.id, {
+            ...(relevance?.length ? { relevance } : {}),
+            ...(request.query.territoryCode ? { territoryCode: request.query.territoryCode } : {}),
+            ...(Number.isFinite(limit) ? { limit } : {}),
+          }),
+        ),
+      );
+  });
 
   app.get("/v1/incidents", async () => incidentListSchema.parse(await incidents.list()));
 

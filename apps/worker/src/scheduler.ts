@@ -18,6 +18,7 @@ import {
   REDCALIAYUDA_ACOPIO_SOURCE,
   runRedCaliAyudaAcopioIngestion,
 } from "./redcaliayuda-acopio.js";
+import { runSecopIngestion, SECOP_SOURCE } from "./secop.js";
 import { runSgcEarthquakeIngestion, SGC_EARTHQUAKE_SOURCE } from "./sgc-earthquakes.js";
 import { runTerremotoColombiaIngestion, TERREMOTOCOLOMBIA_SOURCE } from "./terremotocolombia.js";
 
@@ -31,6 +32,7 @@ export type IngestionSourceName =
   | "terremotocolombia"
   | "redcaliayuda"
   | "redcaliayuda-acopio"
+  | "secop"
   | "publish-situation-report";
 
 export type IngestionSourceConfig = {
@@ -131,6 +133,21 @@ export const INGESTION_SOURCES: IngestionSourceConfig[] = [
     everyMs: 15 * MINUTE,
     source: REDCALIAYUDA_ACOPIO_SOURCE,
     run: () => runRedCaliAyudaAcopioIngestion(withDatabaseUrl({ incidentCode: incidentCode() })),
+  },
+  {
+    // Contratación pública. Cadencia holgada: SECOP publica por lotes y el dato relevante aquí no
+    // es el minuto de la firma sino el recorrido del recurso.
+    name: "secop",
+    everyMs: 6 * HOUR,
+    source: SECOP_SOURCE,
+    run: () =>
+      runSecopIngestion(
+        withDatabaseUrl({
+          incidentCode: incidentCode(),
+          cities: (process.env.PULSO_SECOP_CITIES ?? "Cali").split(",").map((city) => city.trim()),
+          signedFrom: incidentStartedAt().slice(0, 10),
+        }),
+      ),
   },
   {
     // Staggered after the community-report sources so each refresh picks up their latest counts.
