@@ -277,7 +277,9 @@
   }
 }
 
-/* --- Revisión de contratos ---------------------------------------------- */
+/* --- Revisión de contratos -----------------------------------------------
+   El centro operacional es de tema claro: crema, tinta #10231c, apagado
+   #5f6f68 y línea #d8d8cd, igual que el resto de la aplicación. */
 
 .reviewSection {
   margin-top: 40px;
@@ -291,10 +293,17 @@
   margin-bottom: 18px;
 }
 
+.reviewHeading h2 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 28px;
+  font-weight: 400;
+}
+
 .reviewLead {
-  max-width: 60ch;
+  max-width: 62ch;
   margin: 8px 0 0;
-  color: #aebcb6;
+  color: #5f6f68;
   font-size: 14px;
   line-height: 1.55;
 }
@@ -313,13 +322,14 @@
 }
 
 .reviewCounter span {
-  color: #aebcb6;
+  color: #5f6f68;
   font-size: 12px;
 }
 
 .reviewCounter small {
-  color: #75d4b5;
+  color: #2a7d57;
   font-size: 11px;
+  font-weight: 700;
 }
 
 .reviewList {
@@ -333,10 +343,11 @@
 .reviewCard {
   display: grid;
   gap: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid #d8d8cd;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.04);
+  background: #fffdf7;
   padding: 18px;
+  box-shadow: 0 10px 26px rgba(16, 35, 28, 0.05);
 }
 
 .reviewCardTop {
@@ -348,6 +359,7 @@
 
 .reviewAmount {
   display: block;
+  color: #10231c;
   /* Cifras tabulares: la columna de montos tiene que poder compararse de un vistazo. */
   font-variant-numeric: tabular-nums;
   font-family: Georgia, "Times New Roman", serif;
@@ -358,30 +370,32 @@
 .reviewMeta {
   display: block;
   margin-top: 4px;
-  color: #aebcb6;
+  color: #5f6f68;
   font-size: 12px;
 }
 
 .reviewBadge {
   flex: 0 0 auto;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid #c8c3b7;
   border-radius: 999px;
   padding: 4px 10px;
-  color: #aebcb6;
+  color: #5f6f68;
   font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
 }
 
 .reviewBadge.strong {
-  border-color: #d08b25;
-  color: #f0c078;
+  border-color: #c8811d;
+  background: #fdf3e3;
+  color: #8a4b18;
 }
 
 /* El objeto contractual es el dato que decide, así que se lee como texto, completo y sin
    truncar — no como un campo más de una ficha. */
 .reviewObject {
   margin: 0;
+  color: #10231c;
   font-size: 15px;
   line-height: 1.6;
 }
@@ -390,12 +404,13 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px 16px;
-  color: #aebcb6;
+  color: #5f6f68;
   font-size: 12px;
 }
 
 .reviewFacts a {
-  color: #75d4b5;
+  color: #04624a;
+  font-weight: 700;
 }
 
 .reviewSignals {
@@ -406,16 +421,16 @@
 
 .reviewSignals span {
   border-radius: 999px;
-  background: rgba(117, 212, 181, 0.16);
+  background: rgba(4, 98, 74, 0.1);
   padding: 3px 9px;
-  color: #9fe3cb;
+  color: #023a2c;
   font-size: 11px;
   font-weight: 700;
 }
 
 .reviewSignals span.strong {
-  background: rgba(208, 139, 37, 0.2);
-  color: #f0c078;
+  background: #fdf3e3;
+  color: #8a4b18;
 }
 
 .reviewNote {
@@ -424,17 +439,22 @@
 }
 
 .reviewNote span {
-  color: #aebcb6;
+  color: #5f6f68;
   font-size: 11px;
 }
 
 .reviewNote input {
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border: 1px solid #c8c3b7;
   border-radius: 8px;
-  background: rgba(0, 0, 0, 0.25);
-  padding: 10px 12px;
-  color: inherit;
+  background: #fff;
+  padding: 11px 12px;
+  color: #10231c;
   font-size: 13px;
+}
+
+.reviewNote input:focus-visible {
+  outline: 3px solid rgba(4, 98, 74, 0.35);
+  outline-offset: 1px;
 }
 
 .reviewActions {
@@ -468,27 +488,41 @@
 /* Confirmar publica dinero en las cifras públicas, así que es la única acción con peso visual
    de acción primaria. */
 .reviewActions .confirm {
-  background: #2a7d57;
+  background: #04624a;
   color: #fff;
 }
 
+.reviewActions .confirm:hover:not(:disabled) {
+  background: #023a2c;
+}
+
 .reviewActions .discard {
-  border-color: rgba(255, 255, 255, 0.22);
+  border-color: #9eaaa4;
   background: transparent;
-  color: #e4ece8;
+  color: #10231c;
+}
+
+.reviewActions .discard:hover:not(:disabled) {
+  border-color: #10231c;
 }
 
 .reviewActions .defer {
   border-color: transparent;
   background: transparent;
-  color: #aebcb6;
+  color: #5f6f68;
   text-decoration: underline;
 }
 
 .reviewProvenance {
-  color: #7e8f89;
+  color: #7c8a84;
   font-size: 10px;
   letter-spacing: 0.04em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reviewActions button {
+    transition: none;
+  }
 }
 
 @media (max-width: 640px) {
