@@ -5,6 +5,10 @@ import { BarChart, type BarDatum, DataTable } from "./charts";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
+/** Barras del esqueleto. Con identidad propia porque no tienen ninguna: el índice del array
+ *  no identifica nada y React lo desaconseja como clave. */
+const SKELETON_ROWS = ["a", "b", "c", "d", "e", "f"];
+
 type TerritoryShaking = {
   territoryCode: string | null;
   territoryName: string;
@@ -75,8 +79,8 @@ export function ShakingSection() {
         </div>
         <div className="shakingSkeleton" role="status" aria-live="polite">
           <span className="srOnly">Cargando la intensidad por territorio…</span>
-          {Array.from({ length: 6 }, (_, index) => (
-            <i key={`skeleton-${index}`} style={{ animationDelay: `${index * 90}ms` }} />
+          {SKELETON_ROWS.map((row, index) => (
+            <i key={row} style={{ animationDelay: `${index * 90}ms` }} />
           ))}
         </div>
       </section>

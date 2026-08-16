@@ -1,6 +1,15 @@
 "use client";
 
 import { externalSourceLabels, type PublicCommunityReport } from "./community-report-form";
+import {
+  IconBox,
+  IconBuilding,
+  IconCalendar,
+  IconCheck,
+  IconClock,
+  IconLocation,
+  IconUsers,
+} from "./icons";
 
 export const REPORT_TYPE_ICON: Record<PublicCommunityReport["reportType"], string> = {
   pmu: "🏳️",
@@ -72,7 +81,7 @@ export function CommunityReportDetailCard({ report, onClose }: CommunityReportDe
   const [lng, lat] = report.location.coordinates;
   const mapsUrl = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=16/${lat}/${lng}`;
 
-  const needsLabel = report.reportType === "pmu" ? "📦 Ofrece / categorías" : "🧾 Se necesita";
+  const needsLabel = report.reportType === "pmu" ? "Ofrece / categorías" : "Se necesita";
 
   const volunteers = [
     metadata?.personsNeeded ? `Faltan ${metadata.personsNeeded}` : null,
@@ -124,7 +133,10 @@ export function CommunityReportDetailCard({ report, onClose }: CommunityReportDe
 
       <dl className="reportDetailMeta">
         <div>
-          <dt>📍 Ubicación</dt>
+          <dt>
+            <IconLocation />
+            Ubicación
+          </dt>
           <dd>
             {place || formatCoordinates(report.location.coordinates)}{" "}
             <a
@@ -139,37 +151,55 @@ export function CommunityReportDetailCard({ report, onClose }: CommunityReportDe
         </div>
         {metadata?.organization && (
           <div>
-            <dt>🏢 Organización</dt>
+            <dt>
+              <IconBuilding />
+              Organización
+            </dt>
             <dd>{metadata.organization}</dd>
           </div>
         )}
         {metadata?.capacity && (
           <div>
-            <dt>📦 Capacidad</dt>
+            <dt>
+              <IconBox />
+              Capacidad
+            </dt>
             <dd>{metadata.capacity}</dd>
           </div>
         )}
         {metadata?.schedule && (
           <div>
-            <dt>🕐 Horario</dt>
+            <dt>
+              <IconClock />
+              Horario
+            </dt>
             <dd>{metadata.schedule}</dd>
           </div>
         )}
         {volunteers && (
           <div>
-            <dt>🙋 Voluntarios</dt>
+            <dt>
+              <IconUsers />
+              Voluntarios
+            </dt>
             <dd>{volunteers}</dd>
           </div>
         )}
         {typeof metadata?.corroborationCount === "number" && metadata.corroborationCount > 1 && (
           <div>
-            <dt>✅ Confirmaciones</dt>
+            <dt>
+              <IconCheck />
+              Confirmaciones
+            </dt>
             <dd>{metadata.corroborationCount} reportes</dd>
           </div>
         )}
         {updated && (
           <div>
-            <dt>🗓️ Actualizado</dt>
+            <dt>
+              <IconCalendar />
+              Actualizado
+            </dt>
             <dd>{updated}</dd>
           </div>
         )}

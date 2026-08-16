@@ -626,3 +626,18 @@
     opacity: 1;
   }
 }
+
+/* Etiqueta con icono: el SVG se alinea a la línea base óptica del texto, no a
+   su caja, que es lo que hace que un icono se vea "flotando". */
+.reportDetailMeta dt,
+.mapReportBar button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.reportDetailMeta dt svg,
+.mapReportBar button svg {
+  flex: 0 0 auto;
+  opacity: 0.75;
+}

@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { REPORT_TYPE_ICON, reportStatusToken } from "./community-report-detail";
 import { CommunityReportForm, type PublicCommunityReport } from "./community-report-form";
+import { IconCrosshair, IconLocation } from "./icons";
 
 // Leaflet touches `window` at module scope, which breaks Next.js's server render pass
 // even inside a "use client" component — it must only ever be loaded in the browser.
@@ -696,7 +697,14 @@ export function AtlasMap({
             setLocationError(null);
           }}
         >
-          {reportMode ? "✕ Cancelar" : "📍 Reportar un PMU o una necesidad"}
+          {reportMode ? (
+            "✕ Cancelar"
+          ) : (
+            <>
+              <IconLocation />
+              Reportar un PMU o una necesidad
+            </>
+          )}
         </button>
         <button
           type="button"
@@ -704,7 +712,14 @@ export function AtlasMap({
           onClick={useMyLocation}
           disabled={locating}
         >
-          {locating ? "Ubicando…" : "◎ Usar mi ubicación"}
+          {locating ? (
+            "Ubicando…"
+          ) : (
+            <>
+              <IconCrosshair />
+              Usar mi ubicación
+            </>
+          )}
         </button>
         {reportMode ? (
           <p className="mapReportHint" role="status">
