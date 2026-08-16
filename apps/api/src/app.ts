@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import {
   AssessmentNotFoundError,
@@ -118,11 +119,13 @@ import {
 } from "@simplewebauthn/server";
 import Fastify from "fastify";
 import { ZodError } from "zod";
+import { registerAdminRoutes } from "./admin-routes.js";
 import { MemoryAssessmentRepository } from "./assessment-repositories.js";
 import {
   type CaliPublicSourceRepository,
   EmptyCaliPublicSourceRepository,
 } from "./cali-public-source-repositories.js";
+import type { DiscordClient } from "./discord.js";
 import { EmptyPublicFundsRepository } from "./empty-public-funds-repository.js";
 import { MemoryEvidenceRepository } from "./evidence-repositories.js";
 import { MemoryCommunityReportRepository } from "./memory-community-report-repository.js";
@@ -136,6 +139,7 @@ import { MemoryTerritoryRepository } from "./memory-territory-repository.js";
 import { MemoryWorkforceProfileRepository } from "./memory-workforce-profile-repository.js";
 import { MemoryMissionAccessRepository } from "./mission-access-repositories.js";
 import { MemoryOperationsAccessRepository } from "./operations-access-repositories.js";
+import type { PostgresAdminRepository } from "./postgres-admin-repository.js";
 import { EmptySeismicShakingRepository } from "./postgres-seismic-shaking-repository.js";
 import {
   EmptySgcPublicSourceRepository,
@@ -175,6 +179,10 @@ export type BuildAppOptions = {
   materialSupplierRepository?: MaterialSupplierRepository;
   workforceProfileRepository?: WorkforceProfileRepository;
   reconstructionProgressRepository?: ReconstructionProgressRepository;
+  /** Panel administrativo. Sin esto las rutas `/v1/admin/*` responden 503 explicando qué falta. */
+  adminRepository?: PostgresAdminRepository;
+  discordClient?: DiscordClient;
+  adminPanelUrl?: string;
   persistence?: "memory" | "postgres";
   logger?: boolean;
   missionInvitationSecret?: string;
@@ -234,6 +242,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
     options.caliPublicSourceRepository ?? new EmptyCaliPublicSourceRepository();
   const sgcPublicSource = options.sgcPublicSourceRepository ?? new EmptySgcPublicSourceRepository();
   const siteUrl = options.siteUrl ?? "http://localhost:3000";
+  const adminPanelUrl = options.adminPanelUrl ?? siteUrl;
   const rpID = options.webauthnRpId ?? "localhost";
   const origin = options.webauthnOrigin ?? "http://localhost:3000";
   const adminKey = options.missionAdminKey ?? "pulso-local-admin";
@@ -334,7 +343,20 @@ export async function buildApp(options: BuildAppOptions = {}) {
   };
 
   await app.register(cors, {
-    origin: process.env.NODE_ENV === "production" ? siteUrl : true,
+    // El panel vive en otro subdominio (`admin.pulso.my`) y manda la cookie de sesión, así que
+    // necesita estar en la lista y `credentials`. Sin `credentials` el navegador descarta la cookie
+    // en silencio y la sesión parece no crearse nunca.
+    origin: process.env.NODE_ENV === "production" ? [siteUrl, adminPanelUrl].filter(Boolean) : true,
+    credentials: true,
+  });
+  await app.register(cookie);
+
+  registerAdminRoutes(app, {
+    admin: options.adminRepository ?? null,
+    discord: options.discordClient ?? null,
+    incidentCode: process.env.PULSO_INCIDENT_CODE ?? "colombia-2026",
+    panelUrl: adminPanelUrl,
+    secureCookies: process.env.NODE_ENV === "production",
   });
 
   app.setErrorHandler((error, _request, reply) => {
