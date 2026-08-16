@@ -20,6 +20,7 @@
     "ingest:redcaliayuda-acopio": "tsx src/ingest-redcaliayuda-acopio.ts",
     "ingest:secop": "tsx src/ingest-secop.ts",
     "ingest:usgs": "tsx src/ingest-usgs.ts",
+    "ingest:mapadelterremoto": "tsx src/ingest-mapadelterremoto.ts",
     "publish:situation-report": "tsx src/publish-situation-report-entrypoint.ts",
     "seed:material-catalog": "tsx src/seed-material-catalog-entrypoint.ts",
     "seed:cali-suppliers": "tsx src/seed-cali-suppliers-entrypoint.ts",

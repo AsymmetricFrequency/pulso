@@ -6,12 +6,16 @@ import { DANE_MGN_SOURCE, runDaneTerritoryIngestion } from "./dane-territories.j
 import { GRAVITAS_SOURCE, runGravitasIngestion } from "./gravitas.js";
 import {
   completeIngestionRun,
+  etagFromResult,
   httpStatusFromError,
+  httpStatusFromResult,
   type IngestionSourceDefinition,
+  lastEtagForSource,
   outcomeFromResult,
   recordsSeenFromResult,
   startIngestionRun,
 } from "./ingestion-run-log.js";
+import { MAPADELTERREMOTO_SOURCE, runMapaDelTerremotoIngestion } from "./mapadelterremoto.js";
 import { runPublishSituationReport } from "./publish-situation-report.js";
 import { REDCALIAYUDA_SOURCE, runRedCaliAyudaIngestion } from "./redcaliayuda.js";
 import {
@@ -35,6 +39,7 @@ export type IngestionSourceName =
   | "redcaliayuda-acopio"
   | "secop"
   | "usgs"
+  | "mapadelterremoto"
   | "publish-situation-report";
 
 export type IngestionSourceConfig = {
@@ -52,7 +57,7 @@ export type IngestionSourceConfig = {
    * `runId` es la corrida que el orquestador ya abrió. Las fuentes oficiales lo necesitan para
    * colgar de ella sus versiones de registro en vez de abrir una segunda corrida en paralelo.
    */
-  run: (context: { runId: string | null }) => Promise<unknown>;
+  run: (context: { runId: string | null; previousEtag?: string | null }) => Promise<unknown>;
 };
 
 // `?? undefined`-style spreads on a value returned from a function call don't narrow under
@@ -160,6 +165,17 @@ export const INGESTION_SOURCES: IngestionSourceConfig[] = [
     run: () => runUsgsShakingIngestion(withDatabaseUrl({ incidentCode: incidentCode() })),
   },
   {
+    // 4 MB por descarga, con `cache-control: max-age=300` de su lado. Media hora es más lento que su
+    // propia caché y, al pedir con `If-None-Match`, la mayoría de las corridas no descarga nada.
+    name: "mapadelterremoto",
+    everyMs: 30 * MINUTE,
+    source: MAPADELTERREMOTO_SOURCE,
+    run: ({ previousEtag }) =>
+      runMapaDelTerremotoIngestion(
+        withDatabaseUrl({ incidentCode: incidentCode(), previousEtag: previousEtag ?? null }),
+      ),
+  },
+  {
     // Staggered after the community-report sources so each refresh picks up their latest counts.
     name: "publish-situation-report",
     everyMs: 20 * MINUTE,
@@ -193,12 +209,19 @@ export async function runIngestionSourceWithLog(source: IngestionSourceConfig): 
   const definition = source.source;
   const sql = postgres(databaseUrl, { max: 1 });
   try {
+    // El ETag de la corrida anterior viaja a la ingesta para que pueda pedir con `If-None-Match`.
+    // Las fuentes que no lo usan lo ignoran.
+    const previousEtag = await lastEtagForSource(sql, definition.id);
     const runId = await startIngestionRun(sql, definition);
     try {
-      const result = await source.run({ runId });
+      const result = await source.run({ runId, previousEtag });
       await completeIngestionRun(sql, runId, {
         status: outcomeFromResult(result),
         recordsSeen: recordsSeenFromResult(result),
+        httpStatus: httpStatusFromResult(result),
+        // Si la corrida no trajo ETag nuevo se conserva el anterior: perderlo obligaría a la
+        // siguiente a descargarlo todo otra vez.
+        etag: etagFromResult(result) ?? previousEtag,
       });
       return result;
     } catch (error) {

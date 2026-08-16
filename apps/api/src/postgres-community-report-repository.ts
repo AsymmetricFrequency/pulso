@@ -42,6 +42,7 @@ const reportFromRow = (row: DbRow): CommunityReportDto => ({
   signsOfLife: (row.signs_of_life as CommunityReportDto["signsOfLife"]) ?? null,
   respondersOnSite: typeof row.responders_on_site === "boolean" ? row.responders_on_site : null,
   routeStatus: (row.route_status as CommunityReportDto["routeStatus"]) ?? null,
+  damageSeverity: (row.damage_severity as CommunityReportDto["damageSeverity"]) ?? null,
   createdAt: new Date(String(row.created_at)).toISOString(),
   updatedAt: new Date(String(row.updated_at)).toISOString(),
 });
@@ -60,6 +61,7 @@ const toPublic = (report: CommunityReportDto): PublicCommunityReportDto => ({
   signsOfLife: report.signsOfLife,
   respondersOnSite: report.respondersOnSite,
   routeStatus: report.routeStatus,
+  damageSeverity: report.damageSeverity,
   createdAt: report.createdAt,
 });
 
@@ -107,14 +109,14 @@ export class PostgresCommunityReportRepository implements CommunityReportReposit
     const [row] = await this.sql<DbRow[]>`
       INSERT INTO community_reports (
         id, incident_id, report_type, category, title, description, location,
-        people_reported, signs_of_life, responders_on_site, route_status,
+        people_reported, signs_of_life, responders_on_site, route_status, damage_severity,
         contact_encrypted, source_ip_hash, client_mutation_id
       ) VALUES (
         ${uuidv7()}, ${incidentId}, ${input.reportType}, ${input.category}, ${input.title},
         ${input.description},
         ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(input.location)}), 4326),
         ${input.peopleReported}, ${input.signsOfLife}, ${input.respondersOnSite},
-        ${input.routeStatus},
+        ${input.routeStatus}, ${input.damageSeverity},
         ${
           input.contact && this.contactSecret
             ? encryptField(this.contactSecret, input.contact)
@@ -158,7 +160,8 @@ export class PostgresCommunityReportRepository implements CommunityReportReposit
     // también evita traer 350 KB de jsonb que nadie va a leer.
     const columns = mapView
       ? this.sql`id, incident_id, report_type, category, title, status, created_at, updated_at,
-                 people_reported, signs_of_life, responders_on_site, route_status`
+                 people_reported, signs_of_life, responders_on_site, route_status,
+                 damage_severity`
       : this.sql`*`;
 
     const [rows, [totalRow]] = await Promise.all([
@@ -252,13 +255,15 @@ export class PostgresCommunityReportRepository implements CommunityReportReposit
     const [row] = await this.sql<DbRow[]>`
       INSERT INTO community_reports (
         id, incident_id, report_type, category, title, description, location,
-        status, external_source_id, external_key, client_mutation_id, metadata, route_status
+        status, external_source_id, external_key, client_mutation_id, metadata, route_status,
+        damage_severity
       ) VALUES (
         ${uuidv7()}, ${incidentId}, ${input.reportType}, ${input.category}, ${input.title},
         ${input.description},
         ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(input.location)}), 4326),
         ${input.status}, ${input.externalSourceId}, ${input.externalKey}, ${uuidv7()},
-        ${input.metadata ? this.sql.json(input.metadata) : null}, ${input.routeStatus}
+        ${input.metadata ? this.sql.json(input.metadata) : null}, ${input.routeStatus},
+        ${input.damageSeverity}
       )
       ON CONFLICT (external_source_id, external_key) WHERE external_source_id IS NOT NULL
       DO UPDATE SET
@@ -269,6 +274,7 @@ export class PostgresCommunityReportRepository implements CommunityReportReposit
         location = EXCLUDED.location,
         metadata = EXCLUDED.metadata,
         route_status = EXCLUDED.route_status,
+        damage_severity = EXCLUDED.damage_severity,
         status = CASE WHEN community_reports.status = 'rejected' THEN community_reports.status
           ELSE EXCLUDED.status END,
         updated_at = now()

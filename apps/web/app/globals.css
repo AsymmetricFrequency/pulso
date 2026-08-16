@@ -23,6 +23,11 @@
      depende de que Operaciones la haya mirado. El grafito lee como señalización de carretera. */
   --route-blocked: #2f2a24;
   --route-open: #257350;
+  /* Daño estructural. El colapso comparte el rojo del rescate porque es lo mismo un paso antes —es
+     donde puede haber gente debajo—; el resto usa un terracota apagado que se lee como estructura
+     y no compite con la escala de revisión. */
+  --damage: #9a5b3d;
+  --damage-collapse: #a8321c;
   --shadow: var(--elev-2);
   --shadow-lift: 0 22px 50px rgba(16, 35, 28, 0.14);
   --radius-sm: 8px;
@@ -1403,6 +1408,25 @@ footer a {
   background: var(--route-open);
 }
 
+.pulsoMarkerDamage {
+  width: 26px;
+  height: 26px;
+  background: var(--damage);
+  border: 2px solid rgba(255, 253, 247, 0.98);
+  color: white;
+  box-shadow: 0 2px 8px rgba(58, 34, 22, 0.35);
+}
+
+/* El colapso es más grande y más rojo. Con ~100 colapsos entre miles de daños leves, la diferencia
+   de tamaño es lo que permite encontrarlos sin filtrar nada. */
+.pulsoMarkerCollapse {
+  width: 30px;
+  height: 30px;
+  background: var(--damage-collapse);
+  border-width: 2.5px;
+  box-shadow: 0 2px 10px rgba(122, 32, 14, 0.5);
+}
+
 /* Marcador de rescate: más grande y en el rojo crítico. No lleva el ámbar de "sin verificar" que
    usan los demás porque a esta escala el estado de revisión no es la información que importa —
    importa que ahí abajo hay alguien. */
@@ -1533,6 +1557,16 @@ footer a {
   fill: var(--route-open);
 }
 
+.communityReportMarker.damage circle {
+  fill: var(--damage);
+  stroke: white;
+  stroke-width: 2;
+}
+
+.communityReportMarker.damage.collapse circle {
+  fill: var(--damage-collapse);
+}
+
 .communityReportMarker.pendingPoint {
   fill: var(--signal);
   stroke: white;
@@ -1549,6 +1583,14 @@ footer a {
 
 .statusDot.route.blocked {
   background: var(--route-blocked);
+}
+
+.statusDot.damage {
+  background: var(--damage);
+}
+
+.statusDot.damage.collapse {
+  background: var(--damage-collapse);
 }
 
 .communityReportForm {

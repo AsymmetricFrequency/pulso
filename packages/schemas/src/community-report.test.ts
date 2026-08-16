@@ -66,6 +66,7 @@ describe("community report schemas", () => {
       signsOfLife: null,
       respondersOnSite: null,
       routeStatus: null,
+      damageSeverity: null,
       createdAt: "2026-08-14T12:00:00Z",
       updatedAt: "2026-08-14T12:00:00Z",
     });
@@ -156,11 +157,55 @@ describe("community report schemas", () => {
       signsOfLife: null,
       respondersOnSite: null,
       routeStatus: "bloqueada",
+      damageSeverity: null,
       createdAt: "2026-08-14T12:00:00Z",
     });
 
     expect(mapped.routeStatus).toBe("bloqueada");
     expect(mapped).not.toHaveProperty("metadata");
+  });
+
+  // Un edificio colapsado no puede dibujarse igual que una fachada agrietada, y el mapa decide el
+  // marcador con la proyección ligera: si la severidad no viajara ahí, los ~100 colapsos quedarían
+  // indistinguibles de los miles de daños leves.
+  it("requires the damage severity on a damage report and carries it to the map", () => {
+    expect(
+      createCommunityReportSchema.safeParse({
+        clientMutationId: "5f0f3f2a-6d4b-4b3a-9f0e-2a2b3c4d5e6f",
+        reportType: "dano",
+        title: "Edificio Cantabria",
+        location: point,
+      }).success,
+    ).toBe(false);
+
+    const mapped = mapCommunityReportSchema.parse({
+      id: "6f6b1a2c-1f6d-4c1e-9a1f-2b3c4d5e6f71",
+      reportType: "dano",
+      category: null,
+      title: "Conjunto Torres del Limonar Capri",
+      location: point,
+      status: "corroborated",
+      peopleReported: null,
+      signsOfLife: null,
+      respondersOnSite: null,
+      routeStatus: null,
+      damageSeverity: "colapso",
+      createdAt: "2026-08-14T12:00:00Z",
+    });
+
+    expect(mapped.damageSeverity).toBe("colapso");
+  });
+
+  it("keeps the damage severity out of the other report types", () => {
+    expect(
+      createCommunityReportSchema.safeParse({
+        clientMutationId: "5f0f3f2a-6d4b-4b3a-9f0e-2a2b3c4d5e6f",
+        reportType: "pmu",
+        title: "Puesto de mando",
+        location: point,
+        damageSeverity: "colapso",
+      }).success,
+    ).toBe(false);
   });
 
   it("does not allow reviewing a report back into 'reported'", () => {

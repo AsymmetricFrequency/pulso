@@ -12,6 +12,8 @@ import {
   IconCalendar,
   IconCheck,
   IconClock,
+  IconCollapse,
+  IconDamage,
   IconFlag,
   IconLocation,
   IconRescue,
@@ -24,6 +26,20 @@ export const REPORT_TYPE_LABEL: Record<PublicCommunityReport["reportType"], stri
   pmu: "Puesto de mando",
   necesidad: "Necesidad",
   via: "Estado de la vía",
+  dano: "Daño estructural",
+};
+
+const DAMAGE_SEVERITY_LABEL: Record<
+  NonNullable<PublicCommunityReport["damageSeverity"]>,
+  string
+> = {
+  colapso: "Colapso",
+  grave: "Daño grave",
+  moderado: "Daño moderado",
+  leve: "Daño leve",
+  // No es un hueco: hay daño reportado y nadie con criterio técnico ha ido a calificarlo. Decirlo
+  // así es lo que convierte la ficha en una cola de trabajo para las brigadas de evaluación.
+  sin_evaluar: "Sin evaluar todavía",
 };
 
 const ROUTE_STATUS_LABEL: Record<NonNullable<PublicCommunityReport["routeStatus"]>, string> = {
@@ -125,6 +141,12 @@ export function CommunityReportDetailCard({ report, onClose }: CommunityReportDe
           <IconFlag />
         ) : report.reportType === "via" ? (
           <IconRouteBlocked />
+        ) : report.reportType === "dano" ? (
+          report.damageSeverity === "colapso" ? (
+            <IconCollapse />
+          ) : (
+            <IconDamage />
+          )
         ) : (
           <IconAlert />
         )}
@@ -135,6 +157,15 @@ export function CommunityReportDetailCard({ report, onClose }: CommunityReportDe
       <div className="reportDetailBadges">
         {/* En una vía, lo primero es si se puede pasar. El estado de revisión viene después:
             saber que Operaciones todavía no la miró no le sirve a quien está decidiendo la ruta. */}
+        {report.damageSeverity && (
+          <span
+            className={`communityReportStatusBadge ${
+              report.damageSeverity === "colapso" ? "unverified" : "muted"
+            }`}
+          >
+            {DAMAGE_SEVERITY_LABEL[report.damageSeverity]}
+          </span>
+        )}
         {report.routeStatus && (
           <span
             className={`communityReportStatusBadge ${

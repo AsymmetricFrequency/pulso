@@ -9,7 +9,7 @@ import { redactContacts } from "./redact-contacts.js";
 // pide que le manden nada, informa de que no se puede pasar— ni un `pmu`, porque marcar el
 // aeropuerto de Buenaventura como Puesto de Mando Unificado diría que ahí hay mando. Y es lo
 // primero que necesita saber quien va en camino a un rescate.
-export const communityReportTypeSchema = z.enum(["rescate", "pmu", "necesidad", "via"]);
+export const communityReportTypeSchema = z.enum(["rescate", "pmu", "necesidad", "via", "dano"]);
 
 /**
  * Señales de vida en un punto de rescate.
@@ -28,6 +28,15 @@ export const rescueSignsOfLifeSchema = z.enum(["yes", "no", "unknown"]);
  * Un estado intermedio invitaría a que alguien intente pasar por donde no se puede.
  */
 export const routeStatusSchema = z.enum(["bloqueada", "habilitada"]);
+
+/**
+ * Severidad de un daño estructural.
+ *
+ * `sin_evaluar` es un valor de primera clase, no un hueco: significa que hay daño reportado y nadie
+ * con criterio técnico ha ido a calificarlo. Es el más frecuente en los registros de daños, y
+ * colapsarlo a `null` borraría justamente la cola de trabajo de las brigadas de evaluación.
+ */
+export const damageSeveritySchema = z.enum(["colapso", "grave", "moderado", "leve", "sin_evaluar"]);
 
 export const communityReportCategorySchema = z.enum([
   "agua",
@@ -100,6 +109,7 @@ export const createCommunityReportSchema = z
     signsOfLife: rescueSignsOfLifeSchema.nullable().default(null),
     respondersOnSite: z.boolean().nullable().default(null),
     routeStatus: routeStatusSchema.nullable().default(null),
+    damageSeverity: damageSeveritySchema.nullable().default(null),
   })
   .refine((input) => input.reportType !== "necesidad" || input.category !== null, {
     message: "category is required when reportType is 'necesidad'",
@@ -115,6 +125,14 @@ export const createCommunityReportSchema = z
   .refine((input) => input.reportType === "via" || input.routeStatus === null, {
     message: "routeStatus is only valid when reportType is 'via'",
     path: ["routeStatus"],
+  })
+  .refine((input) => input.reportType !== "dano" || input.damageSeverity !== null, {
+    message: "damageSeverity is required when reportType is 'dano'",
+    path: ["damageSeverity"],
+  })
+  .refine((input) => input.reportType === "dano" || input.damageSeverity === null, {
+    message: "damageSeverity is only valid when reportType is 'dano'",
+    path: ["damageSeverity"],
   })
   .refine(
     (input) =>
@@ -145,6 +163,7 @@ export const publicCommunityReportSchema = z.object({
   signsOfLife: rescueSignsOfLifeSchema.nullable(),
   respondersOnSite: z.boolean().nullable(),
   routeStatus: routeStatusSchema.nullable(),
+  damageSeverity: damageSeveritySchema.nullable(),
   createdAt: z.iso.datetime({ offset: true }),
 });
 
@@ -184,6 +203,9 @@ export const mapCommunityReportSchema = publicCommunityReportSchema.pick({
   // Igual que los de rescate, y por el mismo motivo: decide **cómo se pinta el marcador**. Una vía
   // reabierta dibujada como un cierre mandaría a un equipo a rodear una vía que ya está abierta.
   routeStatus: true,
+  // Un edificio colapsado no puede dibujarse igual que una fachada agrietada, y con ~200 colapsos
+  // entre miles de daños leves esa diferencia es la mitad del valor del mapa.
+  damageSeverity: true,
 });
 
 export const reviewCommunityReportSchema = z.object({
@@ -211,11 +233,13 @@ export const upsertExternalCommunityReportSchema = z.object({
   status: communityReportStatusSchema.default("reported"),
   metadata: communityReportMetadataSchema.nullable().default(null),
   routeStatus: routeStatusSchema.nullable().default(null),
+  damageSeverity: damageSeveritySchema.nullable().default(null),
 });
 
 export type CommunityReportType = z.infer<typeof communityReportTypeSchema>;
 export type RescueSignsOfLife = z.infer<typeof rescueSignsOfLifeSchema>;
 export type RouteStatus = z.infer<typeof routeStatusSchema>;
+export type DamageSeverity = z.infer<typeof damageSeveritySchema>;
 export type CommunityReportCategory = z.infer<typeof communityReportCategorySchema>;
 export type CommunityReportStatus = z.infer<typeof communityReportStatusSchema>;
 export type CommunityReportMetadata = z.infer<typeof communityReportMetadataSchema>;

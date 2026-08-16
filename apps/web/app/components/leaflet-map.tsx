@@ -63,6 +63,18 @@ function reportDivIcon(report: PublicCommunityReport) {
       iconAnchor: [14, 14],
     });
   }
+  // Un daño tampoco se colorea por estado de revisión: lo que decide si alguien va es la severidad.
+  if (report.reportType === "dano") {
+    const collapse = report.damageSeverity === "colapso";
+    return L.divIcon({
+      className: "pulsoMarker",
+      html:
+        `<span class="pulsoMarkerDot pulsoMarkerDamage${collapse ? " pulsoMarkerCollapse" : ""}">` +
+        `${reportMarkerSvg(reportMarkerKey(report), collapse ? 17 : 14)}</span>`,
+      iconSize: collapse ? [30, 30] : [26, 26],
+      iconAnchor: collapse ? [15, 15] : [13, 13],
+    });
+  }
   const color = statusColor(report.status);
   const dashed = report.status === "reported" ? "border-style:dashed;" : "";
   return L.divIcon({
@@ -227,7 +239,12 @@ export function LeafletMap({
     const rescueLayer = L.layerGroup();
     for (const report of reports) {
       const [lng, lat] = report.location.coordinates;
-      const alwaysVisible = report.reportType === "rescate" || report.reportType === "via";
+      // Los colapsos salen del clúster con los rescates y las vías: son ~100 entre miles de puntos
+      // y el globo de «37 reportes» de su cuadra los haría desaparecer justo donde importan.
+      const alwaysVisible =
+        report.reportType === "rescate" ||
+        report.reportType === "via" ||
+        (report.reportType === "dano" && report.damageSeverity === "colapso");
       const marker = L.marker([lat, lng], {
         icon: reportDivIcon(report),
         zIndexOffset: report.reportType === "rescate" ? 1_000 : alwaysVisible ? 900 : 0,

@@ -21,9 +21,10 @@ import {
 /** Cualquiera del set de `icons.tsx`: comparten firma, así que se pasan como dato. */
 type IconComponent = typeof IconDot;
 
-export type CommunityReportType = "rescate" | "pmu" | "necesidad" | "via";
+export type CommunityReportType = "rescate" | "pmu" | "necesidad" | "via" | "dano";
 export type RescueSignsOfLife = "yes" | "no" | "unknown";
 export type RouteStatus = "bloqueada" | "habilitada";
+export type DamageSeverity = "colapso" | "grave" | "moderado" | "leve" | "sin_evaluar";
 export type CommunityReportCategory =
   | "agua"
   | "alimentos"
@@ -75,6 +76,7 @@ export type PublicCommunityReport = {
   signsOfLife: RescueSignsOfLife | null;
   respondersOnSite: boolean | null;
   routeStatus: RouteStatus | null;
+  damageSeverity: DamageSeverity | null;
   createdAt: string;
 };
 
@@ -128,6 +130,10 @@ export const rescueTitle = (people: number | null, signs: RescueSignsOfLife | nu
  * sin origen visible vale lo mismo que un rumor.
  */
 export const externalSourceLabels: Record<string, { name: string; url: string }> = {
+  "mapadelterremoto-registro": {
+    name: "Mapa del terremoto",
+    url: "https://www.mapadelterremoto.com/",
+  },
   "contemos-mapa-situacion": {
     name: "contemos.org",
     url: "https://mapa.contemos.org/",

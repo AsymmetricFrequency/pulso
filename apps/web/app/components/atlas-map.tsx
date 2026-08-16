@@ -512,6 +512,16 @@ export function AtlasMap({
   // Solo las bloqueadas van a la leyenda. Una vía reabierta se dibuja —quien la creía cerrada
   // necesita verlo— pero contarla junto a los cierres sería sumar buenas y malas noticias en la
   // misma cifra.
+  // Solo los colapsos van a la leyenda. Un daño leve es una fachada agrietada y hay cientos; un
+  // colapso es donde puede haber gente debajo, y son la fracción que decide a dónde se va primero.
+  const collapseCount = useMemo(
+    () =>
+      allReports.filter(
+        (report) => report.reportType === "dano" && report.damageSeverity === "colapso",
+      ).length,
+    [allReports],
+  );
+
   const blockedRouteCount = useMemo(
     () =>
       allReports.filter(
@@ -940,7 +950,9 @@ export function AtlasMap({
                       ? "rescue"
                       : report.reportType === "via"
                         ? `route ${report.routeStatus === "habilitada" ? "open" : "blocked"}`
-                        : reportStatusToken(report.status)
+                        : report.reportType === "dano"
+                          ? `damage ${report.damageSeverity === "colapso" ? "collapse" : ""}`
+                          : reportStatusToken(report.status)
                   }`}
                   transform={`translate(${entry.x}, ${entry.y}) scale(${1 / zoomTransform.scale})`}
                   onClick={(event) => {
@@ -1035,6 +1047,14 @@ export function AtlasMap({
             {rescueCount === 1
               ? "1 punto con personas atrapadas reportadas"
               : `${rescueCount} puntos con personas atrapadas reportadas`}
+          </li>
+        ) : null}
+        {collapseCount > 0 ? (
+          <li>
+            <i className="statusDot damage collapse" />{" "}
+            {collapseCount === 1
+              ? "1 edificación colapsada"
+              : `${collapseCount} edificaciones colapsadas`}
           </li>
         ) : null}
         {/* Va justo detrás de los rescates y antes del recuento general: quien coordina lee esta

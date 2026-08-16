@@ -86,6 +86,7 @@ export async function completeIngestionRun(
     recordsSeen?: number;
     httpStatus?: number | null;
     errorMessage?: string | null;
+    etag?: string | null;
   },
 ) {
   if (result.status === "failed") {
@@ -103,9 +104,42 @@ export async function completeIngestionRun(
     UPDATE source_ingestion_runs SET
       status = ${result.status},
       finished_at = now(),
-      records_seen = ${Math.max(0, result.recordsSeen ?? 0)}
+      records_seen = ${Math.max(0, result.recordsSeen ?? 0)},
+      http_status = ${result.httpStatus ?? null},
+      etag = ${result.etag ?? null}
     WHERE id = ${runId} AND status = 'running'
   `;
+}
+
+/**
+ * El ETag de la última corrida que llegó a hablar con la fuente.
+ *
+ * Permite pedir con `If-None-Match` y que la fuente conteste 304 con cero bytes cuando no hay nada
+ * nuevo. Las columnas `etag` y el estado `unchanged` existían en `012` desde el principio y ningún
+ * importador los usaba: la primera fuente que lo necesitó fue una de 4 MB por descarga.
+ */
+export async function lastEtagForSource(sql: Sql, sourceId: string): Promise<string | null> {
+  const [row] = await sql<{ etag: string | null }[]>`
+    SELECT etag FROM source_ingestion_runs
+    WHERE source_id = ${sourceId} AND etag IS NOT NULL
+    ORDER BY started_at DESC
+    LIMIT 1
+  `;
+  return row?.etag ?? null;
+}
+
+/** El ETag que devolvió una ingesta, si la devolvió. */
+export function etagFromResult(result: unknown): string | null {
+  if (typeof result !== "object" || result === null) return null;
+  const value = (result as Record<string, unknown>).etag;
+  return typeof value === "string" && value ? value : null;
+}
+
+/** El código HTTP que devolvió una ingesta, si la devolvió. */
+export function httpStatusFromResult(result: unknown): number | null {
+  if (typeof result !== "object" || result === null) return null;
+  const value = (result as Record<string, unknown>).httpStatus;
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
 /**
