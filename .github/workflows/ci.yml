@@ -1,0 +1,46 @@
+# Lo mismo que `pnpm lint && pnpm typecheck && pnpm test` en local.
+#
+# Existe porque entró gente al proyecto: con una persona, romper `main` se nota y se arregla en
+# cinco minutos; con siete, `main` roto bloquea a seis. Es la condición para poder hacer merge
+# rápido sin revisar todo a mano.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Un push nuevo sobre la misma rama cancela la corrida anterior: nadie necesita el resultado de un
+# commit que ya fue reemplazado, y la cola libre importa cuando hay que desplegar con prisa.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.4.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Lint y formato
+        run: pnpm lint
+
+      # `pnpm test` compila `@pulso/schemas` y `@pulso/domain` antes de correr: los consumidores
+      # chequean tipos contra `dist`, no contra el fuente. Sin ese paso el typecheck falla por una
+      # razón que no tiene nada que ver con el cambio.
+      - name: Tipos
+        run: pnpm typecheck
+
+      - name: Pruebas
+        run: pnpm test

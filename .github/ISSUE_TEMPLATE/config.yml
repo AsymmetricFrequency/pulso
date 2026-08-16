@@ -1,0 +1,10 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Proponer una idea
+    url: https://github.com/AsymmetricFrequency/pulso/discussions
+    about: Antes de abrir una tarea, las ideas se conversan en #ideas del Discord o aquí.
+  - name: Problema de seguridad o privacidad
+    url: https://github.com/AsymmetricFrequency/pulso/blob/main/SECURITY.md
+    about: >
+      No abras un issue público. Cuenta también un dato personal que aparece donde no debería o una
+      ruta pública que devuelve de más.

@@ -1382,6 +1382,50 @@ footer a {
   border: 2px solid white;
 }
 
+/* Marcador de rescate: más grande y en el rojo crítico. No lleva el ámbar de "sin verificar" que
+   usan los demás porque a esta escala el estado de revisión no es la información que importa —
+   importa que ahí abajo hay alguien. */
+.pulsoMarkerRescue {
+  width: 34px;
+  height: 34px;
+  background: var(--status-critical);
+  border: 2.5px solid rgba(255, 253, 247, 0.98);
+  color: white;
+  box-shadow: 0 2px 10px rgba(138, 44, 18, 0.55);
+}
+
+/* Solo pulsa cuando alguien reportó señales de vida. Si pulsara siempre sería decoración y el mapa
+   dejaría de significar nada; así el movimiento es información. */
+.pulsoMarkerRescueLive {
+  animation: pulsoRescuePulse 1.8s ease-out infinite;
+}
+
+@keyframes pulsoRescuePulse {
+  0% {
+    box-shadow:
+      0 2px 10px rgba(138, 44, 18, 0.55),
+      0 0 0 0 rgba(194, 55, 31, 0.55);
+  }
+  70% {
+    box-shadow:
+      0 2px 10px rgba(138, 44, 18, 0.55),
+      0 0 0 14px rgba(194, 55, 31, 0);
+  }
+  100% {
+    box-shadow:
+      0 2px 10px rgba(138, 44, 18, 0.55),
+      0 0 0 0 rgba(194, 55, 31, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulsoMarkerRescueLive {
+    animation: none;
+    outline: 3px solid rgba(194, 55, 31, 0.4);
+    outline-offset: 3px;
+  }
+}
+
 .pulsoClusterIcon {
   background: none;
   border: none;
@@ -1452,6 +1496,12 @@ footer a {
   fill: var(--text-tertiary);
 }
 
+.communityReportMarker.rescue circle {
+  fill: var(--status-critical);
+  stroke: white;
+  stroke-width: 2;
+}
+
 .communityReportMarker.pendingPoint {
   fill: var(--signal);
   stroke: white;
@@ -1460,6 +1510,10 @@ footer a {
 
 .statusDot.pmu {
   background: var(--green);
+}
+
+.statusDot.rescue {
+  background: var(--status-critical);
 }
 
 .communityReportForm {
@@ -1513,6 +1567,99 @@ footer a {
   border-color: var(--primary);
   background: var(--primary);
   color: white;
+}
+
+/* El rescate ocupa la fila entera encima de los otros dos. La jerarquía visual es la prioridad
+   declarada del proyecto: es el único reporte donde el retraso se mide en vidas. */
+.communityReportTypeToggle button.communityReportRescueOption {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  border-color: var(--status-critical);
+  color: var(--status-critical-ink);
+  background: var(--status-critical-soft);
+  font-size: 14px;
+}
+
+.communityReportTypeToggle button.communityReportRescueOption.active {
+  background: var(--status-critical);
+  color: white;
+}
+
+.communityReportRescue {
+  display: grid;
+  gap: 12px;
+}
+
+.communityReportRescue fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.communityReportRescue legend {
+  padding: 0 0 6px;
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.communityReportChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* 44px de alto mínimo: se toca con una mano, de pie, probablemente temblando. */
+.communityReportChips button {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: white;
+  color: var(--ink);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.communityReportChips button.active {
+  border-color: var(--status-critical);
+  background: var(--status-critical-soft);
+  color: var(--status-critical-ink);
+  font-weight: 700;
+}
+
+.communityReportRescueTitle {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+
+/* Va dentro del formulario y no al final: Pulso no despacha equipos, y quien reporta tiene que
+   saberlo antes de enviar, no después. */
+.communityReportRescueWarn {
+  margin: 0;
+  border-left: 3px solid var(--status-critical);
+  background: var(--status-critical-soft);
+  padding: 8px 10px;
+  color: var(--status-critical-ink);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.reportDetailRescue {
+  border-left: 3px solid var(--status-critical);
+  background: var(--status-critical-soft);
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+}
+
+.communityReportFormActions button.communityReportRescueSubmit {
+  background: var(--status-critical);
+  border-color: var(--status-critical);
 }
 
 .communityReportCategoryGrid {

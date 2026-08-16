@@ -37,6 +37,9 @@ const reportFromRow = (row: DbRow): CommunityReportDto => ({
   reviewedByActorId: row.reviewed_by_actor_id ? String(row.reviewed_by_actor_id) : null,
   reviewedAt: row.reviewed_at ? new Date(String(row.reviewed_at)).toISOString() : null,
   reviewNotes: row.review_notes ? String(row.review_notes) : null,
+  peopleReported: typeof row.people_reported === "number" ? row.people_reported : null,
+  signsOfLife: (row.signs_of_life as CommunityReportDto["signsOfLife"]) ?? null,
+  respondersOnSite: typeof row.responders_on_site === "boolean" ? row.responders_on_site : null,
   createdAt: new Date(String(row.created_at)).toISOString(),
   updatedAt: new Date(String(row.updated_at)).toISOString(),
 });
@@ -51,6 +54,9 @@ const toPublic = (report: CommunityReportDto): PublicCommunityReportDto => ({
   status: report.status,
   externalSourceId: report.externalSourceId,
   metadata: report.metadata,
+  peopleReported: report.peopleReported,
+  signsOfLife: report.signsOfLife,
+  respondersOnSite: report.respondersOnSite,
   createdAt: report.createdAt,
 });
 
@@ -70,11 +76,13 @@ export class PostgresCommunityReportRepository implements CommunityReportReposit
     const [row] = await this.sql<DbRow[]>`
       INSERT INTO community_reports (
         id, incident_id, report_type, category, title, description, location,
+        people_reported, signs_of_life, responders_on_site,
         source_ip_hash, client_mutation_id
       ) VALUES (
         ${uuidv7()}, ${incidentId}, ${input.reportType}, ${input.category}, ${input.title},
         ${input.description},
         ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(input.location)}), 4326),
+        ${input.peopleReported}, ${input.signsOfLife}, ${input.respondersOnSite},
         ${context.sourceIpHash}, ${input.clientMutationId}
       )
       ON CONFLICT (incident_id, client_mutation_id) DO UPDATE SET incident_id = EXCLUDED.incident_id
@@ -112,7 +120,8 @@ export class PostgresCommunityReportRepository implements CommunityReportReposit
     // La proyección ligera no pide description ni metadata a Postgres: no es solo ahorro de red,
     // también evita traer 350 KB de jsonb que nadie va a leer.
     const columns = mapView
-      ? this.sql`id, incident_id, report_type, category, title, status, created_at, updated_at`
+      ? this.sql`id, incident_id, report_type, category, title, status, created_at, updated_at,
+                 people_reported, signs_of_life, responders_on_site`
       : this.sql`*`;
 
     const [rows, [totalRow]] = await Promise.all([
@@ -121,6 +130,15 @@ export class PostgresCommunityReportRepository implements CommunityReportReposit
         FROM community_reports
         WHERE incident_id = ${incidentId} AND status <> 'rejected' ${scope}
         ORDER BY
+          -- Un rescate va primero, sin excepción y por encima del estado de revisión. Con 2.288
+          -- reportes en la tabla, un tope de 800 en la vista de país y orden por validación, un
+          -- «hay gente atrapada» recién enviado quedaría fuera de la respuesta: sin revisar es
+          -- último en el primer criterio, y nuevo no lo salva. Esperar a que alguien lo valide es
+          -- exactamente el tiempo que no hay.
+          CASE report_type WHEN 'rescate' THEN 0 ELSE 1 END,
+          -- Dentro de los rescates manda el hecho de que se oiga algo: separa un rescate en curso
+          -- de una recuperación. Un unknown va por encima de un no: nadie lo ha descartado todavía.
+          CASE signs_of_life WHEN 'yes' THEN 0 WHEN 'unknown' THEN 1 WHEN 'no' THEN 2 ELSE 1 END,
           CASE status WHEN 'validated' THEN 0 WHEN 'corroborated' THEN 1 ELSE 2 END,
           created_at DESC
         LIMIT ${limit}

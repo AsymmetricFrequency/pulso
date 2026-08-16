@@ -1,0 +1,35 @@
+# Quién revisa qué. GitHub pide la revisión solo, así que nadie tiene que acordarse de etiquetar.
+#
+# Los equipos se llaman igual que los roles de Discord — un solo vocabulario para roles, etiquetas
+# de tickets y revisión de código. Ver `docs/34-discord.md`.
+
+*                                       @AsymmetricFrequency/core
+
+apps/web/                               @AsymmetricFrequency/frontend
+apps/api/                               @AsymmetricFrequency/backend
+packages/                               @AsymmetricFrequency/backend
+apps/worker/                            @AsymmetricFrequency/data
+blockchain/                             @AsymmetricFrequency/blockchain
+
+apps/web/app/components/atlas-map.tsx   @AsymmetricFrequency/gis
+apps/web/app/components/leaflet-map.tsx @AsymmetricFrequency/gis
+apps/worker/src/dane-territories.ts     @AsymmetricFrequency/gis
+
+.github/                                @AsymmetricFrequency/devops
+infrastructure/                         @AsymmetricFrequency/devops
+deploy.sh                               @AsymmetricFrequency/devops
+compose.yaml                            @AsymmetricFrequency/devops
+
+# Todo lo que sigue toca datos personales, credenciales o el límite entre lo público y lo privado.
+# Un `Maintainer` lo lee con nombre y apellido, sin excepción — es la invariante 1 de
+# `CONTRIBUTING.md` y es la que más caro sale romper.
+apps/api/src/field-encryption.ts        @AsymmetricFrequency/maintainers
+apps/api/src/mission-access-repositories.ts        @AsymmetricFrequency/maintainers
+apps/api/src/operations-access-repositories.ts     @AsymmetricFrequency/maintainers
+apps/api/src/postgres-workforce-profile-repository.ts @AsymmetricFrequency/maintainers
+infrastructure/postgres/migrations/      @AsymmetricFrequency/maintainers
+apps/worker/src/contract-triage.ts       @AsymmetricFrequency/maintainers
+SECURITY.md                              @AsymmetricFrequency/maintainers
+LICENSE                                  @AsymmetricFrequency/maintainers
+CONTRIBUTING.md                          @AsymmetricFrequency/maintainers
+docs/32-direccion.md                     @AsymmetricFrequency/maintainers

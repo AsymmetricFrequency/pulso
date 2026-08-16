@@ -36,6 +36,20 @@ const statusColor = (status: PublicCommunityReport["status"]) => {
 };
 
 function reportDivIcon(report: PublicCommunityReport) {
+  // Un rescate no se colorea por estado de revisión. El ámbar de «sin verificar» lo haría
+  // indistinguible de una necesidad recién reportada, y aquí la distinción tiene que sobrevivir a
+  // una mirada de medio segundo sobre un mapa con miles de puntos.
+  if (report.reportType === "rescate") {
+    const live = report.signsOfLife === "yes" ? " pulsoMarkerRescueLive" : "";
+    return L.divIcon({
+      className: "pulsoMarker",
+      html:
+        `<span class="pulsoMarkerDot pulsoMarkerRescue${live}">` +
+        `${reportMarkerSvg("rescate", 18)}</span>`,
+      iconSize: [34, 34],
+      iconAnchor: [17, 17],
+    });
+  }
   const color = statusColor(report.status);
   const dashed = report.status === "reported" ? "border-style:dashed;" : "";
   return L.divIcon({
@@ -191,16 +205,25 @@ export function LeafletMap({
       iconCreateFunction: clusterIcon("#10231c"),
       maxClusterRadius: 44,
     });
+    // Los rescates salen del clúster y van en su propia capa, por encima. Agrupados quedarían
+    // absorbidos por el globo de «37 reportes» de su cuadra: existirían en los datos y no en la
+    // pantalla, que para esto es lo mismo que no existir.
+    const rescueLayer = L.layerGroup();
     for (const report of reports) {
       const [lng, lat] = report.location.coordinates;
-      const marker = L.marker([lat, lng], { icon: reportDivIcon(report) });
+      const marker = L.marker([lat, lng], {
+        icon: reportDivIcon(report),
+        zIndexOffset: report.reportType === "rescate" ? 1_000 : 0,
+      });
       marker.bindPopup(`<strong>${report.title}</strong>`);
       marker.on("click", () => callbacksRef.current.onSelectReport(report));
-      group.addLayer(marker);
+      (report.reportType === "rescate" ? rescueLayer : group).addLayer(marker);
     }
     map.addLayer(group);
+    map.addLayer(rescueLayer);
     return () => {
       map.removeLayer(group);
+      map.removeLayer(rescueLayer);
     };
   }, [reports, departmentFeature]);
 

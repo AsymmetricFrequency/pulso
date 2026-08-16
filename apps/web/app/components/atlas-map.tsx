@@ -504,6 +504,11 @@ export function AtlasMap({
     [reports, optimisticReports],
   );
 
+  const rescueCount = useMemo(
+    () => allReports.filter((report) => report.reportType === "rescate").length,
+    [allReports],
+  );
+
   const projectedEvents = useMemo(() => {
     if (!projection) return [];
     return sgcEvents.flatMap((event) => {
@@ -740,7 +745,7 @@ export function AtlasMap({
           ) : (
             <>
               <IconLocation />
-              Reportar un PMU o una necesidad
+              Reportar personas atrapadas o una necesidad
             </>
           )}
         </button>
@@ -915,7 +920,11 @@ export function AtlasMap({
                 // biome-ignore lint/a11y/useSemanticElements: SVG marker cannot be represented by an HTML button.
                 <g
                   key={key}
-                  className={`communityReportMarker ${reportStatusToken(report.status)}`}
+                  className={`communityReportMarker ${
+                    // El rescate no se colorea por estado de revisión: en el mapa de país tiene que
+                    // distinguirse de las 2.288 necesidades sin que nadie amplíe.
+                    report.reportType === "rescate" ? "rescue" : reportStatusToken(report.status)
+                  }`}
                   transform={`translate(${entry.x}, ${entry.y}) scale(${1 / zoomTransform.scale})`}
                   onClick={(event) => {
                     event.stopPropagation();
@@ -927,12 +936,16 @@ export function AtlasMap({
                   role="button"
                   tabIndex={0}
                 >
-                  <circle r={9} />
+                  <circle r={report.reportType === "rescate" ? 12 : 9} />
                   {/* El glifo se dibuja a escala 0.55 y centrado: el trazo del set está pensado
                       para 24 y aquí el marcador mide 18 de diámetro. */}
                   <path
                     d={REPORT_MARKER_PATH[report.reportType]}
-                    transform="scale(0.55) translate(-12, -12)"
+                    transform={
+                      report.reportType === "rescate"
+                        ? "scale(0.72) translate(-12, -12)"
+                        : "scale(0.55) translate(-12, -12)"
+                    }
                     fill="none"
                     stroke="currentColor"
                     strokeWidth={2.4}
@@ -995,6 +1008,16 @@ export function AtlasMap({
         {sgcEvents.length > 0 ? (
           <li>
             <i className="statusDot seismic" /> {sgcEvents.length} eventos SGC ≥ M 2 en la región
+          </li>
+        ) : null}
+        {/* Los rescates se cuentan aparte y antes. Sumarlos a «2.288 reportes ciudadanos» los
+            desaparecería justo en la línea que la gente lee para saber qué está pasando. */}
+        {rescueCount > 0 ? (
+          <li>
+            <i className="statusDot rescue" />{" "}
+            {rescueCount === 1
+              ? "1 punto con personas atrapadas reportadas"
+              : `${rescueCount} puntos con personas atrapadas reportadas`}
           </li>
         ) : null}
         {allReports.length > 0 ? (

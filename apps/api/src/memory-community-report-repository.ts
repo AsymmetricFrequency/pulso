@@ -31,8 +31,24 @@ const toPublic = (report: CommunityReportDto): PublicCommunityReportDto => ({
   status: report.status,
   externalSourceId: report.externalSourceId,
   metadata: report.metadata,
+  peopleReported: report.peopleReported,
+  signsOfLife: report.signsOfLife,
+  respondersOnSite: report.respondersOnSite,
   createdAt: report.createdAt,
 });
+
+/**
+ * Orden de la cola pública, igual que en el adaptador de Postgres.
+ *
+ * Un rescate va primero pase lo que pase, y dentro de los rescates manda si se oye algo. Las dos
+ * implementaciones tienen que ordenar igual: la de memoria es la que corren las pruebas y sirve de
+ * demostración, así que si diverge, lo verificado no es lo que se despliega.
+ */
+const queueRank = (report: CommunityReportDto): [number, number, number] => [
+  report.reportType === "rescate" ? 0 : 1,
+  report.signsOfLife === "yes" ? 0 : report.signsOfLife === "no" ? 2 : 1,
+  { validated: 0, corroborated: 1, reported: 2, superseded: 2, rejected: 3 }[report.status],
+];
 
 export class MemoryCommunityReportRepository implements CommunityReportRepository {
   readonly #reports = new Map<string, StoredCommunityReport>();
@@ -68,6 +84,9 @@ export class MemoryCommunityReportRepository implements CommunityReportRepositor
       contact: input.contact,
       externalSourceId: null,
       metadata: null,
+      peopleReported: input.peopleReported,
+      signsOfLife: input.signsOfLife,
+      respondersOnSite: input.respondersOnSite,
       externalKey: null,
       reviewedByActorId: null,
       reviewedAt: null,
@@ -103,6 +122,11 @@ export class MemoryCommunityReportRepository implements CommunityReportRepositor
       status: input.status,
       contact: null,
       metadata: input.metadata,
+      // Las fuentes externas no traen rescates: ninguna de las plataformas ingeridas modela
+      // «personas atrapadas», y no se va a inferir de un texto libre.
+      peopleReported: null,
+      signsOfLife: null,
+      respondersOnSite: null,
       externalSourceId: input.externalSourceId,
       externalKey: input.externalKey,
       reviewedByActorId: existing?.reviewedByActorId ?? null,
@@ -121,13 +145,6 @@ export class MemoryCommunityReportRepository implements CommunityReportRepositor
     query: PublicCommunityReportQuery = {},
   ): Promise<PublicCommunityReportPage> {
     await this.#requireIncident(incidentId);
-    const statusRank: Record<CommunityReportDto["status"], number> = {
-      validated: 0,
-      corroborated: 1,
-      reported: 2,
-      superseded: 2,
-      rejected: 3,
-    };
     const box = query.boundingBox;
     const scoped = [...this.#reports.values()].filter((report) => {
       if (report.incidentId !== incidentId || report.status === "rejected") return false;
@@ -137,10 +154,15 @@ export class MemoryCommunityReportRepository implements CommunityReportRepositor
     });
     return {
       reports: scoped
-        .sort(
-          (a, b) =>
-            statusRank[a.status] - statusRank[b.status] || b.createdAt.localeCompare(a.createdAt),
-        )
+        .sort((a, b) => {
+          const [left, right] = [queueRank(a), queueRank(b)];
+          return (
+            left[0] - right[0] ||
+            left[1] - right[1] ||
+            left[2] - right[2] ||
+            b.createdAt.localeCompare(a.createdAt)
+          );
+        })
         .slice(0, box ? 4_000 : 800)
         .map(toPublic),
       total: scoped.length,

@@ -1,6 +1,10 @@
 "use client";
 
-import { externalSourceLabels, type PublicCommunityReport } from "./community-report-form";
+import {
+  externalSourceLabels,
+  type PublicCommunityReport,
+  peopleReportedLabel,
+} from "./community-report-form";
 import {
   IconAlert,
   IconBox,
@@ -10,12 +14,20 @@ import {
   IconClock,
   IconFlag,
   IconLocation,
+  IconRescue,
   IconUsers,
 } from "./icons";
 
 export const REPORT_TYPE_LABEL: Record<PublicCommunityReport["reportType"], string> = {
+  rescate: "Personas atrapadas",
   pmu: "Puesto de mando",
   necesidad: "Necesidad",
+};
+
+const SIGNS_OF_LIFE_LABEL: Record<NonNullable<PublicCommunityReport["signsOfLife"]>, string> = {
+  yes: "Se reportan señales de vida",
+  unknown: "Sin confirmar todavía",
+  no: "No se percibieron señales",
 };
 
 export const reportStatusToken = (status: PublicCommunityReport["status"]) => {
@@ -100,7 +112,13 @@ export function CommunityReportDetailCard({ report, onClose }: CommunityReportDe
       </button>
 
       <p className="eyebrow reportDetailKind">
-        {report.reportType === "pmu" ? <IconFlag /> : <IconAlert />}
+        {report.reportType === "rescate" ? (
+          <IconRescue />
+        ) : report.reportType === "pmu" ? (
+          <IconFlag />
+        ) : (
+          <IconAlert />
+        )}
         {REPORT_TYPE_LABEL[report.reportType]}
       </p>
       <h3>{report.title}</h3>
@@ -127,6 +145,40 @@ export function CommunityReportDetailCard({ report, onClose }: CommunityReportDe
             ))}
           </ul>
         </div>
+      )}
+
+      {/* Los tres datos del rescate van arriba de todo lo demás y sin plegar: son lo que un equipo
+          mira para decidir a qué punto va primero. */}
+      {report.reportType === "rescate" && (
+        <dl className="reportDetailMeta reportDetailRescue">
+          <div>
+            <dt>
+              <IconUsers />
+              Personas
+            </dt>
+            <dd>{peopleReportedLabel(report.peopleReported) ?? "Sin dato"}</dd>
+          </div>
+          <div>
+            <dt>
+              <IconAlert />
+              Señales de vida
+            </dt>
+            <dd>{report.signsOfLife ? SIGNS_OF_LIFE_LABEL[report.signsOfLife] : "Sin dato"}</dd>
+          </div>
+          <div>
+            <dt>
+              <IconFlag />
+              Rescatistas
+            </dt>
+            <dd>
+              {report.respondersOnSite === null
+                ? "Sin dato"
+                : report.respondersOnSite
+                  ? "Ya hay equipo en el sitio"
+                  : "Nadie en el sitio al reportar"}
+            </dd>
+          </div>
+        </dl>
       )}
 
       <dl className="reportDetailMeta">
