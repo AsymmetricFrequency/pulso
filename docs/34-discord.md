@@ -267,6 +267,39 @@ están puestas en el servidor.
 **El token del bot es una credencial de producción:** no va al repositorio, no se pega en un chat, y
 si se filtra se rota en el acto desde la misma pantalla donde se generó.
 
+### 4.6 Super admin
+
+Dos mecanismos, para dos problemas distintos.
+
+**`ADMIN_SUPERUSER_DISCORD_IDS`** — ids de Discord con escritura permanente, separados por coma.
+
+Resuelve el arranque, que es un callejón sin salida real: el rol `Maintainer` empieza vacío, así que
+la primera persona que entra lo hace en modo lectura y **no puede darse el rol que necesita para
+poder darse el rol**. Y resuelve la recuperación: si alguien se equivoca repartiendo roles, hay una
+vía de vuelta que no depende de esos mismos roles.
+
+Sigue exigiendo entrar por Discord con esa cuenta concreta. No es una puerta trasera: es una lista
+de personas a las que el rol no puede echar.
+
+**`ADMIN_BREAK_GLASS_TOKEN`** — entrada de emergencia, sin pasar por Discord.
+
+```sh
+curl -X POST https://admin.pulso.my/v1/admin/auth/break-glass \
+  -H 'Content-Type: application/json' -c cookies.txt \
+  -d '{"token":"<el valor del .env>"}'
+```
+
+Existe porque un panel cuya única puerta es un servicio de terceros se cierra cuando ese servicio se
+cae — y en una emergencia eso pasa justo cuando hace falta mirar. El pulso de la operación y los
+tickets salen de la base y no de Discord, así que con Discord caído siguen respondiendo.
+
+La contrapartida es real y no se disimula: **quien tenga ese valor entra con permisos completos.**
+Por eso exige 32 caracteres, cada uso —aceptado o rechazado— queda en el registro del servidor, la
+sesión dura dos horas en vez de doce, y el panel lo anuncia en rojo mientras estés dentro por ahí.
+Dejarlo vacío desactiva la vía por completo.
+
+Ninguno de los dos va al repositorio.
+
 ### Un detalle que cuesta una tarde si no se sabe
 
 El panel llama a la API en **su propio host** (`admin.pulso.my/v1/*`), no en `pulso.my`. La sesión

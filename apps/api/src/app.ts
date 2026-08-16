@@ -357,6 +357,16 @@ export async function buildApp(options: BuildAppOptions = {}) {
     incidentCode: process.env.PULSO_INCIDENT_CODE ?? "colombia-2026",
     panelUrl: adminPanelUrl,
     secureCookies: process.env.NODE_ENV === "production",
+    superuserDiscordIds: (process.env.ADMIN_SUPERUSER_DISCORD_IDS ?? "")
+      .split(",")
+      .map((id) => id.trim())
+      .filter(Boolean),
+    // Un valor corto no es una credencial, es una invitación a probar combinaciones. Si está mal
+    // puesto se ignora en silencio en vez de abrir una puerta débil creyendo que está cerrada.
+    breakGlassToken:
+      process.env.ADMIN_BREAK_GLASS_TOKEN && process.env.ADMIN_BREAK_GLASS_TOKEN.length >= 32
+        ? process.env.ADMIN_BREAK_GLASS_TOKEN
+        : null,
   });
 
   app.setErrorHandler((error, _request, reply) => {

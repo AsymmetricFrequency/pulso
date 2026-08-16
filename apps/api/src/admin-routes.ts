@@ -1,4 +1,4 @@
-import { randomBytes } from "node:crypto";
+import { randomBytes, timingSafeEqual } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { canRead, canWrite, DiscordAccessDeniedError, type DiscordClient } from "./discord.js";
@@ -37,10 +37,34 @@ export type AdminRoutesOptions = {
   /** A dónde vuelve el navegador tras entrar. En producción, `https://admin.pulso.my`. */
   panelUrl: string;
   secureCookies: boolean;
+  /**
+   * Identificadores de Discord con permiso de escritura permanente, pase lo que pase con los roles.
+   *
+   * Resuelve dos cosas. La primera es el arranque: el rol `Maintainer` empieza vacío, así que sin
+   * esto la primera persona que entra al panel lo hace en modo lectura y no puede darse el rol que
+   * necesita para poder darse el rol. La segunda es la recuperación: si alguien se equivoca
+   * repartiendo roles, hay una vía de vuelta que no depende de esos mismos roles.
+   *
+   * Sigue exigiendo entrar por Discord con esa cuenta concreta: no es una puerta trasera, es una
+   * lista de personas que el rol no puede quitar.
+   */
+  superuserDiscordIds: string[];
+  /**
+   * Entrada de emergencia cuando Discord no responde.
+   *
+   * Un panel cuya única puerta es un servicio de terceros es un panel que se cierra cuando ese
+   * servicio se cae — y en una emergencia eso pasa justo cuando hace falta mirar. La contrapartida
+   * es real y no se disimula: quien tenga este valor entra con permisos completos. Por eso es
+   * opcional, exige 32 caracteres, cada uso queda en el registro, y la sesión que crea se llama a sí
+   * misma «break-glass» en la pantalla para que nadie olvide que está dentro por ahí.
+   */
+  breakGlassToken: string | null;
 };
 
 export function registerAdminRoutes(app: FastifyInstance, options: AdminRoutesOptions) {
-  const { admin, discord, panelUrl, secureCookies } = options;
+  const { admin, discord, panelUrl, secureCookies, superuserDiscordIds } = options;
+
+  const isSuperuser = (discordUserId: string) => superuserDiscordIds.includes(discordUserId);
 
   /**
    * Si faltan las credenciales de Discord o la base, el panel responde 503 con una explicación en
@@ -98,7 +122,10 @@ export function registerAdminRoutes(app: FastifyInstance, options: AdminRoutesOp
       // scope `guilds.members.read`, y el bot ve el estado real del servidor.
       const member = await deps.discord.member(user.id);
 
-      if (!canRead(member.roles)) {
+      // El superusuario entra aunque no tenga ningún rol todavía. Es justo el caso del arranque:
+      // el servidor recién montado tiene `Maintainer` vacío, y sin esta línea la primera persona
+      // se queda fuera de la pantalla que necesita para repartir los roles.
+      if (!canRead(member.roles) && !isSuperuser(member.userId)) {
         return reply.redirect(`${panelUrl}/admin?error=sin_rol`);
       }
 
@@ -119,6 +146,47 @@ export function registerAdminRoutes(app: FastifyInstance, options: AdminRoutesOp
     }
   });
 
+  /**
+   * Entrada de emergencia. No pasa por Discord.
+   *
+   * Existe para el día en que Discord no responda o las credenciales estén mal, que es exactamente
+   * cuando alguien necesita mirar cuántos rescates hay abiertos. No es el camino normal y no
+   * aparece en la pantalla de entrada: hay que conocer la ruta y el valor.
+   *
+   * Solo necesita la base, no Discord — que es todo el sentido de que exista.
+   */
+  app.post("/v1/admin/auth/break-glass", async (request, reply) => {
+    if (!admin || !options.breakGlassToken) {
+      return reply.status(503).send({
+        error: "break_glass_not_configured",
+        message: "No hay entrada de emergencia configurada en este servidor.",
+      });
+    }
+    const body = request.body as { token?: string } | undefined;
+    const provided = body?.token ?? "";
+    // Comparación de longitud constante: sin esto, medir cuánto tarda el rechazo permite adivinar
+    // el valor carácter a carácter.
+    const expected = Buffer.from(options.breakGlassToken);
+    const candidate = Buffer.from(provided.padEnd(expected.length).slice(0, expected.length));
+    if (provided.length !== expected.length || !timingSafeEqual(expected, candidate)) {
+      request.log.warn({ ip: request.ip }, "break-glass rechazado");
+      return reply.status(401).send({ error: "invalid_token" });
+    }
+
+    // Queda en el registro siempre. Una entrada de emergencia que no deja rastro deja de ser una
+    // entrada de emergencia y pasa a ser una puerta trasera.
+    request.log.warn({ ip: request.ip }, "break-glass aceptado: sesión de superusuario creada");
+
+    const { token } = await admin.createSession({
+      discordUserId: "break-glass",
+      discordUsername: "Acceso de emergencia",
+      discordAvatarUrl: null,
+      roles: ["maintainer", "break-glass"],
+    });
+    reply.setCookie(SESSION_COOKIE, token, { ...cookieOptions, maxAge: 2 * 3600 });
+    return { ok: true, expiresInHours: 2 };
+  });
+
   app.post("/v1/admin/auth/logout", async (request, reply) => {
     await admin?.destroySession(request.cookies[SESSION_COOKIE]);
     reply.clearCookie(SESSION_COOKIE, cookieOptions);
@@ -126,15 +194,25 @@ export function registerAdminRoutes(app: FastifyInstance, options: AdminRoutesOp
   });
 
   app.get("/v1/admin/me", async (request, reply) => {
-    if (!ready()) {
-      return reply.status(503).send({
-        error: "discord_not_configured",
-        message: "El panel todavía no tiene credenciales de Discord configuradas.",
-      });
-    }
     const current = await session(request);
-    if (!current) return reply.status(401).send({ error: "unauthenticated" });
-    return { ...current, canWrite: canWrite(current.roles) };
+    // Una sesión ya abierta vale aunque Discord esté caído: si no, una caída de un tercero echa de
+    // la pantalla a quien está mirando la operación. Solo se avisa de que falta configuración
+    // cuando además no hay por dónde entrar.
+    if (!current) {
+      if (!ready()) {
+        return reply.status(503).send({
+          error: "discord_not_configured",
+          message: "El panel todavía no tiene credenciales de Discord configuradas.",
+        });
+      }
+      return reply.status(401).send({ error: "unauthenticated" });
+    }
+    return {
+      ...current,
+      canWrite: canWrite(current.roles) || isSuperuser(current.discordUserId),
+      superuser: isSuperuser(current.discordUserId),
+      breakGlass: current.roles.includes("break-glass"),
+    };
   });
 
   // --- Lectura --------------------------------------------------------------
@@ -151,18 +229,18 @@ export function registerAdminRoutes(app: FastifyInstance, options: AdminRoutesOp
     return current;
   };
 
+  // El pulso de la operación y los tickets salen de la base: no necesitan a Discord y por eso
+  // siguen respondiendo con Discord caído. Es lo que hace útil la entrada de emergencia.
   app.get("/v1/admin/pulse", async (request, reply) => {
-    const deps = ready();
-    if (!deps) return reply.status(503).send({ error: "discord_not_configured" });
+    if (!admin) return reply.status(503).send({ error: "database_not_configured" });
     if (!(await requireSession(request, reply))) return;
-    return deps.admin.operationPulse(options.incidentCode);
+    return admin.operationPulse(options.incidentCode);
   });
 
   app.get("/v1/admin/tasks", async (request, reply) => {
-    const deps = ready();
-    if (!deps) return reply.status(503).send({ error: "discord_not_configured" });
+    if (!admin) return reply.status(503).send({ error: "database_not_configured" });
     if (!(await requireSession(request, reply))) return;
-    return deps.admin.listTasks();
+    return admin.listTasks();
   });
 
   app.get("/v1/admin/team", async (request, reply) => {
@@ -176,7 +254,7 @@ export function registerAdminRoutes(app: FastifyInstance, options: AdminRoutesOp
   // --- Escritura: solo Maintainer ------------------------------------------
 
   /**
-   * Solo `Maintainer` escribe.
+   * Escriben los `Maintainer` y los superusuarios de la configuración.
    *
    * No es jerarquía por gusto: desde aquí se reparten roles de Discord, y un rol de Discord es un
    * permiso sobre el repositorio y sobre esta misma pantalla. Repartir permisos es una acción de
@@ -188,7 +266,7 @@ export function registerAdminRoutes(app: FastifyInstance, options: AdminRoutesOp
   ) => {
     const current = await requireSession(request, reply);
     if (!current) return null;
-    if (!canWrite(current.roles)) {
+    if (!canWrite(current.roles) && !isSuperuser(current.discordUserId)) {
       reply.status(403).send({
         error: "forbidden",
         message: "Solo un Maintainer puede cambiar asignaciones y roles.",

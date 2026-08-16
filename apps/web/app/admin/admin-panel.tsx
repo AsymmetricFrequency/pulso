@@ -32,6 +32,8 @@ type Session = {
   discordAvatarUrl: string | null;
   roles: string[];
   canWrite: boolean;
+  superuser: boolean;
+  breakGlass: boolean;
 };
 
 type Pulse = {
@@ -255,6 +257,23 @@ export function AdminPanel() {
       {notice && (
         <p className={styles.notice} role="alert">
           {notice}
+        </p>
+      )}
+
+      {session.breakGlass && (
+        // La sesión de emergencia se anuncia en pantalla. Una puerta de emergencia por la que se
+        // entra sin notar que es la de emergencia deja de serlo y pasa a ser la puerta normal.
+        <p className={styles.breakGlass} role="alert">
+          Entraste por la <strong>vía de emergencia</strong>, sin pasar por Discord. La sesión dura
+          dos horas y quedó registrada en el servidor. Si Discord ya responde, sal y entra por el
+          camino normal.
+        </p>
+      )}
+
+      {session.superuser && !session.breakGlass && (
+        <p className={styles.readOnly}>
+          Escribes por configuración del servidor, no por tu rol de Discord. Quitarte el rol no te
+          saca de aquí.
         </p>
       )}
 

@@ -126,6 +126,17 @@
   font-size: 13px;
 }
 
+/* Rojo crítico y no ámbar: no es un aviso, es una condición anómala que hay que deshacer en cuanto
+   se pueda. */
+.breakGlass {
+  margin: 0 0 20px;
+  border-left: 3px solid var(--status-critical);
+  background: var(--status-critical-soft);
+  padding: 10px 12px;
+  color: var(--status-critical-ink);
+  font-size: 13px;
+}
+
 .section {
   margin-bottom: 40px;
 }
