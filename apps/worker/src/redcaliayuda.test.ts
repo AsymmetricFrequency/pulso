@@ -28,6 +28,30 @@ describe("mapRedCaliAyudaRecord", () => {
     expect(mapped?.externalKey).toBe(`necesidad:${baseRecord.id}`);
   });
 
+  // El importador ponía `zona` de título, así que un tercio del mapa mostraba una dirección
+  // donde debía decir qué falta. El título tiene que responder «qué necesitan», nunca «dónde».
+  it("titles the point with what is needed, not with the address", () => {
+    const mapped = mapRedCaliAyudaRecord({
+      ...baseRecord,
+      cantidad: "Agua, Pañales, Colchonetas",
+      zona: "Calle 8b 65-295",
+    });
+    expect(mapped?.title).toBe("Agua, Pañales, Colchonetas");
+    expect(mapped?.metadata.address).toBe("Calle 8b 65-295");
+  });
+
+  it("falls back to the category label when nobody wrote what they need", () => {
+    const mapped = mapRedCaliAyudaRecord({
+      ...baseRecord,
+      categoria: "ALIMENTOS",
+      cantidad: "",
+      descripcion: null,
+      zona: "Corregimiento Bitaco",
+    });
+    expect(mapped?.title).toBe("Alimentos");
+    expect(mapped?.metadata.address).toBe("Corregimiento Bitaco");
+  });
+
   it("maps known category codes to Pulso's taxonomy", () => {
     expect(mapRedCaliAyudaRecord({ ...baseRecord, categoria: "ALIMENTOS" })?.category).toBe(
       "alimentos",

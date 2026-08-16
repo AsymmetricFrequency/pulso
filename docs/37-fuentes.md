@@ -94,10 +94,31 @@ hace.
 | Candidata | Qué tiene | Cómo se accede | Qué hacer |
 | --- | --- | --- | --- |
 | [mapadelterremoto.com](https://www.mapadelterremoto.com/) | **3.110 puntos en 363 municipios**: 66 edificios colapsados, 2.838 escuelas, 285 centros de salud, 407 vías | Next.js, sin API pública. `robots.txt` permite rastreo | **Escribirles.** Dicen que publicarán en formato abierto tras el 30/11/2026 |
-| [Datos Abiertos Bogotá](https://datosabiertos.bogota.gov.co/) (IDECA) | Centros de acopio oficiales con qué falta y horarios | Portal oficial con licencia de reutilización | **Ingerir.** Es la única lista para conectar hoy |
+| [Datos Abiertos Bogotá](https://datosabiertos.bogota.gov.co/) | ~~Acopios oficiales~~ **No existen** | API CKAN abierta, pero sin datos de esta emergencia | **Descartada.** Ver abajo |
 | [cuidarcolombia.vercel.app](https://cuidarcolombia.vercel.app/) | 219 registros verificados de 111 fuentes, 13 municipios | Sin API | **Escribirles.** Ya no publican datos personales: misma postura que nosotros |
 | [Un Ladrillo por Colombia](https://unladrilloporcolombia.com) | Contadores de ladrillos y casas completadas | Sin API. Publica nombres de donantes | Enlazar. Es reconstrucción (P2), no emergencia |
 | [El Tiempo · mapa de acopios](https://www.eltiempo.com/datos/este-es-el-mapa-completo-de-los-centros-de-acopio-habilitados-en-colombia-para-ayudar-a-los-damnificados-del-terremoto-de-magnitud-7-3577654) | Mapa nacional de acopios | Medio de comunicación, no fuente primaria | Usar para localizar la fuente original |
+
+### Bogotá no tenía lo que dijimos que tenía
+
+El rastreo del 16 de agosto anotó el portal de Bogotá como «la única lista para conectar hoy». Al ir
+a construirlo, resultó falso. Su API CKAN es abierta y responde bien:
+
+```sh
+curl -s "https://datosabiertos.bogota.gov.co/api/3/action/package_search?q=acopio"
+```
+
+«acopio», «sismo» y «terremoto» no devuelven nada de esta emergencia, y de los **90 conjuntos
+actualizados desde el 1 de agosto ninguno la menciona**. Lo más cercano —la Bitácora de Emergencias
+del IDIGER— llega hasta el 31/12/2025 y está bajo **CC-BY-NC**, que nos obligaría a marcar esos
+puntos como no reutilizables comercialmente mientras el resto del mapa no lo está.
+
+**Antes de ingerir un portal, lee su `license_id`, no el nombre del portal.** Y verifica que el
+conjunto exista antes de escribir el ticket que dice ingerirlo.
+
+Que la única candidata «lista» resultara no existir no debilita el plan: lo confirma. Fuera de Cali
+y Pereira no hay acopios oficiales publicados, y no van a aparecer solos. Por eso `P0-9` (pedir) y
+`PL-13` (acordar un formato) valen más que cualquier importador nuevo.
 
 ### Lo que este rastreo dejó claro
 
@@ -111,15 +132,67 @@ que cambien su frontend; un scraper se rompe el martes y quema la relación.
 
 Ver [`35-alianzas.md`](35-alianzas.md) para cómo se abre esa conversación.
 
+## Auditoría de rendimiento — 16 de agosto
+
+Correr las once ingestas dice si una fuente responde. No dice **cuánto de lo que responde llega al
+mapa**, y esa era la pregunta que no nos habíamos hecho. Comparando lo que cada fuente publica
+contra lo que el importador guarda:
+
+| Fuente | Publica | Guardábamos | Diferencia |
+| --- | --- | --- | --- |
+| `contemos` | 1.906 | 311 | 1.408 son de la diáspora (Chile, Perú, Venezuela, Portugal) · **166 se caían por un bug** |
+| `gravitas` | 200 | 181 | 3 en EE. UU. · 2 `edificio` (excluido por privacidad) · **14 vías bloqueadas sin dónde ponerlas** |
+| `redcaliayuda` | 500 | 476 | 2 descartadas por traer teléfono · 22 sin coordenada |
+| `ayudaspereira` | 571 | 487 | 84 centros sin coordenada — no se pueden pintar |
+| `terremotocolombia` | 223 | 223 | — |
+| `secop` | 588 | 588 | 27 marcados relevantes para la emergencia |
+| `usgs` | 29.412 | 701 | Solo los territorios del incidente. Por diseño |
+
+### Los dos hallazgos
+
+**1. `contemos` descartaba 166 necesidades por su propia categoría válida.** `CATEGORY_MAP` no
+incluía `otro` — una categoría que existe en `community_reports` desde la migración `014` y que
+contemos usa de verdad. Arreglado: **311 → 476 puntos, +53 %.**
+
+**2. Gravitas publica 14 vías bloqueadas y aeropuertos cerrados que no importábamos.** Cierres por
+derrumbe sobre la calzada y aeropuertos sin operación en Cali, Buenaventura, Cartago, Quibdó,
+Armenia, Manizales, Pereira, Bogotá e Ibagué. Sin dirección, sin contacto, coordenada a nivel de
+ciudad: **cero datos personales.** Un equipo de rescate necesita saber por dónde puede llegar antes
+de saber a dónde va.
+
+No se arregló de una línea a propósito. `report_type` solo admite `rescate`, `pmu` y `necesidad`, y
+meter una vía cerrada como PMU le diría a un coordinador que hay un puesto de mando en el aeropuerto
+de Buenaventura. Necesita su propio tipo → ticket **`P0-10`**.
+
+### Lo que se confirmó que está bien
+
+Los **1.408 puntos de contemos fuera de Colombia** no son un fallo: son acopios de la diáspora
+colombiana en Santiago, Lima, Caracas y Lisboa. El filtro los descarta a propósito porque el mapa de
+Pulso es territorio colombiano. Y las dos categorías excluidas de Gravitas —`persona_disponible` y
+`edificio`— siguen fuera por la razón de siempre: pueden señalar el domicilio de una persona.
+
+---
+
 ## Calidad conocida
 
-**677 necesidades caen en la categoría `otro`** — el 30 % del total. Al mirarlas no son necesidades:
-son direcciones. «Calle 8b 65-295 medellín», «Corregimiento bitaco». El importador de
-`redcaliayuda` pone la ubicación en el título y deja la necesidad real en `metadata.needs`, que
-existe en 452 de ellas y no se usa.
+### Resuelto: los títulos que eran direcciones
 
-Consecuencia: la página pública dice «1.565 necesidades» y una de cada tres no dice qué necesita.
-Es un problema de honestidad del dato, no de estética, y no tiene ticket todavía.
+**677 necesidades mostraban una dirección donde debía decir qué falta.** «Calle 8b 65-295 medellín»,
+«Corregimiento bitaco». El importador de `redcaliayuda` usaba `zona` de título.
+
+Arreglado invirtiendo el orden: el título sale de lo que la persona pidió (`cantidad` primero, que
+es el texto más concreto), y la dirección se va a `metadata.address`, que es donde se busca una
+dirección. Cuando nadie escribió qué necesita, el título dice el tipo —«Alimentos», «Atención
+médica», «Evacuación por riesgo estructural»— en vez de fingir precisión.
+
+**Resultado: 677 → 33.** Los 33 que quedan son personas que escribieron su dirección en el campo de
+qué necesitan, y ahí ya no hay nada que un importador pueda adivinar sin inventar.
+
+### Abierto
+
+**84 centros de Ayudas Pereira no tienen coordenada** y por eso no se pintan. Tienen dirección en
+texto. Geocodificarlos es trabajo real —y una dirección mal geocodificada manda a un equipo al lugar
+equivocado, que es peor que no mostrarla.
 
 ---
 

@@ -106,6 +106,20 @@ hace que el mapa no pueda decir **dónde queda espacio para alojar a alguien**.
 - **Ojo:** las fuentes externas ya ingeridas se reclasifican sin perder procedencia. Nada de borrar
   y volver a importar.
 
+### `P0-10` · Vías bloqueadas y aeropuertos cerrados en el mapa · **M** · Backend + Frontend + Data
+
+Un equipo de rescate necesita saber **por dónde puede llegar** antes de saber a dónde va. Gravitas
+nos da 14 cierres —derrumbes sobre la calzada, aeropuertos sin operación en Cali, Buenaventura,
+Cartago, Quibdó, Armenia, Manizales, Pereira, Bogotá e Ibagué— y los descartamos en la ingesta.
+
+- **Acepta cuando:** un cierre se ve con símbolo propio, distinto de un acopio y de un PMU, y dice
+  desde cuándo está cerrado.
+- **Ojo — no es de una línea.** `mapGravitasFeature` fija `reportType: "pmu"`. Añadir `logistica` a
+  `IMPORTABLE_CATEGORIES` sin más metería una vía cerrada al mapa como Puesto de Mando Unificado, y
+  un coordinador leería que hay mando en el aeropuerto de Buenaventura. Hace falta un
+  `report_type` propio; la migración `024_rescue_reports.sql` muestra cómo se amplía el CHECK.
+- **Depende de:** nada. La spec completa está en el panel administrativo.
+
 ### `P0-5` · Que el triaje de contratos corra · **S** · AI + DevOps
 
 Está desplegado y quieto: falta `ANTHROPIC_API_KEY` en `/opt/pulso/.env`. Son ~3 USD por los 357
@@ -247,4 +261,5 @@ No son tickets todavía. Están aquí para que nadie los redescubra y crea que e
 | No hay pruebas de extremo a extremo del flujo de reporte | Lo más usado del sitio es lo menos probado | Frontend |
 | Sin límite de tasa en las rutas públicas de lectura | El día que nos enlacen desde un medio grande, se cae | DevOps |
 | Copernicus sin decidir | Puede que estemos por duplicar el trabajo de otro equipo | Data |
-| 677 necesidades importadas traen una dirección por título, no la necesidad | Un tercio de lo que el mapa llama «necesidad» no dice qué necesita. Ver [`37-fuentes.md`](37-fuentes.md) | Data |
+| ~~677 necesidades con una dirección por título~~ | Corregido el 16/08: el título sale de lo que se pidió y la dirección va a `metadata.address`. Quedan 33, que son personas que escribieron su dirección en el campo de qué necesitan | Hecho |
+| 84 centros de Ayudas Pereira sin coordenada | No se pintan en el mapa. Tienen dirección en texto, pero geocodificar mal manda un equipo al sitio equivocado | Data |

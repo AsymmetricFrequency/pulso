@@ -28,6 +28,9 @@ const CATEGORY_MAP: Record<string, string> = {
   animales: "animales",
   logistica: "logistica",
   impresion3d: "otro",
+  // `otro` es una categoría válida de community_reports y contemos la usa de verdad. Faltaba
+  // aquí, así que 166 necesidades reales se descartaban por no reconocer su propia categoría.
+  otro: "otro",
 };
 
 type ContemosRecord = {

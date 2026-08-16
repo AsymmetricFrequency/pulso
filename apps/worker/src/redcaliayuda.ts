@@ -39,6 +39,15 @@ const CATEGORY_MAP: Record<string, string> = {
   OTRO: "otro",
 };
 
+// Solo para el título cuando la persona no escribió qué necesita. Es lo mínimo honesto:
+// decir de qué tipo es la necesidad, en vez de mostrar su dirección como si fuera el pedido.
+const CATEGORY_LABELS: Record<string, string> = {
+  ALIMENTOS: "Alimentos",
+  ATENCION_MEDICA: "Atención médica",
+  EVACUACION: "Evacuación por riesgo estructural",
+  OTRO: "Necesidad sin especificar",
+};
+
 type NecesidadRecord = {
   id: string;
   codigo: string;
@@ -121,11 +130,19 @@ export function mapRedCaliAyudaRecord(
   if (LONG_DIGIT_RUN.test(freeText)) return undefined;
 
   const category = CATEGORY_MAP[record.categoria] ?? "otro";
-  const title = (record.zona?.trim() || record.descripcion?.trim() || record.codigo).slice(0, 140);
+  // `zona` es la dirección, no la necesidad. Ponerla de título hacía que un tercio del mapa
+  // dijera «Calle 8b 65-295» donde debía decir qué falta. El titular sale de lo que la persona
+  // pidió —`cantidad` primero, que es el texto más concreto— y la dirección se va a `address`.
+  const title = (
+    record.cantidad?.trim() ||
+    record.descripcion?.trim() ||
+    CATEGORY_LABELS[record.categoria] ||
+    record.codigo
+  ).slice(0, 140);
   if (title.length < 3) return undefined;
 
-  const description = [record.descripcion?.trim(), record.cantidad?.trim()]
-    .filter((part): part is string => Boolean(part) && part !== record.zona?.trim())
+  const description = [record.descripcion?.trim(), record.cantidad?.trim(), record.zona?.trim()]
+    .filter((part): part is string => Boolean(part) && part !== title)
     .join(" — ")
     .slice(0, 2_000);
 
@@ -138,6 +155,7 @@ export function mapRedCaliAyudaRecord(
     : undefined;
 
   const metadata: CommunityReportMetadata = {
+    address: record.zona?.trim() || undefined,
     city: record.ciudad?.trim() || undefined,
     urgency: record.prioridad?.trim() || undefined,
     needs,
