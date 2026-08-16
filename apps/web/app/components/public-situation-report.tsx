@@ -501,22 +501,23 @@ export function PublicSituationReport() {
             <p className="eyebrow">Donaciones monetarias y en especie</p>
             <div>
               <span>Registradas</span>
-              <strong>{formatMoney(donationFlow?.registered ?? 428_000_000)}</strong>
+              <strong>{formatMoney(donationFlow?.registered ?? 0)}</strong>
             </div>
             <div>
               <span>Conciliadas</span>
-              <strong>{formatMoney(donationFlow?.reconciled ?? 391_000_000)}</strong>
+              <strong>{formatMoney(donationFlow?.reconciled ?? 0)}</strong>
             </div>
             <div>
               <span>Asignadas</span>
-              <strong>{formatMoney(donationFlow?.allocated ?? 276_000_000)}</strong>
+              <strong>{formatMoney(donationFlow?.allocated ?? 0)}</strong>
             </div>
             <div>
               <span>Entrega verificada</span>
-              <strong>{formatMoney(donationFlow?.delivered ?? 184_000_000)}</strong>
+              <strong>{formatMoney(donationFlow?.delivered ?? 0)}</strong>
             </div>
             <small>
-              Cifras COP sintéticas. Cada entrega conserva unidad, cantidad, origen, destino,
+              Cifras en pesos colombianos. Quedan en cero mientras no haya un ledger de donaciones
+              conectado; cada entrega registrada conserva unidad, cantidad, origen, destino,
               receptor y evidencia.
             </small>
           </aside>

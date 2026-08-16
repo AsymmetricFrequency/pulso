@@ -40,7 +40,9 @@ export default function PublicHome() {
 
       <PublicSituationReport />
 
-      <p className="demoNotice">Demostración con datos sintéticos · Sin información personal</p>
+      <p className="demoNotice">
+        Datos reales de fuentes oficiales y reportes ciudadanos · Sin información personal
+      </p>
       <Footer />
     </main>
   );
