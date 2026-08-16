@@ -112,9 +112,17 @@ export function SiteNav() {
           ))}
         </nav>
 
+        {/* Las páginas propias van en su propia zona, separadas de las anclas del informe: son
+            destinos distintos y mezclarlas hacía que ni se encontraran ni se entendieran. */}
         <div className="psNavActions">
+          <a className="psNavLink" href="/auditoria">
+            Auditoría
+          </a>
           <a className="psNavLink" href="/reconstruccion">
             Reconstrucción
+          </a>
+          <a className="psNavLink" href="/field">
+            Campo
           </a>
           <a className="psNavCta" href="/operations">
             Operaciones
