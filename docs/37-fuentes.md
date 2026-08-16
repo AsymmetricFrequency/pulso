@@ -141,7 +141,7 @@ contra lo que el importador guarda:
 | Fuente | Publica | Guardábamos | Diferencia |
 | --- | --- | --- | --- |
 | `contemos` | 1.906 | 311 | 1.408 son de la diáspora (Chile, Perú, Venezuela, Portugal) · **166 se caían por un bug** |
-| `gravitas` | 200 | 181 | 3 en EE. UU. · 2 `edificio` (excluido por privacidad) · **14 vías bloqueadas sin dónde ponerlas** |
+| `gravitas` | 200 | 181 → **195** | 3 en EE. UU. · 2 `edificio` (excluido por privacidad) · **14 vías, recuperadas** |
 | `redcaliayuda` | 500 | 476 | 2 descartadas por traer teléfono · 22 sin coordenada |
 | `ayudaspereira` | 571 | 487 | 84 centros sin coordenada — no se pueden pintar |
 | `terremotocolombia` | 223 | 223 | — |
@@ -160,9 +160,27 @@ Armenia, Manizales, Pereira, Bogotá e Ibagué. Sin dirección, sin contacto, co
 ciudad: **cero datos personales.** Un equipo de rescate necesita saber por dónde puede llegar antes
 de saber a dónde va.
 
-No se arregló de una línea a propósito. `report_type` solo admite `rescate`, `pmu` y `necesidad`, y
-meter una vía cerrada como PMU le diría a un coordinador que hay un puesto de mando en el aeropuerto
-de Buenaventura. Necesita su propio tipo → ticket **`P0-10`**.
+No se arregló de una línea a propósito. `report_type` solo admitía `rescate`, `pmu` y `necesidad`, y
+meter una vía cerrada como PMU le habría dicho a un coordinador que hay un puesto de mando en el
+aeropuerto de Buenaventura.
+
+**Resuelto el 16/08 con un tipo propio, `via`** (migración `036_route_reports.sql`). Tres decisiones
+que conviene no deshacer:
+
+- **`route_status` es columna, no `metadata`.** `mapCommunityReportSchema` deja fuera todo el jsonb
+  para que el mapa no arrastre cientos de KB, y un valor que decide **cómo se pinta el marcador**
+  tiene que viajar en la proyección ligera. Es el mismo motivo por el que `signs_of_life` es columna.
+- **Una vía reabierta entra igual que una cerrada.** De los 14, el de Bogotá dice «Reabierto,
+  monitoreo continuo». Omitirlo dejaría el mapa afirmando un cierre que ya se levantó.
+- **La diferencia va en la forma, no solo en el color:** barra de sentido prohibido contra visto,
+  dentro del mismo círculo. Quien no separa el grafito del verde sigue sabiendo si puede pasar.
+
+Y no se colorean por estado de revisión, igual que los rescates: de una vía importa si se puede
+pasar, no si alguien de Operaciones ya la miró.
+
+Los títulos también se rehicieron. Gravitas los llama «Logistica — Cali», que no dice nada; lo útil
+está en `category_fields.detalle`, así que el titular queda «Aeropuerto cerrado — Buenaventura».
+Es reordenar lo que ya publicaron, no inventarles nada.
 
 ### Lo que se confirmó que está bien
 

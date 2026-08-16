@@ -106,19 +106,16 @@ hace que el mapa no pueda decir **dónde queda espacio para alojar a alguien**.
 - **Ojo:** las fuentes externas ya ingeridas se reclasifican sin perder procedencia. Nada de borrar
   y volver a importar.
 
-### `P0-10` · Vías bloqueadas y aeropuertos cerrados en el mapa · **M** · Backend + Frontend + Data
+### ~~`P0-10` · Vías bloqueadas y aeropuertos cerrados~~ · **Hecho el 16/08**
 
-Un equipo de rescate necesita saber **por dónde puede llegar** antes de saber a dónde va. Gravitas
-nos da 14 cierres —derrumbes sobre la calzada, aeropuertos sin operación en Cali, Buenaventura,
-Cartago, Quibdó, Armenia, Manizales, Pereira, Bogotá e Ibagué— y los descartamos en la ingesta.
+Los 14 cierres de Gravitas están en el mapa: 13 sin paso y uno reabierto. Tipo de reporte propio
+`via` (migración `036`), `route_status` como columna para que viaje en la proyección ligera del
+mapa, glifo propio y entrada en la leyenda. Ver [`37-fuentes.md`](37-fuentes.md).
 
-- **Acepta cuando:** un cierre se ve con símbolo propio, distinto de un acopio y de un PMU, y dice
-  desde cuándo está cerrado.
-- **Ojo — no es de una línea.** `mapGravitasFeature` fija `reportType: "pmu"`. Añadir `logistica` a
-  `IMPORTABLE_CATEGORIES` sin más metería una vía cerrada al mapa como Puesto de Mando Unificado, y
-  un coordinador leería que hay mando en el aeropuerto de Buenaventura. Hace falta un
-  `report_type` propio; la migración `024_rescue_reports.sql` muestra cómo se amplía el CHECK.
-- **Depende de:** nada. La spec completa está en el panel administrativo.
+**Lo que dejó dicho para el siguiente:** la tentación era añadir `logistica` a
+`IMPORTABLE_CATEGORIES` y ya. `mapGravitasFeature` fijaba `reportType: "pmu"`, así que eso habría
+metido el aeropuerto de Buenaventura al mapa como Puesto de Mando Unificado. Un dato mal etiquetado
+cuesta más que un dato ausente.
 
 ### `P0-5` · Que el triaje de contratos corra · **S** · AI + DevOps
 
