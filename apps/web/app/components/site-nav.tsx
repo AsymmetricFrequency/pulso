@@ -22,6 +22,50 @@ const SECTIONS = [
 export function SiteNav() {
   const [active, setActive] = useState<string>("informe");
 
+  /**
+   * Corrige el destino de un enlace profundo mientras la página termina de crecer.
+   *
+   * Casi todo el contenido llega por fetch después del primer pintado: el feed pasa de tres filas
+   * de respaldo a ocho reales, la intensidad de un esqueleto a una tabla de veintiún filas. El
+   * navegador salta al ancla con las alturas del primer pintado y, cuando el contenido de arriba
+   * crece, la sección buscada se va hacia abajo y el visitante queda mirando un hueco vacío — que
+   * es exactamente lo que pasaba al abrir /#intensidad.
+   *
+   * Se vuelve a apuntar mientras la altura del documento siga cambiando, con un tope de tiempo
+   * para no pelear con el desplazamiento de la persona si decide moverse.
+   */
+  useEffect(() => {
+    const targetId = window.location.hash.slice(1);
+    if (!targetId) return;
+
+    let lastHeight = document.body.scrollHeight;
+    const deadline = Date.now() + 4_000;
+    let cancelled = false;
+
+    const stopOnUserScroll = () => {
+      cancelled = true;
+    };
+    window.addEventListener("wheel", stopOnUserScroll, { once: true, passive: true });
+    window.addEventListener("touchstart", stopOnUserScroll, { once: true, passive: true });
+
+    const timer = window.setInterval(() => {
+      if (cancelled || Date.now() > deadline) {
+        window.clearInterval(timer);
+        return;
+      }
+      const height = document.body.scrollHeight;
+      if (height === lastHeight) return;
+      lastHeight = height;
+      document.getElementById(targetId)?.scrollIntoView({ block: "start" });
+    }, 250);
+
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("wheel", stopOnUserScroll);
+      window.removeEventListener("touchstart", stopOnUserScroll);
+    };
+  }, []);
+
   useEffect(() => {
     const elements = SECTIONS.map((section) => document.getElementById(section.id)).filter(
       (element): element is HTMLElement => element !== null,

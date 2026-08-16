@@ -603,6 +603,11 @@
 .shakingSkeleton {
   display: grid;
   gap: var(--space-3);
+  /* Reserva una altura parecida a la del contenido real. No es cosmético: sin
+     reservarla, el salto al cargar mueve todo lo que viene debajo y arruina
+     cualquier enlace profundo a una sección posterior. */
+  min-height: 320px;
+  align-content: start;
 }
 
 .shakingSkeleton i {
