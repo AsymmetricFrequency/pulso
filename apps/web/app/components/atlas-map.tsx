@@ -289,6 +289,29 @@ export function AtlasMap({
     onActiveReportChange?.(activeReport);
   }, [activeReport, onActiveReportChange]);
 
+  /**
+   * Completa el reporte abierto cuando viene de la vista ligera.
+   *
+   * En vista de país los marcadores no traen descripción ni metadata —esa es la razón de que
+   * quepan todos—, así que al abrir uno se pide su detalle. Se hace aquí y no en la tarjeta para
+   * que el estado siga viviendo en un solo lugar.
+   */
+  useEffect(() => {
+    if (!activeReport || activeReport.metadata !== undefined) return;
+    const controller = new AbortController();
+    fetch(`${apiUrl}/v1/public/incidents/${incidentCode}/community-reports/${activeReport.id}`, {
+      signal: controller.signal,
+    })
+      .then((response) =>
+        response.ok ? (response.json() as Promise<PublicCommunityReport>) : null,
+      )
+      .then((full) => {
+        if (full) setActiveReport((current) => (current?.id === full.id ? full : current));
+      })
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, [activeReport, apiUrl]);
+
   // biome-ignore lint/correctness/useExhaustiveDependencies: reset-on-change — fires whenever zoomedCode changes, body doesn't need to read it.
   useEffect(() => {
     setActiveReport(null);
@@ -374,7 +397,10 @@ export function AtlasMap({
 
   useEffect(() => {
     const controller = new AbortController();
-    const query = zoomedBoundingBox ? `?bbox=${zoomedBoundingBox.join(",")}` : "";
+    // Sin caja se pide la vista de mapa: trae todos los reportes del país en su forma ligera, en
+    // vez de los 800 más recientes. Ese recorte era lo que hacía que los puntos desaparecieran
+    // solos cada vez que entraba una ingesta.
+    const query = zoomedBoundingBox ? `?bbox=${zoomedBoundingBox.join(",")}` : "?view=map";
     fetch(`${apiUrl}/v1/public/incidents/${incidentCode}/community-reports${query}`, {
       signal: controller.signal,
     })

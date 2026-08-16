@@ -11,6 +11,12 @@ export type CommunityReportBoundingBox = [number, number, number, number];
 
 export type PublicCommunityReportQuery = {
   boundingBox?: CommunityReportBoundingBox;
+  /**
+   * `map` devuelve la proyección ligera —sin descripción ni metadata— para poder entregar
+   * **todos** los reportes sin recortar. El recorte por recencia era lo que hacía que los puntos
+   * desaparecieran solos del mapa cada vez que entraba una ingesta.
+   */
+  view?: "full" | "map";
 };
 
 /**
@@ -34,6 +40,7 @@ export interface CommunityReportRepository {
     incidentId: string,
     query?: PublicCommunityReportQuery,
   ): Promise<PublicCommunityReportPage>;
+  findPublicById(incidentId: string, reportId: string): Promise<PublicCommunityReportDto | null>;
   listByIncident(incidentId: string): Promise<CommunityReportDto[]>;
   review(
     reportId: string,

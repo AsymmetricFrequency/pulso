@@ -78,6 +78,7 @@ import {
   incidentSchema,
   issuedMissionInvitationSchema,
   issuedOperationsInvitationSchema,
+  mapCommunityReportSchema,
   operationalZoneSchema,
   operationsContractSchema,
   operationsSessionSchema,
@@ -554,7 +555,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
     },
   );
 
-  app.get<{ Params: { incidentCode: string }; Querystring: { bbox?: string } }>(
+  app.get<{ Params: { incidentCode: string }; Querystring: { bbox?: string; view?: string } }>(
     "/v1/public/incidents/:incidentCode/community-reports",
     async (request, reply) => {
       const incident = await incidents.findByCode(request.params.incidentCode);
@@ -570,16 +571,43 @@ export async function buildApp(options: BuildAppOptions = {}) {
           message: "bbox debe ser 'oesteLng,surLat,esteLng,norteLat' con valores válidos.",
         });
       }
-      const page = await communityReports.listPublicByIncident(
-        incident.id,
-        boundingBox ? { boundingBox } : {},
-      );
+      // `view=map` entrega la proyección ligera y, con ella, **todos** los reportes. El recorte
+      // por recencia era lo que hacía desaparecer puntos del mapa cada vez que entraba una
+      // ingesta; sin descripción ni metadata caben enteros.
+      const mapView = request.query.view === "map";
+      const page = await communityReports.listPublicByIncident(incident.id, {
+        ...(boundingBox ? { boundingBox } : {}),
+        ...(mapView ? { view: "map" as const } : {}),
+      });
       return reply
         .header("Cache-Control", "public, max-age=15, s-maxage=30, stale-while-revalidate=60")
         .send({
-          reports: publicCommunityReportSchema.array().parse(page.reports),
+          reports: mapView
+            ? mapCommunityReportSchema.array().parse(page.reports)
+            : publicCommunityReportSchema.array().parse(page.reports),
           total: page.total,
         });
+    },
+  );
+
+  app.get<{ Params: { incidentCode: string; reportId: string } }>(
+    "/v1/public/incidents/:incidentCode/community-reports/:reportId",
+    async (request, reply) => {
+      const incident = await incidents.findByCode(request.params.incidentCode);
+      if (!incident) {
+        return reply
+          .status(404)
+          .send({ error: "incident_not_found", message: "La emergencia no existe." });
+      }
+      const report = await communityReports.findPublicById(incident.id, request.params.reportId);
+      if (!report) {
+        return reply
+          .status(404)
+          .send({ error: "resource_not_found", message: "El reporte no existe." });
+      }
+      return reply
+        .header("Cache-Control", "public, max-age=60, s-maxage=120, stale-while-revalidate=300")
+        .send(publicCommunityReportSchema.parse(report));
     },
   );
 

@@ -95,17 +95,29 @@ export class PostgresCommunityReportRepository implements CommunityReportReposit
     // el mapa consulta cuando estás dentro de un departamento— el universo ya viene acotado por
     // geografía y cabe completo.
     const box = query.boundingBox;
+    // En vista de mapa se devuelven **todos** los reportes. El recorte por recencia era la causa
+    // de que los puntos desaparecieran solos: con 2.288 reportes y un tope de 800 ordenado por
+    // fecha, cada ingesta empujaba a los viejos fuera de la ventana y el mapa cambiaba de
+    // contenido sin que nadie lo tocara. Cabe entero porque la proyección ligera pesa una
+    // fracción: la descripción y la metadata son la mitad del payload y el mapa no las usa.
+    const mapView = query.view === "map";
     const scope = box
       ? this.sql`AND ST_Intersects(
           location,
           ST_MakeEnvelope(${box[0]}, ${box[1]}, ${box[2]}, ${box[3]}, 4326)
         )`
       : this.sql``;
-    const limit = box ? 4_000 : 800;
+    const limit = mapView ? 20_000 : box ? 4_000 : 800;
+
+    // La proyección ligera no pide description ni metadata a Postgres: no es solo ahorro de red,
+    // también evita traer 350 KB de jsonb que nadie va a leer.
+    const columns = mapView
+      ? this.sql`id, incident_id, report_type, category, title, status, created_at, updated_at`
+      : this.sql`*`;
 
     const [rows, [totalRow]] = await Promise.all([
       this.sql<DbRow[]>`
-        SELECT *, ST_AsGeoJSON(location)::json AS location
+        SELECT ${columns}, ST_AsGeoJSON(location)::json AS location
         FROM community_reports
         WHERE incident_id = ${incidentId} AND status <> 'rejected' ${scope}
         ORDER BY
@@ -124,6 +136,24 @@ export class PostgresCommunityReportRepository implements CommunityReportReposit
       reports: rows.map(reportFromRow).map(toPublic),
       total: Number(totalRow?.total ?? rows.length),
     };
+  }
+
+  /**
+   * Detalle de un reporte. Existe porque la vista de mapa entrega la proyección ligera: cuando
+   * alguien abre un marcador, ahí sí hace falta la descripción y la metadata, y pedirlas de a una
+   * cuesta menos que traerlas para los 2.288 puntos por si acaso.
+   */
+  async findPublicById(
+    incidentId: string,
+    reportId: string,
+  ): Promise<PublicCommunityReportDto | null> {
+    const [row] = await this.sql<DbRow[]>`
+      SELECT *, ST_AsGeoJSON(location)::json AS location
+      FROM community_reports
+      WHERE incident_id = ${incidentId} AND id = ${reportId} AND status <> 'rejected'
+      LIMIT 1
+    `;
+    return row ? toPublic(reportFromRow(row)) : null;
   }
 
   async listByIncident(incidentId: string): Promise<CommunityReportDto[]> {

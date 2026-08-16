@@ -141,3 +141,146 @@ export const IconCrosshair = (props: IconProps) => (
     <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
   </Icon>
 );
+
+/* -------------------------------------------------------------------------
+   Categorías de necesidad
+   ---------------------------------------------------------------------- */
+
+export const IconWater = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M12 3s6 6.4 6 10.4a6 6 0 0 1-12 0C6 9.4 12 3 12 3Z" />
+    <path d="M9.5 14.5a2.5 2.5 0 0 0 2.5 2.5" />
+  </Icon>
+);
+
+export const IconFood = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M4 12a5 5 0 0 1 5-5h6a5 5 0 0 1 5 5v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6Z" />
+    <path d="M8 7V5.5M12 7V5M16 7V5.5M8 12h8" />
+  </Icon>
+);
+
+export const IconHealth = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M5 3v5a4 4 0 0 0 8 0V3" />
+    <path d="M9 12v2a5 5 0 0 0 10 0v-1" />
+    <circle cx="19" cy="11" r="2" />
+  </Icon>
+);
+
+export const IconShelter = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M12 4 3 20h18L12 4Z" />
+    <path d="M12 4v16M8.5 20l3.5-6 3.5 6" />
+  </Icon>
+);
+
+export const IconHygiene = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M9 8h6a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2Z" />
+    <path d="M10 8V5h4v3M7 13h10" />
+  </Icon>
+);
+
+export const IconRubble = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M3 20h18" />
+    <path d="M5 20l2.5-5 3 3 2.5-6 3 5 2 3" />
+    <path d="M7 9 5.5 6M16 7l2-2" />
+  </Icon>
+);
+
+export const IconVolunteer = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M12 9.5c-1.6-2.6-5.5-1.4-5.5 1.4 0 2.2 3 4.4 5.5 6.1 2.5-1.7 5.5-3.9 5.5-6.1 0-2.8-3.9-4-5.5-1.4Z" />
+    <path d="M3 21c1.2-2 3.4-3 5-3M21 21c-1.2-2-3.4-3-5-3" />
+  </Icon>
+);
+
+export const IconPaw = (props: IconProps) => (
+  <Icon {...props}>
+    <ellipse cx="6.5" cy="10" rx="1.9" ry="2.5" />
+    <ellipse cx="17.5" cy="10" rx="1.9" ry="2.5" />
+    <ellipse cx="10" cy="6" rx="1.8" ry="2.3" />
+    <ellipse cx="14" cy="6" rx="1.8" ry="2.3" />
+    <path d="M12 13c-2.5 0-4.5 1.9-4.5 4S9.5 21 12 21s4.5-1.9 4.5-4-2-4-4.5-4Z" />
+  </Icon>
+);
+
+export const IconTruck = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M3 7a1 1 0 0 1 1-1h9v10H4a1 1 0 0 1-1-1V7Z" />
+    <path d="M13 10h4l3 3v3h-7" />
+    <circle cx="7.5" cy="18" r="1.8" />
+    <circle cx="16.5" cy="18" r="1.8" />
+  </Icon>
+);
+
+export const IconDot = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="m12 4 3.5 8-3.5 8-3.5-8 3.5-8Z" />
+  </Icon>
+);
+
+export const IconSos = (props: IconProps) => (
+  <Icon {...props}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M9 9.5c0-.8.9-1.5 2-1.5s2 .7 2 1.5-1 1.2-2 1.5-2 .7-2 1.5.9 1.5 2 1.5 2-.7 2-1.5" />
+    <path d="M12 6.5v11" />
+  </Icon>
+);
+
+/* -------------------------------------------------------------------------
+   Oficios de reconstrucción
+   ---------------------------------------------------------------------- */
+
+export const IconCompass = (props: IconProps) => (
+  <Icon {...props}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="m15.5 8.5-2 5-5 2 2-5 5-2Z" />
+  </Icon>
+);
+
+export const IconCrane = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M4 21h8M8 21V4M8 4h11M19 4v4" />
+    <path d="M8 4 3 9h5M19 8v4M17 12h4l-2 3h-.1L17 12Z" />
+  </Icon>
+);
+
+export const IconBrick = (props: IconProps) => (
+  <Icon {...props}>
+    <rect x="3" y="5" width="18" height="5" rx="1" />
+    <rect x="3" y="14" width="18" height="5" rx="1" />
+    <path d="M11 5v5M15 14v5" />
+  </Icon>
+);
+
+export const IconPlug = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M9 3v5M15 3v5" />
+    <path d="M6 8h12v3a6 6 0 0 1-12 0V8Z" />
+    <path d="M12 17v4" />
+  </Icon>
+);
+
+export const IconWrench = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M15.5 3.5a5 5 0 0 0-5.9 6.5L3 16.6 5.4 19l6.6-6.6a5 5 0 0 0 6.5-5.9l-2.9 2.9-2.6-.7-.7-2.6 3.2-2.6Z" />
+  </Icon>
+);
+
+export const IconSaw = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M3 8h13l4 4-4 4H3" />
+    <path d="m5 16 1.5 2 2-2 2 2 2-2 2 2 1.5-2" />
+  </Icon>
+);
+
+export const IconStore = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M4 9h16v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9Z" />
+    <path d="M3 9 5 4h14l2 5" />
+    <path d="M9 20v-6h6v6" />
+  </Icon>
+);

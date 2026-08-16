@@ -96,6 +96,24 @@ export const communityReportSchema = publicCommunityReportSchema.extend({
   updatedAt: z.iso.datetime({ offset: true }),
 });
 
+/**
+ * Proyección para dibujar el mapa.
+ *
+ * Deja fuera `description` y `metadata`, que son la mitad del peso de la respuesta: con 2.288
+ * reportes el listado completo pasa de 2 MB, y el mapa no necesita nada de eso para pintar un
+ * punto. El detalle se pide por separado cuando alguien abre un marcador, que es cuando de verdad
+ * hace falta.
+ */
+export const mapCommunityReportSchema = publicCommunityReportSchema.pick({
+  id: true,
+  reportType: true,
+  category: true,
+  title: true,
+  location: true,
+  status: true,
+  createdAt: true,
+});
+
 export const reviewCommunityReportSchema = z.object({
   status: communityReportStatusSchema.exclude(["reported"]),
   notes: z.string().trim().max(2_000).nullable().default(null),
@@ -122,6 +140,7 @@ export type CommunityReportMetadata = z.infer<typeof communityReportMetadataSche
 export type CreateCommunityReportInput = z.infer<typeof createCommunityReportSchema>;
 export type PublicCommunityReportDto = z.infer<typeof publicCommunityReportSchema>;
 export type CommunityReportDto = z.infer<typeof communityReportSchema>;
+export type MapCommunityReportDto = z.infer<typeof mapCommunityReportSchema>;
 export type ReviewCommunityReportInput = z.infer<typeof reviewCommunityReportSchema>;
 export type UpsertExternalCommunityReportInput = z.infer<
   typeof upsertExternalCommunityReportSchema

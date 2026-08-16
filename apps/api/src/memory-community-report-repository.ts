@@ -147,6 +147,16 @@ export class MemoryCommunityReportRepository implements CommunityReportRepositor
     };
   }
 
+  async findPublicById(
+    incidentId: string,
+    reportId: string,
+  ): Promise<PublicCommunityReportDto | null> {
+    await this.#requireIncident(incidentId);
+    const report = this.#reports.get(reportId);
+    if (!report || report.incidentId !== incidentId || report.status === "rejected") return null;
+    return toPublic(report);
+  }
+
   async listByIncident(incidentId: string): Promise<CommunityReportDto[]> {
     await this.#requireIncident(incidentId);
     return [...this.#reports.values()]
