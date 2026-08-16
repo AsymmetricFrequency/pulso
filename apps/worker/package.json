@@ -22,9 +22,11 @@
     "ingest:usgs": "tsx src/ingest-usgs.ts",
     "publish:situation-report": "tsx src/publish-situation-report-entrypoint.ts",
     "seed:material-catalog": "tsx src/seed-material-catalog-entrypoint.ts",
-    "seed:cali-suppliers": "tsx src/seed-cali-suppliers-entrypoint.ts"
+    "seed:cali-suppliers": "tsx src/seed-cali-suppliers-entrypoint.ts",
+    "triage:contracts": "tsx src/triage-contracts.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.117.1",
     "@pulso/schemas": "workspace:*",
     "bullmq": "6.1.0",
     "cheerio": "^1.2.0",

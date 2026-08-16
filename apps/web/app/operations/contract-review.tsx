@@ -28,7 +28,21 @@ export type OperationsContract = {
     declaredUrgency: boolean;
     strength: "strong" | "weak" | "none";
   } | null;
+  triage: {
+    verdict: "likely" | "unlikely" | "unclear";
+    confidence: number;
+    rationale: string;
+    model: string;
+    at: string;
+  } | null;
   provenance: { sourceSystem: string; sourceReference: string; retrievedAt: string };
+};
+
+/** Cómo se rotula la lectura previa. En condicional: es una opinión, no una decisión. */
+const TRIAGE_LABEL: Record<NonNullable<OperationsContract["triage"]>["verdict"], string> = {
+  likely: "Parece de la emergencia",
+  unlikely: "Parece operación ordinaria",
+  unclear: "No alcanza para decidir",
 };
 
 type Decision = "confirmed" | "unrelated" | "probable";
@@ -175,6 +189,22 @@ export function ContractReview({
                   </a>
                 ) : null}
               </div>
+
+              {/* La lectura previa va debajo del objeto, no encima: quien revisa lee primero el
+                  contrato y después lo que opinó la máquina. Al revés se ancla en la sugerencia y
+                  el sesgo es justo lo que este flujo existe para evitar. */}
+              {contract.triage ? (
+                <div className={styles.reviewTriage} data-verdict={contract.triage.verdict}>
+                  <p className={styles.reviewTriageTop}>
+                    <strong>{TRIAGE_LABEL[contract.triage.verdict]}</strong>
+                    <span>
+                      lectura automática · {Math.round(contract.triage.confidence * 100)}% ·{" "}
+                      {contract.triage.model}
+                    </span>
+                  </p>
+                  <p className={styles.reviewTriageWhy}>{contract.triage.rationale}</p>
+                </div>
+              ) : null}
 
               {contract.relevanceSignals &&
               (contract.relevanceSignals.emergencyTerms.length > 0 ||
