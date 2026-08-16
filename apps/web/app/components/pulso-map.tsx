@@ -154,6 +154,12 @@ export function PulsoMap({
     });
     mapRef.current = map;
 
+    // Un mapa que falla en silencio es peor que uno que no carga: deja un rectángulo blanco sin
+    // explicación. El error se registra siempre para poder diagnosticarlo desde la consola.
+    map.on("error", (event: { error?: Error }) => {
+      console.error("[PulsoMap]", event.error?.message ?? event);
+    });
+
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-left");
     map.addControl(
       new maplibregl.AttributionControl({ compact: true, customAttribution: MAP_ATTRIBUTION }),
