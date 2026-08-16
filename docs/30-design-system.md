@@ -119,12 +119,17 @@ Los iconos comparten caja de 24, trazo de 1.75 y `currentColor`, así que hereda
 y escalan con él. Los decorativos van con `aria-hidden`: la etiqueta ya está escrita al lado y
 anunciarla dos veces estorba más de lo que ayuda.
 
-Quedan a propósito los emoji de **categoría de necesidad** (agua, alimentos, salud, refugio…) y los
-marcadores del mapa: ahí el emoji es el contenido, no el adorno, y su lectura universal en una
-emergencia pesa más que la consistencia visual.
+La migración quedó completa: las once **categorías de necesidad**, los ocho **oficios de
+reconstrucción**, las pestañas del módulo y los dos **marcadores del mapa**.
+
+Los marcadores se exportan como trazo (`REPORT_MARKER_PATH`, `reportMarkerSvg`) y no como
+componente, porque se dibujan en dos contextos incompatibles: dentro del SVG del mapa de país,
+donde son nodos de React, y dentro del `divIcon` de Leaflet, donde son una cadena de HTML.
+
+Se conservan `✕` y `✓`: son signos tipográficos monocromos, no emoji de color. Heredan color y
+tamaño de la fuente y son la convención para cerrar y para marcar.
 
 ## Lo que falta
 
-- Migrar los emoji de categoría a iconos propios, si se decide que la consistencia pesa más.
 - La escala tipográfica del sistema (`--text-*`) todavía convive con tamaños en píxeles en las
   secciones más antiguas; se irán sustituyendo al tocarlas.
