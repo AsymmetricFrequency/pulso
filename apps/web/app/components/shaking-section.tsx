@@ -1,0 +1,136 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { BarChart, type BarDatum, DataTable } from "./charts";
+
+const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+
+type TerritoryShaking = {
+  territoryCode: string | null;
+  territoryName: string;
+  mmiMax: number;
+  mmiMean: number | null;
+  mmiLabel: string;
+  gridCells: number;
+  computedAt: string;
+};
+
+/**
+ * Color por grado de Mercalli, tomado de los tokens de estado.
+ *
+ * La escala es la del USGS: el salto de tono ocurre donde la percepción cambia
+ * de nombre, no repartido a ojo.
+ */
+const mmiStatus = (value: number): { token: string; color: string } => {
+  if (value >= 8) return { token: "critical", color: "var(--status-critical)" };
+  if (value >= 7) return { token: "severe", color: "var(--status-severe)" };
+  if (value >= 6) return { token: "strong", color: "var(--status-strong)" };
+  if (value >= 5) return { token: "moderate", color: "var(--status-moderate)" };
+  return { token: "light", color: "var(--status-light)" };
+};
+
+const formatDateTime = (value: string) =>
+  new Intl.DateTimeFormat("es-CO", {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "America/Bogota",
+  }).format(new Date(value));
+
+export function ShakingSection() {
+  const [rows, setRows] = useState<TerritoryShaking[] | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch(`${apiUrl}/v1/public/incidents/colombia-2026/shaking`, { signal: controller.signal })
+      .then((response) => {
+        if (!response.ok) throw new Error("shaking unavailable");
+        return response.json() as Promise<TerritoryShaking[]>;
+      })
+      .then(setRows)
+      .catch((reason: unknown) => {
+        if (!(reason instanceof DOMException && reason.name === "AbortError")) setRows([]);
+      });
+    return () => controller.abort();
+  }, []);
+
+  // Sin dato no se dibuja la sección: una gráfica vacía sugiere que no hubo
+  // sacudida, que es exactamente lo contrario de lo que significa.
+  if (!rows || rows.length === 0) return null;
+
+  const chartData: BarDatum[] = rows.slice(0, 10).map((row) => ({
+    label: row.territoryName,
+    value: row.mmiMax,
+    hint: row.mmiLabel,
+    color: mmiStatus(row.mmiMax).color,
+  }));
+
+  const updated = rows[0]?.computedAt;
+
+  return (
+    <section className="shakingSection" id="intensidad" aria-labelledby="shaking-title">
+      <div className="sectionHeading">
+        <div>
+          <p className="psEyebrow">Intensidad sísmica</p>
+          <h2 id="shaking-title">Dónde sacudió más fuerte</h2>
+        </div>
+        <span className="sectionNote">
+          {rows.length} departamentos · USGS ShakeMap
+          {updated ? ` · ${formatDateTime(updated)}` : ""}
+        </span>
+      </div>
+
+      {/* La advertencia va antes del dato, no en una nota al pie: quien lee la
+          gráfica tiene que saber qué está mirando antes de sacar conclusiones. */}
+      <p className="shakingCaveat">
+        La intensidad es la <strong>sacudida</strong> que modeló el USGS a partir de estaciones
+        sismológicas, no el daño observado. Un municipio con grado severo recibió un movimiento muy
+        fuerte; cuántas edificaciones cedieron depende de cómo estén construidas y eso solo lo dice
+        una evaluación en terreno.
+      </p>
+
+      <div className="shakingGrid">
+        <div className="psCard shakingChartCard">
+          <BarChart
+            data={chartData}
+            title="Intensidad máxima por departamento, escala de Mercalli"
+            description="Los diez departamentos con mayor intensidad sísmica modelada."
+            max={10}
+            formatValue={(value) => value.toFixed(1)}
+          />
+        </div>
+
+        <DataTable
+          caption="Intensidad sísmica por departamento"
+          columns={[
+            { key: "territorio", label: "Departamento" },
+            { key: "mmi", label: "MMI máx", numeric: true },
+            { key: "percepcion", label: "Percepción" },
+            { key: "celdas", label: "Celdas", numeric: true },
+          ]}
+        >
+          {rows.map((row) => {
+            const status = mmiStatus(row.mmiMax);
+            return (
+              <tr key={row.territoryCode ?? row.territoryName}>
+                <td className="strongCell">{row.territoryName}</td>
+                <td className="num">{row.mmiMax.toFixed(1)}</td>
+                <td>
+                  <span className="psBadge" data-status={status.token}>
+                    {row.mmiLabel}
+                  </span>
+                </td>
+                {/* La cobertura de la malla es honestidad, no relleno: un
+                    departamento con tres celdas dentro no está medido igual
+                    que uno con dos mil. */}
+                <td className="num">{row.gridCells.toLocaleString("es-CO")}</td>
+              </tr>
+            );
+          })}
+        </DataTable>
+      </div>
+    </section>
+  );
+}

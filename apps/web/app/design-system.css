@@ -1,0 +1,512 @@
+/* =============================================================================
+   Sistema de diseño de Pulso
+   =============================================================================
+
+   Qué resuelve: antes cada componente elegía su propio gris, su propio radio y
+   su propia duración, así que la interfaz se sentía hecha por manos distintas.
+   Aquí viven las decisiones una sola vez y todo lo demás las consume.
+
+   La referencia visual es el "soft UI" táctil: superficies con profundidad
+   suave, esquinas generosas, sombras cálidas. Lo que NO se toma de ese estilo
+   es el pastel decorativo: esta interfaz publica cifras de fallecidos y de
+   dinero público, y un color de juguete le restaría la credibilidad que el
+   contenido necesita. Calidez sí; frivolidad no.
+   ========================================================================== */
+
+:root {
+  /* --- Escala de espacio: base 4, la misma de Material y Apple ------------ */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+
+  /* --- Radios ------------------------------------------------------------- */
+  --r-xs: 6px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --r-full: 999px;
+
+  /* --- Tipografía --------------------------------------------------------- */
+  --font-display: Georgia, "Times New Roman", serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  /* Cifras tabulares para todo dato numérico: una columna de montos que baila
+     al cambiar de dígito es ilegible de un vistazo. */
+  --font-numeric: var(--font-body);
+
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 15px;
+  --text-md: 17px;
+  --text-lg: 20px;
+  --text-xl: 26px;
+  --text-2xl: 34px;
+  --text-3xl: 44px;
+
+  /* --- Superficies --------------------------------------------------------
+     Cuatro planos, no infinitos: fondo, elevado, hundido y acento. Con más de
+     cuatro nadie recuerda cuál va encima de cuál. */
+  --surface-base: var(--paper);
+  --surface-raised: #fffdf7;
+  --surface-sunken: #ebe6d8;
+  --surface-accent: #e9f1ed;
+  --surface-inverse: #10231c;
+
+  --border-subtle: #e2ddcd;
+  --border-default: var(--line);
+  --border-strong: var(--line-strong);
+
+  --text-primary: var(--ink);
+  --text-secondary: var(--muted);
+  --text-tertiary: #8a978f;
+  --text-inverse: #eef6f1;
+
+  /* --- Elevación ----------------------------------------------------------
+     Dos capas por nivel (ambiental + directa) y teñidas con la tinta del
+     proyecto, no con negro puro: una sombra gris sobre papel crema se ve
+     sucia. */
+  --elev-1: 0 1px 2px rgba(18, 36, 29, 0.04), 0 2px 6px rgba(18, 36, 29, 0.05);
+  --elev-2: 0 2px 4px rgba(18, 36, 29, 0.05), 0 8px 20px rgba(18, 36, 29, 0.07);
+  --elev-3: 0 4px 8px rgba(18, 36, 29, 0.06), 0 16px 36px rgba(18, 36, 29, 0.1);
+  --elev-4: 0 8px 16px rgba(18, 36, 29, 0.08), 0 28px 60px rgba(18, 36, 29, 0.14);
+
+  /* --- Estado: un color por significado, no por componente ---------------- */
+  --status-critical: #c2371f;
+  --status-critical-soft: #fbe9e4;
+  --status-severe: #d94b38;
+  --status-severe-soft: #fdeee9;
+  --status-strong: #c8811d;
+  --status-strong-soft: #fdf3e3;
+  --status-moderate: #35708f;
+  --status-moderate-soft: #e8f1f5;
+  --status-light: #257350;
+  --status-light-soft: #e6f2ec;
+  --status-none: #9aa39d;
+  --status-none-soft: #eeeee7;
+}
+
+/* =============================================================================
+   Primitivas
+   ========================================================================== */
+
+/* --- Superficie elevada ---------------------------------------------------
+   El degradado casi imperceptible hacia arriba es lo que da la sensación
+   táctil del estilo de referencia: simula luz cayendo sobre una superficie
+   física, sin recurrir a un pastel. */
+.psCard {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md);
+  background: linear-gradient(180deg, #fff 0%, var(--surface-raised) 100%);
+  box-shadow: var(--elev-1);
+  transition:
+    transform var(--dur) var(--ease-out),
+    box-shadow var(--dur) var(--ease-out),
+    border-color var(--dur) var(--ease-out);
+}
+
+.psCard.interactive:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary);
+  box-shadow: var(--elev-3);
+}
+
+.psCard.flat {
+  background: var(--surface-raised);
+  box-shadow: none;
+}
+
+/* --- Etiqueta de sección --------------------------------------------------- */
+.psEyebrow {
+  margin: 0 0 var(--space-2);
+  color: var(--primary);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* --- Distintivo de estado -------------------------------------------------- */
+.psBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  border-radius: var(--r-full);
+  padding: 3px 10px;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.psBadge[data-status="critical"] {
+  background: var(--status-critical-soft);
+  color: var(--status-critical);
+}
+.psBadge[data-status="severe"] {
+  background: var(--status-severe-soft);
+  color: #a8331f;
+}
+.psBadge[data-status="strong"] {
+  background: var(--status-strong-soft);
+  color: #8a5a12;
+}
+.psBadge[data-status="moderate"] {
+  background: var(--status-moderate-soft);
+  color: #245268;
+}
+.psBadge[data-status="light"] {
+  background: var(--status-light-soft);
+  color: #1a5a3d;
+}
+.psBadge[data-status="none"] {
+  background: var(--status-none-soft);
+  color: #6a736d;
+}
+
+/* --- Cifra destacada ------------------------------------------------------- */
+.psStat {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.psStat > .label {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.psStat > .value {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+.psStat > .note {
+  color: var(--text-tertiary);
+  font-size: var(--text-xs);
+  line-height: 1.45;
+}
+
+/* =============================================================================
+   Tabla de datos
+   =========================================================================== */
+
+.psTableWrap {
+  /* La tabla se desplaza dentro de su caja: una tabla ancha que empuja el
+     ancho de la página rompe el resto del diseño en móvil. */
+  overflow-x: auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md);
+  background: var(--surface-raised);
+  box-shadow: var(--elev-1);
+}
+
+.psTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.psTable thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  border-bottom: 1px solid var(--border-default);
+  background: var(--surface-sunken);
+  padding: var(--space-3) var(--space-4);
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.psTable tbody td {
+  border-bottom: 1px solid var(--border-subtle);
+  padding: var(--space-3) var(--space-4);
+  vertical-align: middle;
+}
+
+.psTable tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.psTable tbody tr {
+  transition: background var(--dur-fast) var(--ease-out);
+}
+
+.psTable tbody tr:hover {
+  background: rgba(4, 98, 74, 0.04);
+}
+
+.psTable .num {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.psTable .strongCell {
+  font-weight: 700;
+}
+
+/* =============================================================================
+   Gráficos
+   =========================================================================== */
+
+.psChart {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.psChart .track {
+  fill: var(--surface-sunken);
+}
+
+.psChart .barLabel,
+.psChart .axisLabel {
+  fill: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 11px;
+}
+
+.psChart .barValue {
+  fill: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.psChart .bar {
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+.psChart .bar:hover {
+  opacity: 0.82;
+}
+
+/* La entrada escalonada comunica que son series de una lista, no un bloque
+   que apareció de golpe. */
+@keyframes psBarGrow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.psChart .bar.animated {
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: psBarGrow var(--dur-slow) var(--ease-out) backwards;
+}
+
+.psLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+}
+
+.psLegend li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.psLegend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+/* =============================================================================
+   Navegación
+   =========================================================================== */
+
+.psNavBar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  /* El desenfoque deja ver que hay contenido debajo, que es lo que comunica
+     que la barra flota sobre la página y no la corta. */
+  backdrop-filter: saturate(1.4) blur(12px);
+  background: rgba(243, 239, 226, 0.82);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .psNavBar {
+    background: var(--paper);
+  }
+}
+
+.psNavLink {
+  position: relative;
+  padding: var(--space-2) 0;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.psNavLink:hover,
+.psNavLink[aria-current="true"] {
+  color: var(--primary-dark);
+}
+
+/* El subrayado del enlace activo se dibuja con transform para no provocar
+   reflujo en cada cambio de sección. */
+.psNavLink::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  border-radius: var(--r-full);
+  background: var(--primary);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--dur) var(--ease-out);
+}
+
+.psNavLink[aria-current="true"]::after {
+  transform: scaleX(1);
+}
+
+@media (max-width: 900px) {
+  .psNavBar {
+    position: static;
+    backdrop-filter: none;
+  }
+}
+
+/* =============================================================================
+   Sección de intensidad sísmica
+   =========================================================================== */
+
+.shakingSection {
+  scroll-margin-top: 72px;
+  margin-top: var(--space-20);
+}
+
+.shakingCaveat {
+  max-width: 78ch;
+  margin: 0 0 var(--space-6);
+  border-left: 3px solid var(--status-strong);
+  background: var(--status-strong-soft);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  padding: var(--space-3) var(--space-4);
+  color: #7a4f13;
+  font-size: var(--text-sm);
+  line-height: 1.6;
+}
+
+.shakingGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.shakingChartCard {
+  padding: var(--space-5);
+}
+
+@media (max-width: 900px) {
+  .shakingGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* =============================================================================
+   Barra de navegación
+   =========================================================================== */
+
+.psNavInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  width: min(1180px, calc(100% - 32px));
+  min-height: 64px;
+  margin: 0 auto;
+}
+
+.psNavSections {
+  display: flex;
+  gap: var(--space-6);
+}
+
+.psNavActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.psNavCta {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  border: 1px solid var(--primary);
+  border-radius: var(--r-sm);
+  background: var(--primary);
+  padding: 0 var(--space-4);
+  color: #fff;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.psNavCta:hover {
+  background: var(--primary-dark);
+}
+
+.psNavCta:active {
+  transform: scale(0.97);
+}
+
+/* Debajo de 900px las seis secciones no caben: se desplazan en horizontal
+   dentro de su propia franja en vez de romper la barra en dos líneas. */
+@media (max-width: 900px) {
+  .psNavInner {
+    flex-wrap: wrap;
+    padding: var(--space-3) 0;
+  }
+
+  .psNavSections {
+    order: 3;
+    width: 100%;
+    overflow-x: auto;
+    gap: var(--space-4);
+    padding-bottom: var(--space-1);
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .psNavSections .psNavLink {
+    white-space: nowrap;
+  }
+}

@@ -4,6 +4,7 @@ import { type CSSProperties, useEffect, useMemo, useState } from "react";
 import { AtlasMap, type PublicMapLayer } from "./atlas-map";
 import { CommunityReportDetailCard } from "./community-report-detail";
 import type { PublicCommunityReport } from "./community-report-form";
+import { ShakingSection } from "./shaking-section";
 
 const defaultLayer: { id: PublicMapLayer; label: string; description: string } = {
   id: "coverage",
@@ -349,7 +350,7 @@ export function PublicSituationReport() {
 
       {/* Lo que está pasando en vivo va antes del mapa: quien entra quiere saber primero qué
           ocurrió, y solo después dónde. El mapa es la herramienta para profundizar, no la portada. */}
-      <section className="situationSection" aria-labelledby="situation-title">
+      <section className="situationSection" id="situacion" aria-labelledby="situation-title">
         <div className="sectionHeading">
           <div>
             <p className="eyebrow">Actualizaciones verificables</p>
@@ -386,6 +387,8 @@ export function PublicSituationReport() {
           </button>
         ) : null}
       </section>
+
+      <ShakingSection />
 
       <section className="mapSection" id="mapa" aria-labelledby="map-section-title">
         <div className="sectionHeading">
