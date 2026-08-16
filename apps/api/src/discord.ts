@@ -175,8 +175,13 @@ export class DiscordClient {
       raw = await this.#request<DiscordMemberPayload>(
         `/guilds/${this.config.guildId}/members/${userId}`,
       );
-    } catch {
-      throw new DiscordAccessDeniedError("No perteneces al servidor de Pulso");
+    } catch (error) {
+      // La causa se conserva. Sin ella, un 403 de configuración y un 404 de «esta persona no está
+      // en el servidor» llegan a la pantalla con el mismo texto, y desde fuera son indistinguibles
+      // — que es exactamente la situación en la que uno se queda mirando el mismo error una hora.
+      throw new DiscordAccessDeniedError(
+        `No se pudo leer al miembro ${userId}: ${(error as Error).message}`,
+      );
     }
     return toMember(raw, index);
   }

@@ -138,10 +138,13 @@ export function registerAdminRoutes(app: FastifyInstance, options: AdminRoutesOp
       reply.setCookie(SESSION_COOKIE, token, { ...cookieOptions, maxAge: 12 * 3600 });
       return reply.redirect(`${panelUrl}/admin`);
     } catch (error) {
+      // Se registra siempre, también el rechazo esperado. La pantalla dice «no perteneces al
+      // servidor» porque es lo único que le sirve a quien la mira; el motivo real —403 de
+      // configuración, 404 de miembro ausente, Discord caído— solo se puede distinguir aquí.
+      request.log.error({ err: error }, "fallo en el callback de Discord");
       if (error instanceof DiscordAccessDeniedError) {
         return reply.redirect(`${panelUrl}/admin?error=no_miembro`);
       }
-      request.log.error(error);
       return reply.redirect(`${panelUrl}/admin?error=discord`);
     }
   });
