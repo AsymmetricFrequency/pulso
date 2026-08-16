@@ -34,6 +34,7 @@ const toPublic = (report: CommunityReportDto): PublicCommunityReportDto => ({
   peopleReported: report.peopleReported,
   signsOfLife: report.signsOfLife,
   respondersOnSite: report.respondersOnSite,
+  routeStatus: report.routeStatus,
   createdAt: report.createdAt,
 });
 
@@ -87,6 +88,7 @@ export class MemoryCommunityReportRepository implements CommunityReportRepositor
       peopleReported: input.peopleReported,
       signsOfLife: input.signsOfLife,
       respondersOnSite: input.respondersOnSite,
+      routeStatus: input.routeStatus,
       externalKey: null,
       reviewedByActorId: null,
       reviewedAt: null,
@@ -127,6 +129,9 @@ export class MemoryCommunityReportRepository implements CommunityReportRepositor
       peopleReported: null,
       signsOfLife: null,
       respondersOnSite: null,
+      // Las vías sí llegan de fuera: Gravitas publica cierres y reaperturas, y es el único tipo
+      // importado que trae este campo.
+      routeStatus: input.routeStatus,
       externalSourceId: input.externalSourceId,
       externalKey: input.externalKey,
       reviewedByActorId: existing?.reviewedByActorId ?? null,

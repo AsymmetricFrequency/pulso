@@ -293,7 +293,24 @@ export const IconStore = (props: IconProps) => (
    React) y dentro del `divIcon` de Leaflet (donde son una cadena de HTML). Un
    componente no sirve para lo segundo. */
 
-export const REPORT_MARKER_PATH: Record<"rescate" | "pmu" | "necesidad", string> = {
+/**
+ * Clave de dibujo de un marcador. No coincide con `reportType` a propósito: una vía se pinta
+ * distinto según esté cerrada o abierta, y esa diferencia tiene que estar en la **forma**, no solo
+ * en el color — quien no distingue rojo de verde también necesita saber si puede pasar.
+ */
+export type ReportMarkerKey = "rescate" | "pmu" | "necesidad" | "via-bloqueada" | "via-habilitada";
+
+export const reportMarkerKey = (report: {
+  reportType: string;
+  routeStatus?: string | null;
+}): ReportMarkerKey =>
+  report.reportType === "via"
+    ? report.routeStatus === "habilitada"
+      ? "via-habilitada"
+      : "via-bloqueada"
+    : (report.reportType as ReportMarkerKey);
+
+export const REPORT_MARKER_PATH: Record<ReportMarkerKey, string> = {
   // Persona con los brazos levantados: hay alguien ahí abajo. A 14 píxeles no cabe un dibujo de
   // escombros que se distinga de la montañita de la categoría `escombros`, y confundir los dos es
   // justo lo que este tipo de reporte existe para evitar.
@@ -304,6 +321,11 @@ export const REPORT_MARKER_PATH: Record<"rescate" | "pmu" | "necesidad", string>
   // Triángulo de alerta: necesidad.
   necesidad:
     "M10.3 3.9 1.9 18a2 2 0 0 0 1.7 3h16.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0ZM12 9v4M12 17h.01",
+  // Las dos vías comparten el círculo —son la misma familia, «estado de la vía»— y se separan por
+  // lo de dentro: la barra del sentido prohibido cuando está cerrada, el visto cuando está abierta.
+  // Es la misma pareja de señales que ya está en cualquier carretera.
+  "via-bloqueada": "M12 3a9 9 0 1 0 0 18 9 9 0 1 0 0-18M7.5 12h9",
+  "via-habilitada": "M12 3a9 9 0 1 0 0 18 9 9 0 1 0 0-18M8 12.2l2.7 2.8L16 9.4",
 };
 
 /** El mismo trazo del marcador, como componente, para el formulario y las leyendas. */
@@ -313,8 +335,15 @@ export const IconRescue = (props: IconProps) => (
   </Icon>
 );
 
+/** El mismo trazo, para la leyenda del mapa. */
+export const IconRouteBlocked = (props: IconProps) => (
+  <Icon {...props}>
+    <path d={REPORT_MARKER_PATH["via-bloqueada"]} />
+  </Icon>
+);
+
 /** Marcador listo para incrustar como HTML, para el `divIcon` de Leaflet. */
-export const reportMarkerSvg = (type: "rescate" | "pmu" | "necesidad", size = 14) =>
+export const reportMarkerSvg = (type: ReportMarkerKey, size = 14) =>
   `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" ` +
   `stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">` +
   `<path d="${REPORT_MARKER_PATH[type]}"/></svg>`;

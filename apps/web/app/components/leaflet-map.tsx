@@ -8,7 +8,7 @@ import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import { useEffect, useRef } from "react";
 import type { PublicCommunityReport } from "./community-report-form";
-import { reportMarkerSvg } from "./icons";
+import { reportMarkerKey, reportMarkerSvg } from "./icons";
 
 type DepartmentProperties = { dpto_ccdgo: string; dpto_cnmbre: string };
 type MunicipalityProperties = {
@@ -50,11 +50,24 @@ function reportDivIcon(report: PublicCommunityReport) {
       iconAnchor: [17, 17],
     });
   }
+  // Una vía tampoco. Lo que importa de ella es si se puede pasar, no si alguien de Operaciones ya
+  // la miró: pintarla de ámbar por «sin verificar» escondería justo el dato que se viene a buscar.
+  if (report.reportType === "via") {
+    const open = report.routeStatus === "habilitada";
+    return L.divIcon({
+      className: "pulsoMarker",
+      html:
+        `<span class="pulsoMarkerDot pulsoMarkerRoute${open ? " pulsoMarkerRouteOpen" : ""}">` +
+        `${reportMarkerSvg(reportMarkerKey(report), 16)}</span>`,
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+    });
+  }
   const color = statusColor(report.status);
   const dashed = report.status === "reported" ? "border-style:dashed;" : "";
   return L.divIcon({
     className: "pulsoMarker",
-    html: `<span style="background:${color};${dashed}" class="pulsoMarkerDot">${reportMarkerSvg(report.reportType)}</span>`,
+    html: `<span style="background:${color};${dashed}" class="pulsoMarkerDot">${reportMarkerSvg(reportMarkerKey(report))}</span>`,
     iconSize: [26, 26],
     iconAnchor: [13, 13],
   });
@@ -208,16 +221,20 @@ export function LeafletMap({
     // Los rescates salen del clúster y van en su propia capa, por encima. Agrupados quedarían
     // absorbidos por el globo de «37 reportes» de su cuadra: existirían en los datos y no en la
     // pantalla, que para esto es lo mismo que no existir.
+    //
+    // Las vías van en la misma capa por la misma razón, y son pocas: un cierre escondido dentro de
+    // un clúster manda a un equipo por una carretera que no existe.
     const rescueLayer = L.layerGroup();
     for (const report of reports) {
       const [lng, lat] = report.location.coordinates;
+      const alwaysVisible = report.reportType === "rescate" || report.reportType === "via";
       const marker = L.marker([lat, lng], {
         icon: reportDivIcon(report),
-        zIndexOffset: report.reportType === "rescate" ? 1_000 : 0,
+        zIndexOffset: report.reportType === "rescate" ? 1_000 : alwaysVisible ? 900 : 0,
       });
       marker.bindPopup(`<strong>${report.title}</strong>`);
       marker.on("click", () => callbacksRef.current.onSelectReport(report));
-      (report.reportType === "rescate" ? rescueLayer : group).addLayer(marker);
+      (alwaysVisible ? rescueLayer : group).addLayer(marker);
     }
     map.addLayer(group);
     map.addLayer(rescueLayer);

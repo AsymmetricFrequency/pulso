@@ -6,7 +6,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { reportStatusToken } from "./community-report-detail";
 import { CommunityReportForm, type PublicCommunityReport } from "./community-report-form";
-import { IconCrosshair, IconLocation, REPORT_MARKER_PATH } from "./icons";
+import { IconCrosshair, IconLocation, REPORT_MARKER_PATH, reportMarkerKey } from "./icons";
 
 // Leaflet touches `window` at module scope, which breaks Next.js's server render pass
 // even inside a "use client" component — it must only ever be loaded in the browser.
@@ -509,6 +509,17 @@ export function AtlasMap({
     [allReports],
   );
 
+  // Solo las bloqueadas van a la leyenda. Una vía reabierta se dibuja —quien la creía cerrada
+  // necesita verlo— pero contarla junto a los cierres sería sumar buenas y malas noticias en la
+  // misma cifra.
+  const blockedRouteCount = useMemo(
+    () =>
+      allReports.filter(
+        (report) => report.reportType === "via" && report.routeStatus !== "habilitada",
+      ).length,
+    [allReports],
+  );
+
   const projectedEvents = useMemo(() => {
     if (!projection) return [];
     return sgcEvents.flatMap((event) => {
@@ -921,9 +932,15 @@ export function AtlasMap({
                 <g
                   key={key}
                   className={`communityReportMarker ${
-                    // El rescate no se colorea por estado de revisión: en el mapa de país tiene que
-                    // distinguirse de las 2.288 necesidades sin que nadie amplíe.
-                    report.reportType === "rescate" ? "rescue" : reportStatusToken(report.status)
+                    // Ni el rescate ni las vías se colorean por estado de revisión. El rescate,
+                    // porque en el mapa de país tiene que distinguirse de las 2.288 necesidades sin
+                    // que nadie amplíe. Una vía, porque lo que importa de ella es si se puede pasar
+                    // —no si alguien de Operaciones ya la miró—.
+                    report.reportType === "rescate"
+                      ? "rescue"
+                      : report.reportType === "via"
+                        ? `route ${report.routeStatus === "habilitada" ? "open" : "blocked"}`
+                        : reportStatusToken(report.status)
                   }`}
                   transform={`translate(${entry.x}, ${entry.y}) scale(${1 / zoomTransform.scale})`}
                   onClick={(event) => {
@@ -940,7 +957,7 @@ export function AtlasMap({
                   {/* El glifo se dibuja a escala 0.55 y centrado: el trazo del set está pensado
                       para 24 y aquí el marcador mide 18 de diámetro. */}
                   <path
-                    d={REPORT_MARKER_PATH[report.reportType]}
+                    d={REPORT_MARKER_PATH[reportMarkerKey(report)]}
                     transform={
                       report.reportType === "rescate"
                         ? "scale(0.72) translate(-12, -12)"
@@ -1018,6 +1035,16 @@ export function AtlasMap({
             {rescueCount === 1
               ? "1 punto con personas atrapadas reportadas"
               : `${rescueCount} puntos con personas atrapadas reportadas`}
+          </li>
+        ) : null}
+        {/* Va justo detrás de los rescates y antes del recuento general: quien coordina lee esta
+            línea para saber si el camino al punto existe. */}
+        {blockedRouteCount > 0 ? (
+          <li>
+            <i className="statusDot route blocked" />{" "}
+            {blockedRouteCount === 1
+              ? "1 vía o terminal sin paso"
+              : `${blockedRouteCount} vías o terminales sin paso`}
           </li>
         ) : null}
         {allReports.length > 0 ? (

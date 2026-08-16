@@ -21,8 +21,9 @@ import {
 /** Cualquiera del set de `icons.tsx`: comparten firma, así que se pasan como dato. */
 type IconComponent = typeof IconDot;
 
-export type CommunityReportType = "rescate" | "pmu" | "necesidad";
+export type CommunityReportType = "rescate" | "pmu" | "necesidad" | "via";
 export type RescueSignsOfLife = "yes" | "no" | "unknown";
+export type RouteStatus = "bloqueada" | "habilitada";
 export type CommunityReportCategory =
   | "agua"
   | "alimentos"
@@ -73,6 +74,7 @@ export type PublicCommunityReport = {
   peopleReported: number | null;
   signsOfLife: RescueSignsOfLife | null;
   respondersOnSite: boolean | null;
+  routeStatus: RouteStatus | null;
   createdAt: string;
 };
 

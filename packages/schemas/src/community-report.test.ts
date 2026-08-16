@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   communityReportSchema,
   createCommunityReportSchema,
+  mapCommunityReportSchema,
   publicCommunityReportSchema,
   reviewCommunityReportSchema,
 } from "./community-report.js";
@@ -64,6 +65,7 @@ describe("community report schemas", () => {
       peopleReported: null,
       signsOfLife: null,
       respondersOnSite: null,
+      routeStatus: null,
       createdAt: "2026-08-14T12:00:00Z",
       updatedAt: "2026-08-14T12:00:00Z",
     });
@@ -101,6 +103,64 @@ describe("community report schemas", () => {
     });
 
     expect(result.success).toBe(false);
+  });
+
+  // Una vía de la que no sabemos si está abierta o cerrada no le sirve a nadie: al contrario que
+  // los campos de rescate, este sí se exige. Y al revés, no puede aparecer en otro tipo.
+  it("requires the route status on a route report", () => {
+    const withoutStatus = createCommunityReportSchema.safeParse({
+      clientMutationId: "5f0f3f2a-6d4b-4b3a-9f0e-2a2b3c4d5e6f",
+      reportType: "via",
+      title: "Cierre total por derrumbe",
+      location: point,
+    });
+
+    expect(withoutStatus.success).toBe(false);
+
+    const withStatus = createCommunityReportSchema.parse({
+      clientMutationId: "5f0f3f2a-6d4b-4b3a-9f0e-2a2b3c4d5e6f",
+      reportType: "via",
+      title: "Cierre total por derrumbe",
+      location: point,
+      routeStatus: "bloqueada",
+    });
+
+    expect(withStatus.routeStatus).toBe("bloqueada");
+    expect(withStatus.category).toBeNull();
+  });
+
+  it("keeps the route status out of the other report types", () => {
+    const result = createCommunityReportSchema.safeParse({
+      clientMutationId: "5f0f3f2a-6d4b-4b3a-9f0e-2a2b3c4d5e6f",
+      reportType: "necesidad",
+      category: "escombros",
+      title: "Remoción de escombros en la vía",
+      location: point,
+      routeStatus: "bloqueada",
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  // El mapa decide el dibujo del marcador con la proyección ligera, que deja fuera metadata. Si
+  // `routeStatus` no viajara ahí, una vía reabierta se pintaría igual que un cierre total.
+  it("carries the route status in the light map projection", () => {
+    const mapped = mapCommunityReportSchema.parse({
+      id: "6f6b1a2c-1f6d-4c1e-9a1f-2b3c4d5e6f70",
+      reportType: "via",
+      category: null,
+      title: "Aeropuerto cerrado — Buenaventura",
+      location: point,
+      status: "reported",
+      peopleReported: null,
+      signsOfLife: null,
+      respondersOnSite: null,
+      routeStatus: "bloqueada",
+      createdAt: "2026-08-14T12:00:00Z",
+    });
+
+    expect(mapped.routeStatus).toBe("bloqueada");
+    expect(mapped).not.toHaveProperty("metadata");
   });
 
   it("does not allow reviewing a report back into 'reported'", () => {

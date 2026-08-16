@@ -15,6 +15,7 @@ import {
   IconFlag,
   IconLocation,
   IconRescue,
+  IconRouteBlocked,
   IconUsers,
 } from "./icons";
 
@@ -22,6 +23,12 @@ export const REPORT_TYPE_LABEL: Record<PublicCommunityReport["reportType"], stri
   rescate: "Personas atrapadas",
   pmu: "Puesto de mando",
   necesidad: "Necesidad",
+  via: "Estado de la vía",
+};
+
+const ROUTE_STATUS_LABEL: Record<NonNullable<PublicCommunityReport["routeStatus"]>, string> = {
+  bloqueada: "Sin paso",
+  habilitada: "Habilitada",
 };
 
 const SIGNS_OF_LIFE_LABEL: Record<NonNullable<PublicCommunityReport["signsOfLife"]>, string> = {
@@ -116,6 +123,8 @@ export function CommunityReportDetailCard({ report, onClose }: CommunityReportDe
           <IconRescue />
         ) : report.reportType === "pmu" ? (
           <IconFlag />
+        ) : report.reportType === "via" ? (
+          <IconRouteBlocked />
         ) : (
           <IconAlert />
         )}
@@ -124,6 +133,17 @@ export function CommunityReportDetailCard({ report, onClose }: CommunityReportDe
       <h3>{report.title}</h3>
 
       <div className="reportDetailBadges">
+        {/* En una vía, lo primero es si se puede pasar. El estado de revisión viene después:
+            saber que Operaciones todavía no la miró no le sirve a quien está decidiendo la ruta. */}
+        {report.routeStatus && (
+          <span
+            className={`communityReportStatusBadge ${
+              report.routeStatus === "habilitada" ? "verified" : "muted"
+            }`}
+          >
+            {ROUTE_STATUS_LABEL[report.routeStatus]}
+          </span>
+        )}
         <span className={`communityReportStatusBadge ${reportStatusToken(report.status)}`}>
           {STATUS_LABEL[report.status]}
         </span>

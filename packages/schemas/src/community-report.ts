@@ -5,7 +5,11 @@ import { redactContacts } from "./redact-contacts.js";
 // el orden en que aparecen en la interfaz. Significa «hay personas atrapadas aquí», que no es lo
 // mismo que la categoría `escombros` de una necesidad —esa pide una retroexcavadora, esta pide un
 // equipo de búsqueda y rescate—.
-export const communityReportTypeSchema = z.enum(["rescate", "pmu", "necesidad"]);
+// `via` cierra la lista: un cierre de vía o un aeropuerto sin operación. No es una `necesidad` —no
+// pide que le manden nada, informa de que no se puede pasar— ni un `pmu`, porque marcar el
+// aeropuerto de Buenaventura como Puesto de Mando Unificado diría que ahí hay mando. Y es lo
+// primero que necesita saber quien va en camino a un rescate.
+export const communityReportTypeSchema = z.enum(["rescate", "pmu", "necesidad", "via"]);
 
 /**
  * Señales de vida en un punto de rescate.
@@ -15,6 +19,15 @@ export const communityReportTypeSchema = z.enum(["rescate", "pmu", "necesidad"])
  * pesa al ordenar la cola.
  */
 export const rescueSignsOfLifeSchema = z.enum(["yes", "no", "unknown"]);
+
+/**
+ * Estado de una vía o de un terminal de transporte.
+ *
+ * Dos valores y no tres. La tentación es añadir `parcial` para casos como «posible reapertura
+ * parcial pronto», pero eso es lo que la fuente *espera*, no lo que observó: hoy sigue bloqueada.
+ * Un estado intermedio invitaría a que alguien intente pasar por donde no se puede.
+ */
+export const routeStatusSchema = z.enum(["bloqueada", "habilitada"]);
 
 export const communityReportCategorySchema = z.enum([
   "agua",
@@ -86,10 +99,22 @@ export const createCommunityReportSchema = z
     peopleReported: z.number().int().min(1).max(500).nullable().default(null),
     signsOfLife: rescueSignsOfLifeSchema.nullable().default(null),
     respondersOnSite: z.boolean().nullable().default(null),
+    routeStatus: routeStatusSchema.nullable().default(null),
   })
   .refine((input) => input.reportType !== "necesidad" || input.category !== null, {
     message: "category is required when reportType is 'necesidad'",
     path: ["category"],
+  })
+  // Al contrario que los campos de rescate, este sí es obligatorio en su tipo: un reporte
+  // incompleto de gente atrapada vale igual, pero una vía de la que no sabemos si está abierta o
+  // cerrada no le sirve a nadie y no se puede ni dibujar.
+  .refine((input) => input.reportType !== "via" || input.routeStatus !== null, {
+    message: "routeStatus is required when reportType is 'via'",
+    path: ["routeStatus"],
+  })
+  .refine((input) => input.reportType === "via" || input.routeStatus === null, {
+    message: "routeStatus is only valid when reportType is 'via'",
+    path: ["routeStatus"],
   })
   .refine(
     (input) =>
@@ -119,6 +144,7 @@ export const publicCommunityReportSchema = z.object({
   peopleReported: z.number().int().nullable(),
   signsOfLife: rescueSignsOfLifeSchema.nullable(),
   respondersOnSite: z.boolean().nullable(),
+  routeStatus: routeStatusSchema.nullable(),
   createdAt: z.iso.datetime({ offset: true }),
 });
 
@@ -155,6 +181,9 @@ export const mapCommunityReportSchema = publicCommunityReportSchema.pick({
   peopleReported: true,
   signsOfLife: true,
   respondersOnSite: true,
+  // Igual que los de rescate, y por el mismo motivo: decide **cómo se pinta el marcador**. Una vía
+  // reabierta dibujada como un cierre mandaría a un equipo a rodear una vía que ya está abierta.
+  routeStatus: true,
 });
 
 export const reviewCommunityReportSchema = z.object({
@@ -181,10 +210,12 @@ export const upsertExternalCommunityReportSchema = z.object({
   location: pointGeometrySchema,
   status: communityReportStatusSchema.default("reported"),
   metadata: communityReportMetadataSchema.nullable().default(null),
+  routeStatus: routeStatusSchema.nullable().default(null),
 });
 
 export type CommunityReportType = z.infer<typeof communityReportTypeSchema>;
 export type RescueSignsOfLife = z.infer<typeof rescueSignsOfLifeSchema>;
+export type RouteStatus = z.infer<typeof routeStatusSchema>;
 export type CommunityReportCategory = z.infer<typeof communityReportCategorySchema>;
 export type CommunityReportStatus = z.infer<typeof communityReportStatusSchema>;
 export type CommunityReportMetadata = z.infer<typeof communityReportMetadataSchema>;

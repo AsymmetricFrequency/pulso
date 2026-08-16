@@ -18,6 +18,11 @@
   --amber: #c8811d;
   --blue: #35708f;
   --green: #257350;
+  /* Estado de la vía. Deliberadamente fuera de la escala de revisión (ámbar/verde/gris) y fuera del
+     rojo del rescate: una vía cerrada no compite con una persona bajo escombros, y su color no
+     depende de que Operaciones la haya mirado. El grafito lee como señalización de carretera. */
+  --route-blocked: #2f2a24;
+  --route-open: #257350;
   --shadow: var(--elev-2);
   --shadow-lift: 0 22px 50px rgba(16, 35, 28, 0.14);
   --radius-sm: 8px;
@@ -1382,6 +1387,22 @@ footer a {
   border: 2px solid white;
 }
 
+/* Marcador de vía en el mapa de departamento. El glifo ya distingue cerrada de abierta —barra del
+   sentido prohibido contra visto—, así que el color refuerza pero no carga solo con el mensaje:
+   quien no separa el grafito del verde sigue sabiendo si puede pasar. */
+.pulsoMarkerRoute {
+  width: 28px;
+  height: 28px;
+  background: var(--route-blocked);
+  border: 2.5px solid rgba(255, 253, 247, 0.98);
+  color: white;
+  box-shadow: 0 2px 8px rgba(24, 20, 16, 0.42);
+}
+
+.pulsoMarkerRouteOpen {
+  background: var(--route-open);
+}
+
 /* Marcador de rescate: más grande y en el rojo crítico. No lleva el ámbar de "sin verificar" que
    usan los demás porque a esta escala el estado de revisión no es la información que importa —
    importa que ahí abajo hay alguien. */
@@ -1502,6 +1523,16 @@ footer a {
   stroke-width: 2;
 }
 
+.communityReportMarker.route circle {
+  fill: var(--route-blocked);
+  stroke: white;
+  stroke-width: 2;
+}
+
+.communityReportMarker.route.open circle {
+  fill: var(--route-open);
+}
+
 .communityReportMarker.pendingPoint {
   fill: var(--signal);
   stroke: white;
@@ -1514,6 +1545,10 @@ footer a {
 
 .statusDot.rescue {
   background: var(--status-critical);
+}
+
+.statusDot.route.blocked {
+  background: var(--route-blocked);
 }
 
 .communityReportForm {
