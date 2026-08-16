@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { redactContacts } from "./redact-contacts.js";
 
 // `rescate` va primero a propósito: es el orden en que se declaran las prioridades del proyecto y
 // el orden en que aparecen en la interfaz. Significa «hay personas atrapadas aquí», que no es lo
@@ -161,15 +162,22 @@ export const reviewCommunityReportSchema = z.object({
   notes: z.string().trim().max(2_000).nullable().default(null),
 });
 
-// Server-side only (worker ingestion) — never accepted from a public HTTP request.
-// Deliberately has no `contact` field: third-party contact details are never imported.
+/**
+ * Solo del lado del servidor (ingesta del worker) — nunca se acepta desde una petición HTTP pública.
+ *
+ * No tiene campo `contact` a propósito: los datos de contacto de terceros no se importan. Y la
+ * descripción pasa por `redactContacts` **aquí, en el esquema**, no en cada importador: es el único
+ * punto por el que pasan todas las fuentes, así que un importador nuevo lo hereda sin que su autor
+ * tenga que acordarse. Se descubrió tarde —43 descripciones ya ingeridas traían un móvil visible y
+ * se sirvieron por la API pública— y por eso está donde no se puede saltar.
+ */
 export const upsertExternalCommunityReportSchema = z.object({
   externalSourceId: z.string().trim().min(1).max(120),
   externalKey: z.string().trim().min(1).max(200),
   reportType: communityReportTypeSchema,
   category: communityReportCategorySchema.nullable().default(null),
   title: z.string().trim().min(1).max(140),
-  description: z.string().trim().max(2_000).nullable().default(null),
+  description: z.string().trim().max(2_000).nullable().default(null).transform(redactContacts),
   location: pointGeometrySchema,
   status: communityReportStatusSchema.default("reported"),
   metadata: communityReportMetadataSchema.nullable().default(null),
