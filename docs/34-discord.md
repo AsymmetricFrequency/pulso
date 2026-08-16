@@ -169,6 +169,10 @@ clásico.
 
 ## 4. Panel de administración de Pulso
 
+**Construido y desplegado en [admin.pulso.my](https://admin.pulso.my).** Le faltan las credenciales
+de Discord, que solo puede crear el dueño del servidor (§4.5). Mientras tanto la pantalla dice
+exactamente qué falta en vez de dar un error.
+
 Una pantalla en `apps/web/app/admin` donde se ve el estado de la operación y quién está en qué.
 
 ### La decisión que lo hace barato
@@ -206,27 +210,70 @@ sería un error de seguridad, no una simplificación.
 - tickets abiertos por área y cuáles llevan más de 48 horas sin dueño;
 - PRs esperando revisión, por área.
 
-### Alcance mínimo
+**Tareas** — el backlog de [`33-backlog.md`](33-backlog.md), como datos:
 
-Un PR que solo haga esto ya vale:
+- los 20 tickets con prioridad, tamaño, roles y criterio de aceptación;
+- asignar a un miembro, cambiar estado, y publicar el ticket como hilo en `#tareas`;
+- cuántos llevan más de 48 horas tomados sin moverse — la señal más útil del panel, porque nadie
+  avisa de que está atascado.
 
-1. OAuth2 con Discord y sesión.
-2. Una pantalla de solo lectura con los rescates abiertos y el estado de las fuentes.
+### Quién escribe
 
-Nada de escritura desde el panel en la primera versión. La escritura tiene otro nivel de riesgo, y
-todavía no sabemos si el panel se va a usar.
+**Solo `Maintainer`.** El resto de roles entra a mirar, y eso ya es la mitad del valor: saber
+cuántos rescates hay abiertos no debería costar una sesión de `psql`.
 
-### Variables de entorno
+No es jerarquía por gusto. Desde aquí se reparten roles de Discord, y un rol de Discord es un
+permiso sobre el repositorio y sobre esta misma pantalla. Repartir permisos es administración, no
+colaboración. Por la misma razón, nadie puede quitarse a sí mismo el rol de `Maintainer` desde el
+panel: es la forma más fácil de quedarse fuera sin manera de volver a entrar.
 
-```sh
-DISCORD_CLIENT_ID=
-DISCORD_CLIENT_SECRET=
-DISCORD_GUILD_ID=            # id del servidor Pulso
-DISCORD_BOT_TOKEN=           # para leer los roles de un miembro
-DISCORD_WEBHOOK_ALERTS=      # url del webhook de #alertas
-```
+### 4.5 Cómo se conecta
 
-Ninguna va al repositorio. Todas viven en `/opt/pulso/.env`, igual que el resto.
+Cinco pasos. Solo los puede dar quien es dueño del servidor de Discord.
+
+1. [discord.com/developers/applications](https://discord.com/developers/applications) → **New
+   Application** → `Pulso`. De **General Information** copia el **Application ID**.
+2. **OAuth2** → copia el **Client Secret** (*Reset Secret* si no se ve). En **Redirects** añade
+   exactamente:
+   ```
+   https://admin.pulso.my/v1/admin/auth/callback
+   ```
+   Tiene que coincidir carácter por carácter con `DISCORD_REDIRECT_URI` o Discord rechaza la
+   entrada sin explicar cuál de los dos está mal.
+3. **Bot** → **Reset Token** y cópialo. Intents: ninguno hace falta marcar — el panel usa la API
+   REST, no la pasarela. **No** pidas `Message Content`: exige verificación de Discord y aquí no se
+   usa.
+4. **OAuth2 → URL Generator**: scopes `bot` + `applications.commands`; permisos **Manage Roles**,
+   *Send Messages*, *Create Public Threads*. Abre la URL e invita el bot al servidor.
+   **En Ajustes del servidor → Roles, arrastra el rol del bot por encima de los roles que va a
+   repartir.** Discord no deja a un bot asignar un rol que esté más arriba que el suyo, y el
+   síntoma es un 403 que no dice eso.
+5. En el servidor, `/opt/pulso/.env`:
+   ```sh
+   DISCORD_CLIENT_ID=<application id>
+   DISCORD_CLIENT_SECRET=<client secret>
+   DISCORD_GUILD_ID=<clic derecho en el servidor → Copiar ID de servidor>
+   DISCORD_BOT_TOKEN=<token del bot>
+   DISCORD_TASKS_CHANNEL_ID=<clic derecho en #tareas → Copiar ID>   # opcional
+   DISCORD_WEBHOOK_ALERTS=<url del webhook de #alertas>             # opcional
+   ```
+   Después `systemctl restart pulso-api`.
+
+Para copiar identificadores hace falta **Ajustes de usuario → Avanzado → Modo desarrollador**.
+
+`ADMIN_SESSION_SECRET`, `ADMIN_PANEL_URL`, `NEXT_PUBLIC_ADMIN_API_URL` y `DISCORD_REDIRECT_URI` ya
+están puestas en el servidor.
+
+**El token del bot es una credencial de producción:** no va al repositorio, no se pega en un chat, y
+si se filtra se rota en el acto desde la misma pantalla donde se generó.
+
+### Un detalle que cuesta una tarde si no se sabe
+
+El panel llama a la API en **su propio host** (`admin.pulso.my/v1/*`), no en `pulso.my`. La sesión
+viaja en una cookie `httpOnly` con `SameSite=Lax`, y una cookie así no se manda en una petición de
+fondo hacia otro sitio: el navegador la descarta sin decir nada y todo responde 401 sin ninguna
+pista. Por eso Caddy expone `/v1/*` bajo los dos hosts y `NEXT_PUBLIC_ADMIN_API_URL` va vacía en
+producción.
 
 ---
 
