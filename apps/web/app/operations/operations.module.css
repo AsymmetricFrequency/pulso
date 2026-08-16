@@ -6,12 +6,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #d8d8cd;
-  color: #5f6f68;
+  border-bottom: 1px solid var(--border-default);
+  color: var(--text-secondary);
   font-size: 12px;
 }
 .brand {
-  color: #10231c;
+  color: var(--text-primary);
   font-size: 14px;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -20,11 +20,11 @@
 .login {
   width: min(520px, 100%);
   margin: 10vh auto 0;
-  border: 1px solid #d8d8cd;
-  border-radius: 20px;
-  background: #fffdf7;
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-lg);
+  background: var(--surface-raised);
   padding: clamp(28px, 6vw, 52px);
-  box-shadow: 0 18px 45px rgba(16, 35, 28, 0.08);
+  box-shadow: var(--elev-2);
 }
 .login h1,
 .hero h1 {
@@ -37,7 +37,7 @@
 }
 .login > p:not(.eyebrow):not(.error),
 .hero p {
-  color: #5f6f68;
+  color: var(--text-secondary);
   line-height: 1.55;
 }
 .login label {
@@ -50,11 +50,11 @@
 .login input {
   width: 100%;
   min-height: 58px;
-  border: 1px solid #9eaaa4;
-  border-radius: 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-sm);
   background: white;
   padding: 0 16px;
-  color: #10231c;
+  color: var(--text-primary);
   font-size: 20px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -65,8 +65,8 @@
   min-height: 52px;
   margin-top: 12px;
   border: 0;
-  border-radius: 10px;
-  background: #006a4e;
+  border-radius: var(--r-sm);
+  background: var(--primary);
   color: white;
   cursor: pointer;
   font-weight: 800;
@@ -78,28 +78,28 @@
 .login small {
   display: block;
   margin-top: 16px;
-  color: #5f6f68;
+  color: var(--text-secondary);
   line-height: 1.4;
 }
 .error {
   margin: 14px 0 0;
-  color: #9b2f24;
+  color: var(--status-critical-ink);
   font-size: 13px;
 }
 .eyebrow {
   margin: 0 0 8px;
-  color: #006a4e;
+  color: var(--primary);
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 .leave {
-  border: 1px solid #006a4e;
-  border-radius: 8px;
+  border: 1px solid var(--primary);
+  border-radius: var(--r-sm);
   background: transparent;
   padding: 8px 13px;
-  color: #006a4e;
+  color: var(--primary);
   cursor: pointer;
   font-weight: 700;
 }
@@ -124,15 +124,15 @@
 .metrics {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  border-top: 1px solid #c9d7cf;
-  border-bottom: 1px solid #c9d7cf;
-  background: #eef5f1;
+  border-top: 1px solid var(--surface-accent);
+  border-bottom: 1px solid var(--surface-accent);
+  background: var(--status-light-soft);
 }
 .metrics article {
   display: grid;
   gap: 5px;
   padding: 20px;
-  border-right: 1px solid #c9d7cf;
+  border-right: 1px solid var(--surface-accent);
 }
 .metrics article:last-child {
   border-right: 0;
@@ -143,7 +143,7 @@
   font-weight: 400;
 }
 .metrics span {
-  color: #5f6f68;
+  color: var(--text-secondary);
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.06em;
@@ -156,9 +156,9 @@
   margin-top: 32px;
 }
 .panel {
-  border: 1px solid #d8d8cd;
-  border-radius: 16px;
-  background: #fffdf7;
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-lg);
+  background: var(--surface-raised);
   padding: 26px;
 }
 .panel h2 {
@@ -169,7 +169,7 @@
 }
 .panel h3 {
   margin: 22px 0 8px;
-  color: #5f6f68;
+  color: var(--text-secondary);
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -186,21 +186,21 @@
   justify-content: space-between;
   gap: 20px;
   padding: 15px 0;
-  border-top: 1px solid #e2e1d8;
+  border-top: 1px solid var(--border-subtle);
 }
 .zones li div {
   display: grid;
   gap: 5px;
 }
 .zones li span {
-  color: #5f6f68;
+  color: var(--text-secondary);
   font-size: 12px;
 }
 .zones li b {
-  border-radius: 999px;
-  background: #f8e6e2;
+  border-radius: var(--r-full);
+  background: var(--status-critical-soft);
   padding: 6px 9px;
-  color: #9b2f24;
+  color: var(--status-critical-ink);
   font-size: 11px;
   white-space: nowrap;
 }
@@ -209,16 +209,16 @@
   justify-content: space-between;
   gap: 18px;
   padding: 10px 0;
-  border-top: 1px solid #e2e1d8;
-  color: #394b44;
+  border-top: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
 }
 .ranking strong {
-  color: #10231c;
+  color: var(--text-primary);
 }
 .updated,
 .empty,
 .loading {
-  color: #5f6f68;
+  color: var(--text-secondary);
   font-size: 12px;
 }
 .updated {
@@ -238,7 +238,7 @@
     grid-template-columns: repeat(2, 1fr);
   }
   .metrics article {
-    border-bottom: 1px solid #c9d7cf;
+    border-bottom: 1px solid var(--surface-accent);
   }
   .metrics article:nth-child(2n) {
     border-right: 0;
@@ -278,8 +278,8 @@
 }
 
 /* --- Revisión de contratos -----------------------------------------------
-   El centro operacional es de tema claro: crema, tinta #10231c, apagado
-   #5f6f68 y línea #d8d8cd, igual que el resto de la aplicación. */
+   El centro operacional es de tema claro: crema, tinta var(--text-primary), apagado
+   var(--text-secondary) y línea var(--border-default), igual que el resto de la aplicación. */
 
 .reviewSection {
   margin-top: 40px;
@@ -303,7 +303,7 @@
 .reviewLead {
   max-width: 62ch;
   margin: 8px 0 0;
-  color: #5f6f68;
+  color: var(--text-secondary);
   font-size: 14px;
   line-height: 1.55;
 }
@@ -322,12 +322,12 @@
 }
 
 .reviewCounter span {
-  color: #5f6f68;
+  color: var(--text-secondary);
   font-size: 12px;
 }
 
 .reviewCounter small {
-  color: #2a7d57;
+  color: var(--green);
   font-size: 11px;
   font-weight: 700;
 }
@@ -343,11 +343,11 @@
 .reviewCard {
   display: grid;
   gap: 12px;
-  border: 1px solid #d8d8cd;
-  border-radius: 14px;
-  background: #fffdf7;
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-md);
+  background: var(--surface-raised);
   padding: 18px;
-  box-shadow: 0 10px 26px rgba(16, 35, 28, 0.05);
+  box-shadow: var(--elev-1);
 }
 
 .reviewCardTop {
@@ -359,7 +359,7 @@
 
 .reviewAmount {
   display: block;
-  color: #10231c;
+  color: var(--text-primary);
   /* Cifras tabulares: la columna de montos tiene que poder compararse de un vistazo. */
   font-variant-numeric: tabular-nums;
   font-family: Georgia, "Times New Roman", serif;
@@ -370,32 +370,32 @@
 .reviewMeta {
   display: block;
   margin-top: 4px;
-  color: #5f6f68;
+  color: var(--text-secondary);
   font-size: 12px;
 }
 
 .reviewBadge {
   flex: 0 0 auto;
-  border: 1px solid #c8c3b7;
-  border-radius: 999px;
+  border: 1px solid var(--status-none);
+  border-radius: var(--r-full);
   padding: 4px 10px;
-  color: #5f6f68;
+  color: var(--text-secondary);
   font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
 }
 
 .reviewBadge.strong {
-  border-color: #c8811d;
-  background: #fdf3e3;
-  color: #8a4b18;
+  border-color: var(--status-strong);
+  background: var(--status-strong-soft);
+  color: var(--status-strong-ink);
 }
 
 /* El objeto contractual es el dato que decide, así que se lee como texto, completo y sin
    truncar — no como un campo más de una ficha. */
 .reviewObject {
   margin: 0;
-  color: #10231c;
+  color: var(--text-primary);
   font-size: 15px;
   line-height: 1.6;
 }
@@ -404,12 +404,12 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px 16px;
-  color: #5f6f68;
+  color: var(--text-secondary);
   font-size: 12px;
 }
 
 .reviewFacts a {
-  color: #04624a;
+  color: var(--primary);
   font-weight: 700;
 }
 
@@ -420,17 +420,17 @@
 }
 
 .reviewSignals span {
-  border-radius: 999px;
+  border-radius: var(--r-full);
   background: rgba(4, 98, 74, 0.1);
   padding: 3px 9px;
-  color: #023a2c;
+  color: var(--primary-dark);
   font-size: 11px;
   font-weight: 700;
 }
 
 .reviewSignals span.strong {
-  background: #fdf3e3;
-  color: #8a4b18;
+  background: var(--status-strong-soft);
+  color: var(--status-strong-ink);
 }
 
 .reviewNote {
@@ -439,16 +439,16 @@
 }
 
 .reviewNote span {
-  color: #5f6f68;
+  color: var(--text-secondary);
   font-size: 11px;
 }
 
 .reviewNote input {
-  border: 1px solid #c8c3b7;
-  border-radius: 8px;
-  background: #fff;
+  border: 1px solid var(--status-none);
+  border-radius: var(--r-sm);
+  background: var(--white);
   padding: 11px 12px;
-  color: #10231c;
+  color: var(--text-primary);
   font-size: 13px;
 }
 
@@ -466,7 +466,7 @@
 .reviewActions button {
   min-height: 44px;
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: var(--r-sm);
   padding: 0 16px;
   font-size: 13px;
   font-weight: 700;
@@ -488,33 +488,33 @@
 /* Confirmar publica dinero en las cifras públicas, así que es la única acción con peso visual
    de acción primaria. */
 .reviewActions .confirm {
-  background: #04624a;
-  color: #fff;
+  background: var(--primary);
+  color: var(--white);
 }
 
 .reviewActions .confirm:hover:not(:disabled) {
-  background: #023a2c;
+  background: var(--primary-dark);
 }
 
 .reviewActions .discard {
-  border-color: #9eaaa4;
+  border-color: var(--border-strong);
   background: transparent;
-  color: #10231c;
+  color: var(--text-primary);
 }
 
 .reviewActions .discard:hover:not(:disabled) {
-  border-color: #10231c;
+  border-color: var(--text-primary);
 }
 
 .reviewActions .defer {
   border-color: transparent;
   background: transparent;
-  color: #5f6f68;
+  color: var(--text-secondary);
   text-decoration: underline;
 }
 
 .reviewProvenance {
-  color: #7c8a84;
+  color: var(--text-tertiary);
   font-size: 10px;
   letter-spacing: 0.04em;
 }

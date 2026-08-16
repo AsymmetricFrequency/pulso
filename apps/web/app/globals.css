@@ -18,7 +18,7 @@
   --amber: #c8811d;
   --blue: #35708f;
   --green: #257350;
-  --shadow: 0 18px 45px rgba(16, 35, 28, 0.08);
+  --shadow: var(--elev-2);
   --shadow-lift: 0 22px 50px rgba(16, 35, 28, 0.14);
   --radius-sm: 8px;
   --radius-md: 14px;
@@ -135,7 +135,7 @@ main {
 .priorityState {
   color: var(--primary-dark);
   background: rgba(0, 106, 78, 0.08);
-  border-radius: 999px;
+  border-radius: var(--r-full);
   padding: 6px 10px;
   font-size: 12px;
   font-weight: 700;
@@ -240,7 +240,7 @@ h2 {
   justify-content: center;
   min-height: 44px;
   border: 1px solid var(--primary);
-  border-radius: 8px;
+  border-radius: var(--r-sm);
   padding: 0 17px;
   cursor: pointer;
   font-weight: 700;
@@ -335,11 +335,11 @@ h2 {
 }
 
 .statusDot.inaccessible {
-  background: #6b4d83;
+  background: var(--status-restricted);
 }
 
 .statusDot.no-data {
-  background: #c8c3b7;
+  background: var(--status-none);
 }
 
 .statusDot.minor,
@@ -369,7 +369,7 @@ h2 {
 
 .statusDot.registered,
 .statusDot.scheduled {
-  background: #8b739d;
+  background: var(--status-restricted-light);
 }
 
 .workspace {
@@ -389,7 +389,7 @@ h2 {
   min-height: 480px;
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--r-md);
   background: var(--surface);
   box-shadow: var(--shadow);
 }
@@ -398,7 +398,12 @@ h2 {
   display: block;
   width: 100%;
   height: auto;
-  background: radial-gradient(circle at center, #f5f5ea 0, #ececdf 70%, #e4e5d8 100%);
+  background: radial-gradient(
+    circle at center,
+    var(--surface-raised) 0,
+    var(--surface-sunken) 70%,
+    var(--paper-deep) 100%
+  );
 }
 
 .mapToolbar {
@@ -431,7 +436,7 @@ h2 {
 .mapToolbar select {
   max-width: 240px;
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: var(--r-xs);
   background: white;
   padding: 7px 30px 7px 9px;
   color: var(--ink);
@@ -471,12 +476,12 @@ h2 {
 }
 
 .sgcEvent.automatic {
-  fill: #d87246;
+  fill: var(--seismic);
   opacity: 0.78;
 }
 
 .status-unknown {
-  fill: #d9d2c2;
+  fill: var(--border-strong);
 }
 
 .status-assigned {
@@ -492,11 +497,11 @@ h2 {
 }
 
 .status-inaccessible {
-  fill: #6b4d83;
+  fill: var(--status-restricted);
 }
 
 .status-no-data {
-  fill: #d9d2c2;
+  fill: var(--border-strong);
 }
 
 .status-minor,
@@ -526,7 +531,7 @@ h2 {
 
 .status-registered,
 .status-scheduled {
-  fill: #8b739d;
+  fill: var(--status-restricted-light);
 }
 
 .statusDot.seismic {
@@ -549,25 +554,25 @@ h2 {
 
 .coverageBadge {
   width: fit-content;
-  border-radius: 999px;
+  border-radius: var(--r-full);
   padding: 4px 8px;
-  background: #eee9dd;
+  background: var(--surface-sunken);
   color: var(--ink);
   font-size: 11px;
   font-weight: 700;
 }
 
 .coverageBadge.assigned {
-  color: #765019;
+  color: var(--status-strong-ink);
 }
 .coverageBadge.partial {
-  color: #245d80;
+  color: var(--status-moderate-ink);
 }
 .coverageBadge.visited {
-  color: #1b6341;
+  color: var(--status-light-ink);
 }
 .coverageBadge.inaccessible {
-  color: #6b4d83;
+  color: var(--status-restricted);
 }
 
 .mapLoading {
@@ -656,7 +661,7 @@ h2 {
   align-items: flex-start;
   gap: 10px;
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: var(--r-sm);
   background: var(--surface);
   padding: 12px 14px;
 }
@@ -688,7 +693,7 @@ h2 {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--r-md);
   overflow: hidden;
   background: var(--surface);
   box-shadow: var(--shadow);
@@ -732,7 +737,7 @@ h2 {
   gap: 4px;
   min-height: 68px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--r-sm);
   background: transparent;
   padding: 12px 14px;
   color: var(--ink);
@@ -762,7 +767,7 @@ h2 {
 }
 
 .territoryTrail i {
-  color: #aca79b;
+  color: var(--text-tertiary);
   font-style: normal;
 }
 
@@ -792,7 +797,7 @@ h2 {
 }
 
 .territorySummary {
-  border-radius: 12px;
+  border-radius: var(--r-md);
   background: var(--ink);
   padding: 26px;
   color: white;
@@ -800,7 +805,7 @@ h2 {
 }
 
 .territorySummary .eyebrow {
-  color: #75d4b5;
+  color: var(--on-inverse-accent);
 }
 
 .territorySummary h3 {
@@ -812,7 +817,7 @@ h2 {
 
 .territoryPath {
   margin: 5px 0 18px;
-  color: #c4d0cb;
+  color: var(--on-inverse-secondary);
   font-size: 13px;
 }
 
@@ -823,13 +828,13 @@ h2 {
   border-top: 1px solid rgba(255, 255, 255, 0.16);
   border-bottom: 1px solid rgba(255, 255, 255, 0.16);
   padding: 11px 0;
-  color: #75d4b5;
+  color: var(--on-inverse-accent);
   font-size: 11px;
   font-weight: 700;
 }
 
 .confidenceLine small {
-  color: #aebcb6;
+  color: var(--on-inverse-tertiary);
 }
 
 .territorySummary dl {
@@ -845,7 +850,7 @@ h2 {
 }
 
 .territorySummary dt {
-  color: #aebcb6;
+  color: var(--on-inverse-tertiary);
   font-size: 11px;
 }
 
@@ -856,14 +861,14 @@ h2 {
 }
 
 .selectedLayerCallout {
-  border-left: 3px solid #75d4b5;
+  border-left: 3px solid var(--on-inverse-accent);
   background: rgba(255, 255, 255, 0.07);
   padding: 12px;
 }
 
 .selectedLayerCallout span,
 .selectedLayerCallout p {
-  color: #aebcb6;
+  color: var(--on-inverse-tertiary);
   font-size: 10px;
 }
 
@@ -964,8 +969,8 @@ h2 {
 .progressTrack {
   height: 8px;
   overflow: hidden;
-  border-radius: 99px;
-  background: #dedbd0;
+  border-radius: var(--r-full);
+  background: var(--surface-sunken);
 }
 
 .progressTrack span {
@@ -982,7 +987,7 @@ h2 {
 
 .donationFlow {
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--r-md);
   background: var(--surface);
   padding: 22px;
 }
@@ -1013,8 +1018,8 @@ h2 {
   display: grid;
   grid-template-columns: minmax(260px, 0.7fr) minmax(0, 1.5fr);
   gap: 52px;
-  border-radius: 14px;
-  background: #e8eadf;
+  border-radius: var(--r-md);
+  background: var(--surface-sunken);
   padding: 42px;
 }
 
@@ -1035,7 +1040,7 @@ h2 {
   grid-template-columns: 32px 1fr;
   gap: 10px;
   padding: 11px 0;
-  border-bottom: 1px solid #cfd2c6;
+  border-bottom: 1px solid var(--border-strong);
 }
 
 .methodSection li > strong {
@@ -1065,7 +1070,7 @@ h2 {
 .demoNotice {
   margin-top: 64px;
   border: 1px dashed var(--line);
-  border-radius: 10px;
+  border-radius: var(--r-sm);
   padding: 12px 16px;
   color: var(--muted);
   font-size: 12px;
@@ -1292,7 +1297,7 @@ footer a {
   align-items: center;
   gap: 6px;
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: var(--r-full);
   background: var(--surface);
   padding: 8px 14px;
   color: var(--ink);
@@ -1317,9 +1322,9 @@ footer a {
 .mapReportHint {
   margin: 0;
   border-bottom: 1px solid var(--line);
-  background: #fff4e9;
+  background: var(--status-strong-soft);
   padding: 9px 18px;
-  color: #8a4b18;
+  color: var(--status-strong-ink);
   font-size: 12px;
   font-weight: 600;
 }
@@ -1440,7 +1445,7 @@ footer a {
 }
 
 .communityReportMarker.muted circle {
-  fill: #9a9484;
+  fill: var(--text-tertiary);
 }
 
 .communityReportMarker.pendingPoint {
@@ -1464,7 +1469,7 @@ footer a {
   max-height: calc(100% - 40px);
   overflow-y: auto;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--r-md);
   background: var(--surface);
   padding: 18px;
   box-shadow: var(--shadow);
@@ -1492,7 +1497,7 @@ footer a {
 
 .communityReportTypeToggle button {
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--r-sm);
   background: white;
   padding: 8px 6px;
   font-size: 12px;
@@ -1517,7 +1522,7 @@ footer a {
   align-items: center;
   gap: 6px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--r-sm);
   background: white;
   padding: 6px 8px;
   color: var(--ink);
@@ -1528,7 +1533,7 @@ footer a {
 
 .communityReportCategoryGrid button.active {
   border-color: var(--primary);
-  background: #e7f3ee;
+  background: var(--status-light-soft);
   color: var(--primary-dark);
   font-weight: 700;
 }
@@ -1543,7 +1548,7 @@ footer a {
 .communityReportForm input,
 .communityReportForm textarea {
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: var(--r-xs);
   padding: 8px 9px;
   color: var(--ink);
   font: inherit;
@@ -1564,7 +1569,7 @@ footer a {
 
 .communityReportFormActions button {
   border: 1px solid var(--primary);
-  border-radius: 8px;
+  border-radius: var(--r-sm);
   background: var(--primary);
   padding: 9px 16px;
   color: white;
@@ -1584,24 +1589,24 @@ footer a {
 
 .communityReportStatusBadge {
   width: fit-content;
-  border-radius: 999px;
+  border-radius: var(--r-full);
   padding: 4px 10px;
   font-size: 11px;
   font-weight: 700;
 }
 
 .communityReportStatusBadge.unverified {
-  background: #fbeecf;
-  color: #8a5a12;
+  background: var(--status-strong-soft);
+  color: var(--status-strong-ink);
 }
 
 .communityReportStatusBadge.verified {
-  background: #d9f0e3;
+  background: var(--status-light-soft);
   color: var(--primary-dark);
 }
 
 .communityReportStatusBadge.muted {
-  background: #eee9dd;
+  background: var(--surface-sunken);
   color: var(--muted);
 }
 
@@ -1622,7 +1627,7 @@ footer a {
   justify-self: start;
   border: none;
   background: transparent;
-  color: #75d4b5;
+  color: var(--on-inverse-accent);
   font-size: 11px;
   font-weight: 700;
   cursor: pointer;
@@ -1646,7 +1651,7 @@ footer a {
 
 .urgencyBadge {
   width: fit-content;
-  border-radius: 999px;
+  border-radius: var(--r-full);
   padding: 4px 10px;
   font-size: 11px;
   font-weight: 700;
@@ -1654,36 +1659,36 @@ footer a {
 }
 
 .urgencyBadge.high {
-  background: #f8d7d0;
-  color: #8a2c12;
+  background: var(--status-critical-soft);
+  color: var(--status-critical-ink);
 }
 
 .urgencyBadge.medium {
-  background: #fbeecf;
-  color: #8a5a12;
+  background: var(--status-strong-soft);
+  color: var(--status-strong-ink);
 }
 
 .urgencyBadge.low {
   background: rgba(255, 255, 255, 0.12);
-  color: #c4d0cb;
+  color: var(--on-inverse-secondary);
 }
 
 .reportDetailDescription {
   margin: 0;
-  color: #dbe4e0;
+  color: var(--on-inverse-secondary);
   font-size: 13px;
   line-height: 1.5;
 }
 
 .reportDetailNeeds {
-  border-left: 3px solid #75d4b5;
+  border-left: 3px solid var(--on-inverse-accent);
   background: rgba(255, 255, 255, 0.07);
   padding: 10px 12px;
   font-size: 12px;
 }
 
 .reportDetailNeeds > span {
-  color: #aebcb6;
+  color: var(--on-inverse-tertiary);
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
@@ -1700,7 +1705,7 @@ footer a {
 }
 
 .reportDetailNeeds li {
-  border-radius: 999px;
+  border-radius: var(--r-full);
   background: rgba(255, 255, 255, 0.12);
   padding: 4px 10px;
   font-size: 11px;
@@ -1712,16 +1717,16 @@ footer a {
 
 .reportDetailSource {
   margin: 0;
-  color: #aebcb6;
+  color: var(--on-inverse-tertiary);
   font-size: 11px;
 }
 
 .reportDetailSource a {
-  color: #75d4b5;
+  color: var(--on-inverse-accent);
 }
 
 .reportDetailMapLink {
-  color: #75d4b5;
+  color: var(--on-inverse-accent);
   white-space: nowrap;
 }
 
@@ -1761,7 +1766,7 @@ footer a {
 
 .reconstructionTerritoryCard {
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: var(--r-sm);
   padding: 16px;
   background: var(--surface);
 }
@@ -1791,7 +1796,7 @@ footer a {
 
 .supplierCard {
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: var(--r-sm);
   padding: 16px;
   background: var(--surface);
   display: grid;
@@ -1821,7 +1826,7 @@ footer a {
 }
 
 .supplierOffers li {
-  border-radius: 999px;
+  border-radius: var(--r-full);
   background: var(--paper);
   border: 1px solid var(--line);
   padding: 4px 10px;
@@ -1835,7 +1840,7 @@ footer a {
 
 .workforceRoleGroup {
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: var(--r-sm);
   background: var(--surface);
   padding: 14px 16px;
 }
@@ -1858,7 +1863,7 @@ footer a {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  border-radius: 999px;
+  border-radius: var(--r-full);
   background: var(--paper);
   border: 1px solid var(--line);
   padding: 4px 12px;
@@ -1868,7 +1873,7 @@ footer a {
 .workforceAvailabilityDot {
   width: 8px;
   height: 8px;
-  border-radius: 999px;
+  border-radius: var(--r-full);
   background: var(--muted);
   flex-shrink: 0;
 }
@@ -1878,7 +1883,7 @@ footer a {
 }
 
 .workforceAvailabilityDot.assigned {
-  background: #d08b25;
+  background: var(--amber);
 }
 
 .reconstructionTabs {
@@ -1893,7 +1898,7 @@ footer a {
   gap: 4px;
   text-align: left;
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: var(--r-sm);
   background: var(--surface);
   padding: 14px 16px;
   cursor: pointer;
@@ -1910,7 +1915,7 @@ footer a {
 
 .reconstructionTabs button.active {
   border-color: var(--primary);
-  background: #e7f3ee;
+  background: var(--status-light-soft);
 }
 
 .reconstructionTabs button.active span {
@@ -1933,7 +1938,7 @@ footer a {
 .reconstructionSearchInput {
   flex: 1 1 260px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--r-sm);
   padding: 9px 12px;
   font: inherit;
   color: var(--ink);
@@ -1948,7 +1953,7 @@ footer a {
 
 .reconstructionFilterChips button {
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: var(--r-full);
   background: var(--surface);
   padding: 6px 12px;
   font-size: 12px;
@@ -1971,7 +1976,7 @@ footer a {
   height: 18px;
   padding: 0 5px;
   margin-left: 6px;
-  border-radius: 999px;
+  border-radius: var(--r-full);
   background: var(--primary);
   color: white;
   font-size: 11px;
@@ -2003,7 +2008,7 @@ footer a {
 
 .reconstructionCycleNote {
   border: 1px dashed var(--line);
-  border-radius: 12px;
+  border-radius: var(--r-md);
   padding: 20px;
   margin: 48px 0;
 }
@@ -2017,7 +2022,7 @@ footer a {
 .locationPicker {
   width: 100%;
   height: 260px;
-  border-radius: 8px;
+  border-radius: var(--r-sm);
   overflow: hidden;
   border: 1px solid var(--line);
 }
@@ -2053,7 +2058,7 @@ footer a {
   border-bottom: 1px solid var(--line);
   background: linear-gradient(180deg, var(--primary) 0, var(--primary-dark) 100%);
   padding: 14px 18px;
-  color: #eef6f1;
+  color: var(--on-inverse-primary);
 }
 
 .mapWhereTrail {
@@ -2087,7 +2092,7 @@ footer a {
 
 .mapCrumb:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.14);
-  color: #fff;
+  color: var(--white);
 }
 
 .mapCrumb:disabled {
@@ -2097,7 +2102,7 @@ footer a {
 
 .mapCrumb.current {
   padding-left: 0;
-  color: #fff;
+  color: var(--white);
   cursor: default;
 }
 
@@ -2129,19 +2134,19 @@ footer a {
 }
 
 .mapReportBar.active {
-  background: #fff5ea;
+  background: var(--status-strong-soft);
 }
 
 .mapReportBar .mapReportToggle {
   border-color: var(--primary);
   background: var(--primary);
-  color: #fff;
+  color: var(--white);
   box-shadow: 0 6px 16px rgba(4, 98, 74, 0.28);
 }
 
 .mapReportBar .mapReportToggle:hover {
   background: var(--primary-dark);
-  color: #fff;
+  color: var(--white);
 }
 
 .mapReportBar .mapReportToggle.active {
@@ -2155,7 +2160,7 @@ footer a {
   align-items: center;
   gap: 6px;
   border: 1px solid var(--line-strong);
-  border-radius: 999px;
+  border-radius: var(--r-full);
   background: var(--surface);
   padding: 8px 14px;
   color: var(--ink);
@@ -2184,7 +2189,7 @@ footer a {
   border: 0;
   background: none;
   padding: 0;
-  color: #8a4b18;
+  color: var(--status-strong-ink);
 }
 
 .mapReportBar .mapReportHint.muted {

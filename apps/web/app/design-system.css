@@ -91,6 +91,38 @@
   --status-light-soft: #e6f2ec;
   --status-none: #9aa39d;
   --status-none-soft: #eeeee7;
+
+  /* Tinta legible sobre cada superficie suave de estado. Se declara aparte
+     porque el color del texto sobre un fondo tenue no es el mismo color del
+     estado: usar el tono pleno sobre su propio fondo suave no alcanza el 4.5:1
+     que exige el texto. */
+  --status-critical-ink: #8a2c12;
+  --status-severe-ink: #a8331f;
+  --status-strong-ink: #765019;
+  --status-moderate-ink: #245d80;
+  --status-light-ink: #1b6341;
+
+  /* Acceso restringido: sexto estado, con familia propia porque no cabe en la
+     escala de severidad — no es "más grave que crítico", es otra cosa. */
+  --status-restricted: #6b4d83;
+  --status-restricted-soft: #ece5f2;
+  --status-restricted-light: #8b739d;
+
+  /* Evento sísmico: color propio para no confundir un sismo registrado por el
+     SGC con un estado de afectación. */
+  --seismic: #d87246;
+
+  /* --- Sobre superficie oscura ------------------------------------------
+     Los paneles invertidos (resumen territorial, centro de reconstrucción)
+     necesitan su propia escala de texto: el gris que funciona sobre crema es
+     ilegible sobre verde profundo. */
+  --on-inverse-primary: #eef6f1;
+  --on-inverse-secondary: #c4d0cb;
+  --on-inverse-tertiary: #aebcb6;
+  --on-inverse-accent: #75d4b5;
+  --on-inverse-border: rgba(255, 255, 255, 0.14);
+
+  --white: #fff;
 }
 
 /* =============================================================================
