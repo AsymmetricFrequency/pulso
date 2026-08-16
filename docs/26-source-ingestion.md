@@ -169,3 +169,71 @@ Primera corrida completa con el registro unificado (16 ago 2026): nueve fuentes 
 correctas —contemos 1.986 registros, DANE 1.154, SGC 639, ayudaspereira 480, redcaliayuda 500 y
 127, terremotocolombia 220, gravitas 200— y Cali `failed` con `http_status 403`, que es
 exactamente el estado que antes no se veía.
+
+## USGS ShakeMap — intensidad sísmica por territorio
+
+Aporta lo que ninguna otra fuente de Pulso daba: **dónde sacudió más fuerte**. El SGC publica los
+sismos —dónde y de qué magnitud— pero no el campo de sacudida sobre el territorio, así que las 33
+capas de daño del mapa decían "sin datos publicados" sin más matiz posible.
+
+**La intensidad no es daño.** Un municipio con MMI 7 recibió una sacudida muy fuerte, lo que no
+dice cuántas casas cayeron: eso depende de cómo estén construidas. Por eso vive en su propia tabla
+(`territory_shaking`), su propia ruta (`/v1/public/incidents/:code/shaking`) y con rótulo propio.
+Mezclarla con la capa de afectación haría que un municipio apareciera "con daño severo" sin que
+nadie haya ido a mirar, que es exactamente el error que este proyecto evita en todo lo demás.
+
+### Cómo se calcula
+
+El USGS publica la sacudida como una malla CoverageJSON de 171×172 = 29.412 celdas. El cruce contra
+los 1.154 polígonos del DANE se hace en PostGIS (`ST_Contains` sobre el índice GiST), no en
+memoria: en JavaScript sería un producto cartesiano de 34 millones de comparaciones.
+
+Dos detalles que importan:
+
+- La URL del ShakeMap **lleva la marca de tiempo de la versión** y el USGS revisa el modelo durante
+  días. Se resuelve desde el evento en cada corrida; congelarla dejaría a Pulso publicando una
+  versión vieja sin enterarse.
+- Los valores llegan aplanados en el orden que declara `axisNames`. Respetarlo es lo único que
+  separa una malla correcta de una **espejada**, que asignaría la sacudida del Pacífico a los
+  Llanos sin que ningún total lo delate. Hay una prueba dedicada a eso.
+
+### Resultado verificado
+
+21 departamentos y 680 municipios con intensidad. El orden reproduce la geografía real del evento
+—epicentro a 12 km de San José del Palmar, Chocó—:
+
+| Departamento | MMI máx | Percepción |
+| --- | --- | --- |
+| Valle del Cauca | 7.8 | Severo |
+| Risaralda | 7.7 | Severo |
+| Chocó | 7.6 | Severo |
+| Caldas | 7.5 | Severo |
+| Quindío | 7.4 | Muy fuerte |
+
+Los municipios más sacudidos son Cartago, Pereira y Ulloa — el norte del Valle y Risaralda, lo más
+cercano al epicentro. Coincide de forma independiente con el índice de criticidad municipal que
+publica Laboratorio TerrarIA, que sitúa a Toro y Roldanillo (norte del Valle) en los primeros
+puestos.
+
+## Copernicus EMS: no hay ruta pública
+
+La activación **EMSR916** cubre este sismo con evaluación de daño por satélite —356 edificaciones
+clasificadas en Destruida / Dañada / Posiblemente dañada sobre Cali norte, Cali centro y
+Buenaventura—, que es justo el dato que falta para `rapid_assessments`. **No se pudo ingerir.**
+
+Lo comprobado:
+
+- La página de la activación (`mapping.emergency.copernicus.eu/activations/EMSR916/`) responde 200
+  pero es una cáscara: los productos los carga un visor compilado a WebAssembly.
+- El backend de Rapid Mapping (`rapidmapping.emergency.copernicus.eu/backend/activations/{code}`)
+  existe y responde JSON, pero contesta `"No Activation matches the given query"` para EMSR916: esa
+  activación vive en el portal de On Demand Mapping, que es otro sistema.
+- Los nombres exactos de los productos son conocidos
+  (`EMSR916_AOI01_GRA_PRODUCT_builtUpP_v1.json`, `EMSR916_AOI06_GRA_MONIT01_builtUpP_v2.json`,
+  documentados por Laboratorio TerrarIA), pero ninguna de las rutas de descarga habituales
+  responde: el bucket S3 del visor devuelve 403 y el patrón `system/files/components/*.zip` del
+  portal antiguo, 404.
+
+La licencia no es el obstáculo —Copernicus EMS es de uso abierto con atribución—, sino el acceso.
+Las salidas razonables son pedirle a Copernicus el acceso a los vectores, o acordar con Laboratorio
+TerrarIA el uso de su extracción con atribución, ya que ellos sí la resolvieron.
