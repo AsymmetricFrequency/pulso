@@ -36,15 +36,21 @@ jobs:
       - name: Lint y formato
         run: pnpm lint
 
-      # `pnpm test` compila `@pulso/schemas` y `@pulso/domain` antes de correr: los consumidores
-      # chequean tipos contra `dist`, no contra el fuente. Sin ese paso el typecheck falla por una
-      # razón que no tiene nada que ver con el cambio.
+      # Los paquetes compartidos se compilan antes de chequear tipos.
       #
+      # `@pulso/domain` y `apps/api` importan `@pulso/schemas` por su `dist`, no por el fuente. En
+      # una máquina donde ya se trabajó, ese `dist` existe de antes y el typecheck pasa; en un clon
+      # limpio como este no existe y falla con trece «Cannot find module» que no tienen nada que ver
+      # con el cambio. Es la misma trampa que está avisada en CONTRIBUTING.md, y la CI es justo
+      # donde más despista porque nadie ve el árbol de archivos.
+      - name: Compilar paquetes compartidos
+        run: pnpm --filter @pulso/schemas --filter @pulso/domain build
+
       # `@pulso/solana` queda fuera: sus tipos los genera `anchor build` en `target/types/`, que no
-      # está versionado, así que aquí siempre faltarían. Instalar Rust, Solana CLI y Anchor costaría
-      # varios minutos en cada PR para comprobar un programa que casi nunca cambia; se verifica con
-      # `pnpm test:solana:integration` cuando se toca. Que el trabajo del día a día espere por eso
-      # sería la forma más segura de que la gente empiece a ignorar la CI.
+      # está versionado. Instalar Rust, Solana CLI y Anchor costaría varios minutos en cada PR para
+      # comprobar un programa que casi nunca cambia; se verifica con `pnpm test:solana:integration`
+      # cuando se toca. Que el trabajo del día a día espere por eso sería la forma más segura de que
+      # la gente empiece a ignorar la CI.
       - name: Tipos
         run: pnpm -r --filter '!@pulso/solana' typecheck
 
