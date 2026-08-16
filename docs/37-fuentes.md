@@ -188,7 +188,30 @@ médica», «Evacuación por riesgo estructural»— en vez de fingir precisión
 **Resultado: 677 → 33.** Los 33 que quedan son personas que escribieron su dirección en el campo de
 qué necesitan, y ahí ya no hay nada que un importador pueda adivinar sin inventar.
 
+### Lo que el arreglo destapó: una fila tumbaba la lista entera
+
+Recuperar las 166 necesidades de contemos sacó a la luz un fallo que ya estaba ahí. Una persona
+escribió un párrafo largo sin comas, así que el único elemento de `needs` pasó de los 400 caracteres
+que admite el esquema — y como la ruta pública validaba el lote completo con `.parse()`, **la lista
+entera empezó a responder `validation_error` a todo el mundo**. El mapa siguió en pie solo porque
+`view=map` no sirve metadata.
+
+Dos fallos distintos, dos arreglos:
+
+1. **Los cinco importadores** armaban `needs` por su cuenta y todos limitaban cuántos elementos
+   había, ninguno cuánto medía cada uno. Ahora pasan por `needs-list.ts`. Es la misma lección del
+   disparador de redacción: **si la invariante depende de que cada autor se acuerde, no es una
+   invariante.**
+2. **La ruta ya no deja que una fila decida por las demás.** Cada una se valida sola. En una
+   emergencia servir 2.299 puntos vale más que servir cero. Lo que no hace es esconderlo: las
+   descartadas se cuentan en `unavailable` y se registran con su identificador, porque un punto que
+   desaparece en silencio es peor que uno que falta a la vista.
+
 ### Abierto
+
+**184 títulos de contemos son direcciones**, pero esta vez el dato es así en origen: es el campo
+`titulo` tal como lo escribió quien reportó allá. Reescribirlo sería editar el registro de otro. Lo
+correcto es `PL-13` —acordar un formato— no un parche en nuestro importador.
 
 **84 centros de Ayudas Pereira no tienen coordenada** y por eso no se pintan. Tienen dirección en
 texto. Geocodificarlos es trabajo real —y una dirección mal geocodificada manda a un equipo al lugar
