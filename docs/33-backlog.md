@@ -247,3 +247,4 @@ No son tickets todavía. Están aquí para que nadie los redescubra y crea que e
 | No hay pruebas de extremo a extremo del flujo de reporte | Lo más usado del sitio es lo menos probado | Frontend |
 | Sin límite de tasa en las rutas públicas de lectura | El día que nos enlacen desde un medio grande, se cae | DevOps |
 | Copernicus sin decidir | Puede que estemos por duplicar el trabajo de otro equipo | Data |
+| 677 necesidades importadas traen una dirección por título, no la necesidad | Un tercio de lo que el mapa llama «necesidad» no dice qué necesita. Ver [`37-fuentes.md`](37-fuentes.md) | Data |

@@ -118,6 +118,13 @@ export const rescueTitle = (people: number | null, signs: RescueSignsOfLife | nu
   return `${who} bajo escombros — ${how}`;
 };
 
+/**
+ * De dónde salió cada punto importado.
+ *
+ * Estaban solo dos de las seis fuentes, así que cuatro de cada diez puntos del mapa se mostraban
+ * sin decir de dónde venían. La procedencia es la mitad de lo que hace confiable a Pulso: un dato
+ * sin origen visible vale lo mismo que un rumor.
+ */
 export const externalSourceLabels: Record<string, { name: string; url: string }> = {
   "contemos-mapa-situacion": {
     name: "contemos.org",
@@ -126,6 +133,22 @@ export const externalSourceLabels: Record<string, { name: string; url: string }>
   "gravitas-mapa-ciudadano": {
     name: "GRAVITAS",
     url: "https://www.mapa.gravitasworld.com/",
+  },
+  "redcaliayuda-necesidades": {
+    name: "Red Cali Ayuda",
+    url: "https://redcaliayuda.vercel.app/necesidades",
+  },
+  "redcaliayuda-acopio": {
+    name: "Red Cali Ayuda · acopio",
+    url: "https://redcaliayuda.vercel.app/acopio",
+  },
+  "ayudaspereira-centros": {
+    name: "Ayudas Pereira",
+    url: "https://ayudaspereira.com/",
+  },
+  "terremotocolombia-co": {
+    name: "terremotocolombia.co",
+    url: "https://terremotocolombia.co/",
   },
 };
 

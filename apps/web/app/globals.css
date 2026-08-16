@@ -1866,6 +1866,23 @@ footer a {
   margin: 4px 0;
 }
 
+/* El aviso de contacto va destacado y sobre la línea de procedencia: quien abre una necesidad y
+   quiere ayudar tiene que ver ahí que hay una forma de llegar, no descubrirlo leyendo el pie. */
+.reportDetailContact {
+  margin: 0 0 10px;
+  border-left: 3px solid var(--on-inverse-accent);
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--on-inverse-secondary, var(--on-inverse-tertiary));
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.reportDetailContact a {
+  color: var(--on-inverse-accent);
+  font-weight: 700;
+}
+
 .reportDetailSource {
   margin: 0;
   color: var(--on-inverse-tertiary);

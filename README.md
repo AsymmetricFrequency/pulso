@@ -240,6 +240,7 @@ nada a nadie.
 - [Informe público territorial](docs/24-public-situation-report.md)
 - [Día 4: personas afectadas, coordinación y ayuda trazable](docs/25-day-four-affected-people.md)
 - [Fuentes e ingesta de datos públicos](docs/26-source-ingestion.md)
+- [Fuentes conectadas y su estado](docs/37-fuentes.md)
 - [Reportar personas atrapadas](docs/36-rescate.md)
 - [Lectura previa de contratos con Claude](docs/31-contract-triage.md)
 

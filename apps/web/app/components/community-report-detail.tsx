@@ -255,6 +255,21 @@ export function CommunityReportDetailCard({ report, onClose }: CommunityReportDe
         )}
       </dl>
 
+      {/* Enlace a la fuente en vez de copiar el contacto.
+          264 fichas importadas declaran tener un teléfono en su origen. Ese número se lo dieron a
+          esa plataforma, no a Pulso, así que no se republica aquí — pero callar que existe deja a
+          quien quiere ayudar sin forma de llegar. El enlace resuelve las dos cosas: la conexión
+          ocurre y el dato personal se queda donde su dueño lo puso. */}
+      {source && metadata?.hasContact && (
+        <p className="reportDetailContact">
+          Esta ficha tiene datos de contacto <strong>en su fuente original</strong>. Pulso no los
+          copia.{" "}
+          <a href={source.url} target="_blank" rel="noreferrer noopener">
+            Abrir en {source.name} ↗
+          </a>
+        </p>
+      )}
+
       {source && (
         <p className="reportDetailSource">
           Fuente:{" "}
