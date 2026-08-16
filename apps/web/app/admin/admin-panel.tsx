@@ -63,6 +63,8 @@ type Task = {
   assigneeUsername: string | null;
   dependsOn: string[];
   discordThreadId: string | null;
+  branch: string | null;
+  technical: string | null;
 };
 
 type Member = {
@@ -117,11 +119,28 @@ const STATUS_LABEL: Record<string, string> = {
   bloqueado: "Bloqueado",
 };
 
+/**
+ * Urgencia, no horizonte.
+ *
+ * «Corto plazo» dice cuándo se hará; esto dice qué pasa si se retrasa, que es lo que hay que decidir
+ * al elegir un ticket. Los subtítulos están porque «extrema» y «urgente» suenan parecido y la
+ * diferencia entre ambos es exactamente lo que se quiere comunicar.
+ */
 const HORIZON_LABEL: Record<string, string> = {
-  corto: "Corto plazo",
-  mediano: "Mediano plazo",
+  extrema: "Extrema urgencia",
+  urgente: "Urgencia",
+  media: "Urgencia media",
   largo: "Largo plazo",
 };
+
+const HORIZON_NOTE: Record<string, string> = {
+  extrema: "El retraso se mide en vidas. De un reporte a un equipo saliendo hacia el punto.",
+  urgente: "Días. Duele y desperdicia recursos, pero nadie se queda debajo por esto.",
+  media: "Semanas. La fase siguiente de la emergencia, no la de ahora.",
+  largo: "Que Pulso siga sirviendo cuando esto pase, y sirva en la siguiente.",
+};
+
+const HORIZONS = ["extrema", "urgente", "media", "largo"];
 
 /** Roles de área, los que reparten trabajo. `maintainer` y `contributor` no lo son. */
 const AREA_ROLES = ["frontend", "backend", "data", "gis", "devops", "ai", "blockchain"];
@@ -284,7 +303,7 @@ export function AdminPanel() {
       (roleFilter === "todos" || task.roles.includes(roleFilter)),
   );
 
-  const byHorizon = ["corto", "mediano", "largo"].map((horizon) => ({
+  const byHorizon = HORIZONS.map((horizon) => ({
     horizon,
     tasks: visibleTasks.filter((task) => task.horizon === horizon),
   }));
@@ -722,7 +741,10 @@ export function AdminPanel() {
             {byHorizon.map(({ horizon, tasks: group }) =>
               group.length === 0 ? null : (
                 <div key={horizon}>
-                  <h3>{HORIZON_LABEL[horizon]}</h3>
+                  <h3 className={styles.horizonTitle} data-horizon={horizon}>
+                    {HORIZON_LABEL[horizon]}
+                    <span>{HORIZON_NOTE[horizon]}</span>
+                  </h3>
                   <ul className={styles.taskList}>
                     {group.map((task) => (
                       <li className={styles.task} key={task.code} data-priority={task.priority}>
@@ -748,6 +770,66 @@ export function AdminPanel() {
                             Depende de {task.dependsOn.join(", ")}
                           </p>
                         )}
+
+                        {/* La rama se decide al asignar, no al empezar a trabajar. Quien toma el
+                            ticket copia y arranca; sin esto cada quien inventa un nombre y el
+                            listado de ramas deja de ordenarse por prioridad. */}
+                        {task.branch && (
+                          <p className={styles.taskBranch}>
+                            <code>git switch {task.branch}</code>
+                          </p>
+                        )}
+
+                        {/* Los requerimientos técnicos van plegados: se leen después de decidir
+                            tomar la tarea, no para decidirlo. Abiertos, veinte tickets serían
+                            ilegibles de un vistazo. */}
+                        {task.technical && (
+                          <details className={styles.taskTechnical}>
+                            <summary>Requerimientos técnicos</summary>
+                            <pre>{task.technical}</pre>
+                          </details>
+                        )}
+
+                        {/* Tomarla no requiere ser Maintainer. Quien mejor sabe si puede con un
+                            ticket es quien lo va a hacer; lo que se comprueba es que el rol encaje
+                            y que no se le quite a nadie lo que ya tiene. */}
+                        <div className={styles.claimRow}>
+                          {task.assigneeDiscordId === session.discordUserId ? (
+                            <button
+                              type="button"
+                              className={styles.claimMine}
+                              disabled={busy === `${task.code}:claim`}
+                              onClick={() =>
+                                void mutate(
+                                  `/v1/admin/tasks/${task.code}/claim`,
+                                  { method: "POST" },
+                                  `${task.code}:claim`,
+                                )
+                              }
+                            >
+                              Es tuya · soltarla
+                            </button>
+                          ) : task.assigneeUsername ? (
+                            <span className={styles.claimTaken}>
+                              La tiene <strong>{task.assigneeUsername}</strong>
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              className={styles.claimFree}
+                              disabled={busy === `${task.code}:claim`}
+                              onClick={() =>
+                                void mutate(
+                                  `/v1/admin/tasks/${task.code}/claim`,
+                                  { method: "POST" },
+                                  `${task.code}:claim`,
+                                )
+                              }
+                            >
+                              Tomar esta tarea
+                            </button>
+                          )}
+                        </div>
 
                         <div className={styles.taskActions}>
                           <label>

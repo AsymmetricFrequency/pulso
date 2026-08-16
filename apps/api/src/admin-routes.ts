@@ -257,6 +257,57 @@ export function registerAdminRoutes(app: FastifyInstance, options: AdminRoutesOp
     return admin.listTasks();
   });
 
+  /**
+   * Tomar o soltar una tarea uno mismo. No requiere ser Maintainer.
+   *
+   * Repartir trabajo a mano no escala y además decide peor: quien mejor sabe si puede con un ticket
+   * es quien lo va a hacer. Lo que sí se comprueba es que el rol encaje —un ticket de frontend
+   * tomado por alguien sin ese rol se queda parado y nadie se entera— y que no se le quite a nadie
+   * lo que ya tiene.
+   */
+  app.post("/v1/admin/tasks/:code/claim", async (request, reply) => {
+    if (!admin) return reply.status(503).send({ error: "database_not_configured" });
+    const current = await requireSession(request, reply);
+    if (!current) return;
+
+    const { code } = request.params as { code: string };
+    const task = (await admin.listTasks()).find((item) => item.code === code);
+    if (!task) return reply.status(404).send({ error: "task_not_found" });
+
+    if (task.assigneeDiscordId && task.assigneeDiscordId !== current.discordUserId) {
+      return reply.status(409).send({
+        error: "already_claimed",
+        message: `Ya la tiene ${task.assigneeUsername}. Háblalo con esa persona antes de tomarla.`,
+      });
+    }
+
+    // Soltar la propia siempre se puede. Es lo que hace honesto el tablero: un ticket que alguien
+    // no va a terminar tiene que poder volver a la cola sin pedirle permiso a nadie.
+    if (task.assigneeDiscordId === current.discordUserId) {
+      return admin.assignTask(code, null, {
+        discordUserId: current.discordUserId,
+        username: current.discordUsername,
+      });
+    }
+
+    const fits =
+      canWrite(current.roles) ||
+      isSuperuser(current.discordUserId) ||
+      task.roles.some((role) => current.roles.includes(role));
+    if (!fits) {
+      return reply.status(403).send({
+        error: "role_mismatch",
+        message: `Esta tarea es de ${task.roles.join(" o ")}. Pide ese rol en Discord y vuelve.`,
+      });
+    }
+
+    return admin.assignTask(
+      code,
+      { discordUserId: current.discordUserId, username: current.discordUsername },
+      { discordUserId: current.discordUserId, username: current.discordUsername },
+    );
+  });
+
   app.get("/v1/admin/capabilities", async (request, reply) => {
     if (!admin) return reply.status(503).send({ error: "database_not_configured" });
     if (!(await requireSession(request, reply))) return;

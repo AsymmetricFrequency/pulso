@@ -732,6 +732,111 @@
   font-size: 12px;
 }
 
+/* El nivel de urgencia se lee antes que cualquier ticket. Rojo solo el primero: si los cuatro
+   gritaran, ninguno gritaría. */
+.horizonTitle {
+  display: grid;
+  gap: 2px;
+  margin: 28px 0 10px;
+  border-left: 3px solid var(--line-strong);
+  padding-left: 12px;
+}
+
+.horizonTitle span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.horizonTitle[data-horizon="extrema"] {
+  border-left-color: var(--status-critical);
+  color: var(--status-critical-ink);
+}
+.horizonTitle[data-horizon="urgente"] {
+  border-left-color: var(--status-strong);
+}
+.horizonTitle[data-horizon="media"] {
+  border-left-color: var(--status-moderate);
+}
+
+.taskBranch {
+  margin: 8px 0 0;
+}
+
+.taskBranch code {
+  display: inline-block;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--paper-deep);
+  padding: 3px 8px;
+  font-size: 11.5px;
+  user-select: all;
+}
+
+.taskTechnical {
+  margin-top: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--paper-deep);
+}
+
+.taskTechnical summary {
+  padding: 8px 12px;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* `pre` con ajuste de línea: el texto trae saltos deliberados y no debe desbordar en horizontal. */
+.taskTechnical pre {
+  margin: 0;
+  border-top: 1px solid var(--line);
+  padding: 12px;
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.claimRow {
+  margin-top: 12px;
+}
+
+.claimFree,
+.claimMine {
+  min-height: 40px;
+  border-radius: var(--r-sm);
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.claimFree {
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: white;
+}
+
+.claimMine {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+}
+
+.claimFree:disabled,
+.claimMine:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.claimTaken {
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .taskActions {
   display: flex;
   flex-wrap: wrap;

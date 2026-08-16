@@ -35,6 +35,8 @@ export type ProjectTask = {
   assigneeUsername: string | null;
   dependsOn: string[];
   discordThreadId: string | null;
+  branch: string | null;
+  technical: string | null;
   claimedAt: string | null;
   completedAt: string | null;
 };
@@ -77,6 +79,8 @@ const taskFromRow = (row: Record<string, unknown>): ProjectTask => ({
   assigneeUsername: asString(row.assignee_username),
   dependsOn: (row.depends_on as string[] | null) ?? [],
   discordThreadId: asString(row.discord_thread_id),
+  branch: asString(row.branch),
+  technical: asString(row.technical),
   claimedAt: asDate(row.claimed_at),
   completedAt: asDate(row.completed_at),
 });
