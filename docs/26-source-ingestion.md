@@ -102,16 +102,16 @@ intervalo único de 20 minutos para todas, y forzarlo solo re-descargaría el mi
 
 | Fuente | Cadencia | Estado observado |
 | --- | --- | --- |
-| SGC (sismos) | 5 min | 120 corridas, 0 fallos |
-| contemos | 10 min | 60 corridas, **16 fallos** (404/500 intermitentes de su feed) |
-| gravitas | 10 min | 60 corridas, 0 fallos · 181 puntos |
-| ayudaspereira | 15 min | 40 corridas, 0 fallos |
-| redcaliayuda (necesidades) | 15 min | 40 corridas, 0 fallos |
-| redcaliayuda (acopio) | 15 min | 40 corridas, 0 fallos |
-| publicación del informe | 20 min | 30 corridas, 0 fallos |
-| terremotocolombia | 4 h | 3 corridas (su CDN cachea 4 h) |
-| DANE MGN | 24 h | 1 corrida |
-| **Cali oficial** | 30 min | **20 corridas, 20 fallos — HTTP 403** |
+| SGC (sismos) | 5 min | corre limpio · 639 registros |
+| contemos | 10 min | corre, con **404/500 intermitentes de su propio feed** · 1.986 registros |
+| gravitas | 10 min | corre limpio · 200 puntos |
+| ayudaspereira | 15 min | corre limpio · 480 registros |
+| redcaliayuda (necesidades) | 15 min | corre limpio · 500 registros |
+| redcaliayuda (acopio) | 15 min | corre limpio · 127 puntos |
+| publicación del informe | 20 min | corre limpio (no es ingesta externa) |
+| terremotocolombia | 4 h | corre limpio · 220 registros (su CDN cachea 4 h) |
+| DANE MGN | 24 h | corre limpio · 1.154 territorios |
+| **Cali oficial** | 30 min | **falla siempre — HTTP 403** |
 
 ### Cali bloquea al servidor
 
@@ -124,10 +124,48 @@ No se intenta rodear ese bloqueo. La vía correcta es la que ya plantea el plan 
 información por el portal de datos abiertos (`datos.gov.co`) o por solicitud formal bajo la Ley
 1712, que además entrega datos estructurados y versionables en vez de HTML raspado.
 
-### Observabilidad incompleta
+## Registro de corridas
 
-Solo `sgc`, `cali` y `dane` escriben en `source_ingestion_runs`. Las seis fuentes comunitarias
-corren bien pero no registran nada, así que su estado solo existe en el log del worker. Por eso el
-403 de Cali pasó desapercibido hasta que se revisó a mano: **una fuente puede estar caída sin que
-ninguna consulta lo muestre**. Unificar el registro de corridas es el siguiente paso de este
-módulo.
+Durante un tiempo solo `sgc`, `cali` y `dane` escribían en `source_ingestion_runs`, y **ningún
+fallo se registraba nunca**. Por eso Cali estuvo devolviendo 403 en veinte corridas seguidas sin
+que ninguna consulta a la base lo mostrara: una fuente podía estar caída y el sistema se veía sano.
+
+La causa no era el olvido de seis módulos, era dónde vivía el registro. Cada fuente lo resolvía
+dentro de sí misma, y el fallo casi siempre ocurre en la descarga — lo primero que hace el módulo,
+antes de abrir su conexión a la base. **Un HTTP 403 no deja rastro si el único que puede anotarlo
+es quien acaba de caerse.**
+
+Ahora el registro vive en `runIngestionSourceWithLog` (`apps/worker/src/scheduler.ts`), que abre la
+conexión primero, anota la corrida como `running`, invoca a la fuente y cierra la fila con el
+resultado — o con el error y su código HTTP si lanzó. El error se vuelve a lanzar después de
+anotarlo, porque BullMQ tiene que seguir viendo el trabajo como fallido para reintentarlo.
+
+Las fuentes oficiales siguen escribiendo su propio detalle (etag, hash del contenido, conteo
+exacto de registros) sobre esa misma fila, gracias al `runId` que reciben. La condición
+`status = 'running'` al cerrar es lo que permite que ambos convivan: si la fuente ya cerró la fila
+con su detalle, el envoltorio no la toca; si no la cerró —todas las comunitarias— es lo único que
+la cierra. Sin esa condición el envoltorio pisaba el detalle y dejaba `http_status` en nulo y
+`records_seen` en cero, cosa que solo apareció al probarlo contra una base real.
+
+Las corridas que quedan en `running` tras un reinicio del worker se cierran al arrancar, para no
+confundir un despliegue con una ingesta colgada.
+
+`publish-situation-report` no aparece en esta tabla a propósito: agrega datos que ya son nuestros,
+no ingiere nada de afuera, y anotarlo como fuente externa sería inventar una fuente que no existe.
+
+### Cómo se consulta el estado
+
+```sql
+SELECT source_id, status, http_status, records_seen, error_message,
+       round(extract(epoch FROM (now() - started_at)) / 60) AS hace_min
+FROM source_ingestion_runs r
+WHERE started_at = (
+  SELECT max(started_at) FROM source_ingestion_runs x WHERE x.source_id = r.source_id
+)
+ORDER BY status DESC, source_id;
+```
+
+Primera corrida completa con el registro unificado (16 ago 2026): nueve fuentes anotadas, ocho
+correctas —contemos 1.986 registros, DANE 1.154, SGC 639, ayudaspereira 480, redcaliayuda 500 y
+127, terremotocolombia 220, gravitas 200— y Cali `failed` con `http_status 403`, que es
+exactamente el estado que antes no se veía.
