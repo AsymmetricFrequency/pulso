@@ -38,6 +38,9 @@ const PALETTE = {
   labelHalo: "#fffdf6",
 };
 
+/** Estilo alojado de OpenFreeMap, como referencia para aislar problemas del estilo propio. */
+export const HOSTED_STYLE_URL = "https://tiles.openfreemap.org/styles/positron";
+
 export function buildPulsoMapStyle(): StyleSpecification {
   return {
     version: 8,

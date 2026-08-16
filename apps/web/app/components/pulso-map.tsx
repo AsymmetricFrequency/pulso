@@ -6,7 +6,7 @@ import * as maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useRef } from "react";
 import type { PublicCommunityReport } from "./community-report-form";
-import { buildPulsoMapStyle, MAP_ATTRIBUTION } from "./map-style";
+import { HOSTED_STYLE_URL, MAP_ATTRIBUTION } from "./map-style";
 
 /**
  * El mapa de Pulso: uno solo.
@@ -140,16 +140,9 @@ export function PulsoMap({
     const container = containerRef.current;
     if (!container) return;
 
-    const style = buildPulsoMapStyle();
-    console.info("[PulsoMap] estilo", {
-      version: style.version,
-      capas: style.layers?.length,
-      fuentes: Object.keys(style.sources ?? {}),
-    });
-
     const map = new maplibregl.Map({
       container,
-      style,
+      style: HOSTED_STYLE_URL,
       bounds: COLOMBIA_BOUNDS,
       fitBoundsOptions: { padding: 24 },
       minZoom: 4,
