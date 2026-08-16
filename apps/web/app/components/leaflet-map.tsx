@@ -69,6 +69,8 @@ type LeafletMapProps = {
   pendingPoint: [number, number] | null;
   onMapClickForReport: (lonLat: [number, number]) => void;
   onSelectReport: (report: PublicCommunityReport) => void;
+  /** Centro de la vista tras cada movimiento, para poder decir en qué municipio estás parado. */
+  onCenterChange?: (center: [number, number]) => void;
   focusMunicipalityCode?: string;
 };
 
@@ -81,13 +83,14 @@ export function LeafletMap({
   pendingPoint,
   onMapClickForReport,
   onSelectReport,
+  onCenterChange,
   focusMunicipalityCode,
 }: LeafletMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const pendingMarkerRef = useRef<L.Marker | null>(null);
-  const callbacksRef = useRef({ onMapClickForReport, onSelectReport, reportMode });
-  callbacksRef.current = { onMapClickForReport, onSelectReport, reportMode };
+  const callbacksRef = useRef({ onMapClickForReport, onSelectReport, onCenterChange, reportMode });
+  callbacksRef.current = { onMapClickForReport, onSelectReport, onCenterChange, reportMode };
 
   // Map instance: created once per mounted department view, destroyed on unmount.
   useEffect(() => {
@@ -111,6 +114,13 @@ export function LeafletMap({
       if (!callbacksRef.current.reportMode) return;
       callbacksRef.current.onMapClickForReport([event.latlng.lng, event.latlng.lat]);
     });
+
+    const emitCenter = () => {
+      const center = map.getCenter();
+      callbacksRef.current.onCenterChange?.([center.lng, center.lat]);
+    };
+    map.on("moveend", emitCenter);
+    emitCenter();
 
     return () => {
       map.remove();

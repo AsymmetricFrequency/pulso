@@ -6,13 +6,34 @@ import type {
   UpsertExternalCommunityReportInput,
 } from "@pulso/schemas";
 
+/** Caja delimitadora geográfica: [oesteLng, surLat, esteLng, norteLat]. */
+export type CommunityReportBoundingBox = [number, number, number, number];
+
+export type PublicCommunityReportQuery = {
+  boundingBox?: CommunityReportBoundingBox;
+};
+
+/**
+ * El listado público va acotado porque el mapa no puede dibujar decenas de miles de puntos. Ese
+ * recorte tiene que viajar con el resultado: sin `total` la interfaz no puede distinguir "esto es
+ * todo lo que hay" de "esto es lo que cabía", y termina afirmando un número que no está mostrando.
+ */
+export type PublicCommunityReportPage = {
+  reports: PublicCommunityReportDto[];
+  /** Cuántos reportes existen dentro del mismo criterio, sin el recorte. */
+  total: number;
+};
+
 export interface CommunityReportRepository {
   create(
     incidentId: string,
     input: CreateCommunityReportInput,
     context: { sourceIpHash: string | null },
   ): Promise<PublicCommunityReportDto>;
-  listPublicByIncident(incidentId: string): Promise<PublicCommunityReportDto[]>;
+  listPublicByIncident(
+    incidentId: string,
+    query?: PublicCommunityReportQuery,
+  ): Promise<PublicCommunityReportPage>;
   listByIncident(incidentId: string): Promise<CommunityReportDto[]>;
   review(
     reportId: string,

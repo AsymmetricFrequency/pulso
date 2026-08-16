@@ -1,6 +1,6 @@
 "use client";
 
-import { geoIdentity, geoPath } from "d3-geo";
+import { geoBounds, geoContains, geoIdentity, geoPath } from "d3-geo";
 import type { Feature, FeatureCollection, Geometry } from "geojson";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -237,10 +237,16 @@ export function AtlasMap({
   >({});
 
   const [reports, setReports] = useState<PublicCommunityReport[]>([]);
+  const [reportsTotal, setReportsTotal] = useState(0);
   const [reportMode, setReportMode] = useState(false);
   const [pendingPoint, setPendingPoint] = useState<[number, number] | null>(null);
   const [optimisticReports, setOptimisticReports] = useState<PublicCommunityReport[]>([]);
   const [activeReport, setActiveReport] = useState<PublicCommunityReport | null>(null);
+  // Centro actual de la vista Leaflet: es lo que permite decir en qué municipio está parado
+  // quien mira el mapa, en vez de solo repetir el departamento que eligió.
+  const [mapCenter, setMapCenter] = useState<[number, number] | null>(null);
+  const [locating, setLocating] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
 
   useEffect(() => {
     onActiveReportChange?.(activeReport);
@@ -312,21 +318,45 @@ export function AtlasMap({
         if (!(reason instanceof DOMException && reason.name === "AbortError")) setSgcEvents([]);
       }
     };
-    const loadCommunityReports = async () => {
-      try {
-        const response = await fetch(
-          `${apiUrl}/v1/public/incidents/${incidentCode}/community-reports`,
-          { signal: controller.signal },
-        );
-        if (!response.ok) return;
-        setReports((await response.json()) as PublicCommunityReport[]);
-      } catch (reason) {
-        if (!(reason instanceof DOMException && reason.name === "AbortError")) setReports([]);
-      }
-    };
-    void Promise.all([loadTerritories(), loadSgcEvents(), loadCommunityReports()]);
+    void Promise.all([loadTerritories(), loadSgcEvents()]);
     return () => controller.abort();
   }, [apiUrl]);
+
+  // Caja del departamento en el que estás parado. El listado público va acotado, y acotarlo por
+  // recencia sobre todo el país hacía que cada ingesta empujara reportes viejos fuera de la
+  // ventana: desaparecían del mapa solos. Pidiendo por caja, el departamento cabe entero y lo que
+  // ves se queda donde está.
+  const zoomedBoundingBox = useMemo(() => {
+    if (!zoomedCode || !data) return null;
+    const feature = data.features.find((item) => item.properties.dpto_ccdgo === zoomedCode);
+    if (!feature) return null;
+    const [[west, south], [east, north]] = geoBounds(feature);
+    if (![west, south, east, north].every(Number.isFinite)) return null;
+    return [west, south, east, north] as const;
+  }, [zoomedCode, data]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const query = zoomedBoundingBox ? `?bbox=${zoomedBoundingBox.join(",")}` : "";
+    fetch(`${apiUrl}/v1/public/incidents/${incidentCode}/community-reports${query}`, {
+      signal: controller.signal,
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error("No fue posible cargar los reportes ciudadanos");
+        return response.json() as Promise<{ reports: PublicCommunityReport[]; total: number }>;
+      })
+      .then((page) => {
+        setReports(page.reports);
+        setReportsTotal(page.total);
+      })
+      .catch((reason: unknown) => {
+        if (!(reason instanceof DOMException && reason.name === "AbortError")) {
+          setReports([]);
+          setReportsTotal(0);
+        }
+      });
+    return () => controller.abort();
+  }, [apiUrl, zoomedBoundingBox]);
 
   useEffect(() => {
     if (!zoomedCode || municipalitiesByDept[zoomedCode]) return;
@@ -471,6 +501,50 @@ export function AtlasMap({
   const zoomedDepartmentName = departments.find((item) => item.properties.dpto_ccdgo === zoomedCode)
     ?.properties.dpto_cnmbre;
 
+  // "¿Dónde estoy parado?" — el municipio que hay debajo del centro de la vista. Se resuelve
+  // contra los polígonos DANE ya cargados, sin pedirle nada a un geocodificador externo.
+  const centerMunicipalityName = useMemo(() => {
+    if (!zoomedCode || !mapCenter) return null;
+    const collection = municipalitiesByDept[zoomedCode];
+    if (!collection) return null;
+    const match = collection.features.find((feature) => geoContains(feature, mapCenter));
+    return match?.properties.mpio_cnmbre ?? null;
+  }, [zoomedCode, mapCenter, municipalitiesByDept]);
+
+  const formatLatLng = ([lng, lat]: [number, number]) =>
+    `${Math.abs(lat).toFixed(3)}° ${lat >= 0 ? "N" : "S"}, ${Math.abs(lng).toFixed(3)}° ${lng >= 0 ? "O" : "E"}`;
+
+  // Colocar el punto con la ubicación del dispositivo: en campo, con una mano y sin saber
+  // leer un mapa, es la vía más corta para reportar donde uno está.
+  const useMyLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError("Este navegador no permite compartir la ubicación.");
+      return;
+    }
+    setLocating(true);
+    setLocationError(null);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const point: [number, number] = [position.coords.longitude, position.coords.latitude];
+        setLocating(false);
+        setReportMode(true);
+        setMapCenter(point);
+        const containing = departments.find((feature) => geoContains(feature, point));
+        if (containing) {
+          const code = containing.properties.dpto_ccdgo;
+          selectDepartment(code);
+          setZoomedCode(code);
+        }
+        setPendingPoint(point);
+      },
+      () => {
+        setLocating(false);
+        setLocationError("No pudimos obtener tu ubicación. Puedes tocar el mapa en su lugar.");
+      },
+      { enableHighAccuracy: true, timeout: 10_000 },
+    );
+  };
+
   const selectDepartment = (code: string) => {
     const department = departments.find((item) => item.properties.dpto_ccdgo === code);
     setInternalCode(code);
@@ -503,10 +577,44 @@ export function AtlasMap({
 
   return (
     <div className="atlasMap" ref={containerRef}>
+      {/* Dónde estoy parado. Va arriba y siempre visible: es la primera pregunta que se hace
+          cualquiera que abre un mapa, y antes solo aparecía debajo, después del mapa. */}
+      <div className="mapWhereAmI" aria-live="polite">
+        <div className="mapWhereTrail">
+          <button
+            type="button"
+            className="mapCrumb"
+            onClick={() => setZoomedCode(null)}
+            disabled={!zoomedCode}
+          >
+            Colombia
+          </button>
+          {zoomedDepartmentName ? (
+            <>
+              <i aria-hidden="true">›</i>
+              <span className="mapCrumb current">{zoomedDepartmentName}</span>
+            </>
+          ) : null}
+          {centerMunicipalityName ? (
+            <>
+              <i aria-hidden="true">›</i>
+              <span className="mapCrumb current">{centerMunicipalityName}</span>
+            </>
+          ) : null}
+        </div>
+        <p className="mapWhereDetail">
+          {zoomedCode
+            ? mapCenter
+              ? `Centro de la vista: ${formatLatLng(mapCenter)}`
+              : "Moviendo el mapa verás en qué municipio estás"
+            : "Toca un departamento para entrar y ver sus reportes uno por uno"}
+        </p>
+      </div>
+
       <div className="mapToolbar">
-        <div>
-          <span className="mapKicker">{definition.title}</span>
-          <strong>{zoomedDepartmentName ?? "Departamentos de Colombia"}</strong>
+        <div className="mapToolbarLayer">
+          <span className="mapKicker">Capa visible</span>
+          <strong>{definition.title}</strong>
         </div>
         <div className="mapToolbarActions">
           {zoomedCode && (
@@ -514,18 +622,8 @@ export function AtlasMap({
               ← Volver a Colombia
             </button>
           )}
-          <button
-            type="button"
-            className={`mapReportToggle${reportMode ? " active" : ""}`}
-            onClick={() => {
-              setReportMode((current) => !current);
-              setPendingPoint(null);
-            }}
-          >
-            {reportMode ? "✕ Cancelar reporte" : "📍 Reportar un PMU o necesidad aquí"}
-          </button>
           <label>
-            <span>Seleccionar departamento</span>
+            <span>Ir a un departamento</span>
             <select
               value={selectedCode}
               onChange={(event) => {
@@ -546,11 +644,44 @@ export function AtlasMap({
         </div>
       </div>
 
-      {reportMode && (
-        <p className="mapReportHint" role="status">
-          Toca un punto del mapa para reportar un puesto de mando o una necesidad ahí.
-        </p>
-      )}
+      {/* Reportar es la acción principal de esta pantalla, así que vive en su propia barra con
+          dos caminos: tocar el mapa o dejar que el dispositivo diga dónde estás. */}
+      <div className={`mapReportBar${reportMode ? " active" : ""}`}>
+        <button
+          type="button"
+          className={`mapReportToggle${reportMode ? " active" : ""}`}
+          onClick={() => {
+            setReportMode((current) => !current);
+            setPendingPoint(null);
+            setLocationError(null);
+          }}
+        >
+          {reportMode ? "✕ Cancelar" : "📍 Reportar un PMU o una necesidad"}
+        </button>
+        <button
+          type="button"
+          className="mapLocateButton"
+          onClick={useMyLocation}
+          disabled={locating}
+        >
+          {locating ? "Ubicando…" : "◎ Usar mi ubicación"}
+        </button>
+        {reportMode ? (
+          <p className="mapReportHint" role="status">
+            Toca el punto exacto en el mapa. Puedes acercarte primero para afinar.
+          </p>
+        ) : (
+          <p className="mapReportHint muted">
+            Cualquier persona puede reportar, sin cuenta. Se publica al instante como
+            <strong> sin verificar</strong>.
+          </p>
+        )}
+        {locationError ? (
+          <p className="mapReportHint error" role="alert">
+            {locationError}
+          </p>
+        ) : null}
+      </div>
 
       {zoomedCode && data ? (
         (() => {
@@ -568,6 +699,7 @@ export function AtlasMap({
               pendingPoint={pendingPoint}
               onMapClickForReport={setPendingPoint}
               onSelectReport={setActiveReport}
+              onCenterChange={setMapCenter}
               {...(selectedCode === zoomedCode && focusMunicipalityCode
                 ? { focusMunicipalityCode }
                 : {})}
@@ -766,8 +898,12 @@ export function AtlasMap({
         ) : null}
         {allReports.length > 0 ? (
           <li>
-            <i className="statusDot pmu" /> {allReports.length} reportes ciudadanos (PMU /
-            necesidades)
+            <i className="statusDot pmu" />{" "}
+            {/* Decir "2.186 reportes" mientras se dibujan 800 es afirmar algo que la pantalla no
+                sostiene. Cuando el listado va recortado se nombra el recorte y qué hacer con él. */}
+            {reportsTotal > allReports.length
+              ? `${allReports.length} de ${reportsTotal.toLocaleString("es-CO")} reportes ciudadanos · entra a un departamento para verlos todos`
+              : `${allReports.length} reportes ciudadanos (PMU / necesidades)`}
           </li>
         ) : null}
       </ul>

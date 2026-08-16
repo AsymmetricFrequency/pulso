@@ -1,17 +1,32 @@
 :root {
   color-scheme: light;
-  --ink: #10231c;
-  --muted: #5f6f68;
-  --paper: #f4f2e9;
-  --surface: #fffdf7;
-  --line: #d8d8cd;
-  --primary: #006a4e;
-  --primary-dark: #004d39;
-  --signal: #e0523f;
-  --amber: #d08b25;
-  --blue: #39779c;
-  --green: #2a7d57;
+  --ink: #12241d;
+  --muted: #5d6f66;
+  /* Crema cálido de base y una segunda crema más profunda para los degradados del fondo: con un
+     solo tono el papel se ve plano y con dos aparece la sensación de luz que da el papel real. */
+  --paper: #f3efe2;
+  --paper-deep: #e9e3d2;
+  --surface: #fffdf6;
+  --line: #ded9c9;
+  --line-strong: #c8c2ac;
+  --primary: #04624a;
+  --primary-dark: #023a2c;
+  --primary-soft: rgba(4, 98, 74, 0.09);
+  --signal: #d94b38;
+  --amber: #c8811d;
+  --blue: #35708f;
+  --green: #257350;
   --shadow: 0 18px 45px rgba(16, 35, 28, 0.08);
+  --shadow-lift: 0 22px 50px rgba(16, 35, 28, 0.14);
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  /* Un solo vocabulario de movimiento para todo el sitio: si cada componente inventa su duración,
+     la interfaz se siente hecha por manos distintas. */
+  --ease-out: cubic-bezier(0.22, 0.85, 0.3, 1);
+  --dur-fast: 140ms;
+  --dur: 220ms;
+  --dur-slow: 320ms;
 }
 
 * {
@@ -25,38 +40,43 @@ html {
 body {
   margin: 0;
   background-color: var(--paper);
-  /* Topographic contour rings around a few off-center "peaks" — a subtle basemap texture
-     fitting a territorial-response product. repeating-radial-gradient tiles infinitely on
-     its own, so no image asset or background-size tiling is needed. */
+  /* Curvas de nivel alrededor de unos "picos" descentrados — textura de carta topográfica, que es
+     el lenguaje visual propio de un producto territorial. Sobre ellas van dos lavados de luz: uno
+     cálido arriba a la izquierda y uno verde tenue abajo a la derecha, para que el papel tenga
+     profundidad en vez de ser un color plano. Los repeating-radial-gradient se repiten solos, así
+     que no hace falta ninguna imagen ni background-size. */
   background-image:
+    radial-gradient(ellipse 120% 80% at 8% -10%, rgba(255, 255, 255, 0.85) 0, transparent 60%),
+    radial-gradient(ellipse 100% 70% at 100% 105%, var(--primary-soft) 0, transparent 65%),
     repeating-radial-gradient(
       circle at 12% 8%,
       transparent 0,
       transparent 34px,
-      rgba(0, 106, 78, 0.05) 35px,
+      rgba(4, 98, 74, 0.055) 35px,
       transparent 36px
     ),
     repeating-radial-gradient(
       circle at 88% 18%,
       transparent 0,
       transparent 46px,
-      rgba(0, 106, 78, 0.04) 47px,
+      rgba(4, 98, 74, 0.042) 47px,
       transparent 48px
     ),
     repeating-radial-gradient(
       circle at 25% 92%,
       transparent 0,
       transparent 40px,
-      rgba(16, 35, 28, 0.035) 41px,
+      rgba(18, 36, 29, 0.038) 41px,
       transparent 42px
     ),
     repeating-radial-gradient(
       circle at 95% 88%,
       transparent 0,
       transparent 52px,
-      rgba(0, 106, 78, 0.045) 53px,
+      rgba(4, 98, 74, 0.048) 53px,
       transparent 54px
-    );
+    ),
+    linear-gradient(180deg, var(--paper) 0, var(--paper-deep) 100%);
   background-attachment: fixed;
   color: var(--ink);
   font-family: Arial, Helvetica, sans-serif;
@@ -2015,4 +2035,301 @@ footer a {
   max-width: 560px;
   max-height: none;
   margin: 16px 0;
+}
+
+/* --------------------------------------------------------------------------
+   Mapa: dónde estoy parado, y cómo reporto
+   -------------------------------------------------------------------------- */
+
+/* Primera fila del mapa, siempre visible. La pregunta "¿dónde estoy?" no puede quedar
+   contestada debajo del mapa, después de haberlo recorrido. */
+.mapWhereAmI {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  gap: 4px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, var(--primary) 0, var(--primary-dark) 100%);
+  padding: 14px 18px;
+  color: #eef6f1;
+}
+
+.mapWhereTrail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.mapWhereTrail i {
+  color: rgba(238, 246, 241, 0.5);
+  font-style: normal;
+}
+
+.mapCrumb {
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  padding: 2px 6px;
+  color: rgba(238, 246, 241, 0.72);
+  font-size: inherit;
+  font-weight: inherit;
+  cursor: pointer;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+
+.mapCrumb:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+.mapCrumb:disabled {
+  cursor: default;
+  opacity: 0.75;
+}
+
+.mapCrumb.current {
+  padding-left: 0;
+  color: #fff;
+  cursor: default;
+}
+
+.mapWhereDetail {
+  margin: 0;
+  color: rgba(238, 246, 241, 0.72);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.mapToolbarLayer {
+  display: grid;
+  gap: 4px;
+}
+
+/* Reportar es la acción principal de la pantalla, así que tiene su propia barra y no compite
+   con los selectores de navegación. */
+.mapReportBar {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+  padding: 12px 18px;
+  transition: background var(--dur) var(--ease-out);
+}
+
+.mapReportBar.active {
+  background: #fff5ea;
+}
+
+.mapReportBar .mapReportToggle {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(4, 98, 74, 0.28);
+}
+
+.mapReportBar .mapReportToggle:hover {
+  background: var(--primary-dark);
+  color: #fff;
+}
+
+.mapReportBar .mapReportToggle.active {
+  border-color: var(--signal);
+  background: var(--signal);
+  box-shadow: 0 6px 16px rgba(217, 75, 56, 0.3);
+}
+
+.mapLocateButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  padding: 8px 14px;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.mapLocateButton:hover:not(:disabled) {
+  border-color: var(--primary);
+  color: var(--primary-dark);
+}
+
+.mapLocateButton:disabled {
+  cursor: progress;
+  opacity: 0.6;
+}
+
+.mapReportBar .mapReportHint {
+  flex: 1 1 220px;
+  border: 0;
+  background: none;
+  padding: 0;
+  color: #8a4b18;
+}
+
+.mapReportBar .mapReportHint.muted {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.mapReportBar .mapReportHint.muted strong {
+  color: var(--amber);
+}
+
+.mapReportBar .mapReportHint.error {
+  flex-basis: 100%;
+  color: var(--signal);
+}
+
+/* Mira de puntería en modo reporte: colocar un punto en un mapa táctil sin ninguna
+   referencia visual del centro es adivinar. */
+.leafletMapContainer.reportMode::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 500;
+  width: 30px;
+  height: 30px;
+  margin: -15px 0 0 -15px;
+  border: 2px solid rgba(217, 75, 56, 0.85);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.75);
+  pointer-events: none;
+}
+
+.publicMapWorkspace .atlasMap {
+  position: relative;
+}
+
+.leafletMapContainer {
+  position: relative;
+}
+
+/* --------------------------------------------------------------------------
+   Movimiento
+   -------------------------------------------------------------------------- */
+
+@keyframes pulsoRise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* El feed entra escalonado: la secuencia comunica que son entradas sucesivas de una lista viva,
+   no un bloque estático que apareció de golpe. */
+.situationList article {
+  animation: pulsoRise var(--dur-slow) var(--ease-out) backwards;
+  animation-delay: calc(var(--stagger, 0) * 45ms);
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.situationList article:hover {
+  background: rgba(4, 98, 74, 0.035);
+  transform: translateX(3px);
+}
+
+.headlineMetric,
+.layerTabs button,
+.situationList article {
+  will-change: auto;
+}
+
+.headlineMetric {
+  transition:
+    transform var(--dur) var(--ease-out),
+    box-shadow var(--dur) var(--ease-out),
+    border-color var(--dur) var(--ease-out);
+}
+
+.headlineMetric:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary);
+  box-shadow: var(--shadow-lift);
+}
+
+.layerTabs button {
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out);
+}
+
+.layerTabs button:hover {
+  transform: translateY(-2px);
+}
+
+/* Respuesta al toque: sin ella un botón en móvil no confirma que registró la pulsación. */
+button:active:not(:disabled),
+.button:active {
+  transform: scale(0.97);
+}
+
+.mapSection {
+  scroll-margin-top: 20px;
+  margin-top: 72px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  /* Aquí `!important` es el mecanismo, no un atajo: quien pide menos movimiento tiene que ganarle
+     a cualquier transición declarada más abajo, sin importar su especificidad. */
+  *,
+  *::before,
+  *::after {
+    /* biome-ignore lint/complexity/noImportantStyles: la preferencia de accesibilidad debe vencer a toda regla de componente */
+    animation-duration: 0.01ms !important;
+    /* biome-ignore lint/complexity/noImportantStyles: la preferencia de accesibilidad debe vencer a toda regla de componente */
+    animation-iteration-count: 1 !important;
+    /* biome-ignore lint/complexity/noImportantStyles: la preferencia de accesibilidad debe vencer a toda regla de componente */
+    transition-duration: 0.01ms !important;
+    /* biome-ignore lint/complexity/noImportantStyles: la preferencia de accesibilidad debe vencer a toda regla de componente */
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .mapWhereTrail {
+    font-size: 15px;
+  }
+
+  .mapReportBar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .mapReportBar .mapReportToggle,
+  .mapLocateButton {
+    justify-content: center;
+    /* 44px de alto mínimo: es el objetivo táctil que exige una mano en campo. */
+    min-height: 44px;
+  }
 }

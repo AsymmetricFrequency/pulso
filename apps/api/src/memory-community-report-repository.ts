@@ -4,6 +4,8 @@ import {
   type CommunityReportRepository,
   IncidentNotFoundError,
   type IncidentRepository,
+  type PublicCommunityReportPage,
+  type PublicCommunityReportQuery,
 } from "@pulso/domain";
 import type {
   CommunityReportDto,
@@ -114,7 +116,10 @@ export class MemoryCommunityReportRepository implements CommunityReportRepositor
     return report;
   }
 
-  async listPublicByIncident(incidentId: string): Promise<PublicCommunityReportDto[]> {
+  async listPublicByIncident(
+    incidentId: string,
+    query: PublicCommunityReportQuery = {},
+  ): Promise<PublicCommunityReportPage> {
     await this.#requireIncident(incidentId);
     const statusRank: Record<CommunityReportDto["status"], number> = {
       validated: 0,
@@ -123,14 +128,23 @@ export class MemoryCommunityReportRepository implements CommunityReportRepositor
       superseded: 2,
       rejected: 3,
     };
-    return [...this.#reports.values()]
-      .filter((report) => report.incidentId === incidentId && report.status !== "rejected")
-      .sort(
-        (a, b) =>
-          statusRank[a.status] - statusRank[b.status] || b.createdAt.localeCompare(a.createdAt),
-      )
-      .slice(0, 800)
-      .map(toPublic);
+    const box = query.boundingBox;
+    const scoped = [...this.#reports.values()].filter((report) => {
+      if (report.incidentId !== incidentId || report.status === "rejected") return false;
+      if (!box) return true;
+      const [lng, lat] = report.location.coordinates;
+      return lng >= box[0] && lng <= box[2] && lat >= box[1] && lat <= box[3];
+    });
+    return {
+      reports: scoped
+        .sort(
+          (a, b) =>
+            statusRank[a.status] - statusRank[b.status] || b.createdAt.localeCompare(a.createdAt),
+        )
+        .slice(0, box ? 4_000 : 800)
+        .map(toPublic),
+      total: scoped.length,
+    };
   }
 
   async listByIncident(incidentId: string): Promise<CommunityReportDto[]> {

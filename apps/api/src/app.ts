@@ -3,6 +3,7 @@ import cors from "@fastify/cors";
 import {
   AssessmentNotFoundError,
   type AssessmentRepository,
+  type CommunityReportBoundingBox,
   CommunityReportNotFoundError,
   CommunityReportRateLimitError,
   type CommunityReportRepository,
@@ -128,6 +129,21 @@ import {
   EmptySgcPublicSourceRepository,
   type SgcPublicSourceRepository,
 } from "./sgc-public-source-repositories.js";
+
+/**
+ * Lee `bbox=oesteLng,surLat,esteLng,norteLat`. Devuelve `null` ante cualquier cosa que no sea una
+ * caja válida —incluida una invertida— para que la ruta responda 400 en vez de aceptar en silencio
+ * un rectángulo vacío y dejar al mapa sin puntos sin explicar por qué.
+ */
+function parseBoundingBox(raw: string | undefined): CommunityReportBoundingBox | null {
+  if (!raw) return null;
+  const parts = raw.split(",").map((value) => Number.parseFloat(value.trim()));
+  if (parts.length !== 4 || parts.some((value) => !Number.isFinite(value))) return null;
+  const [west, south, east, north] = parts as CommunityReportBoundingBox;
+  if (west < -180 || east > 180 || south < -90 || north > 90) return null;
+  if (west >= east || south >= north) return null;
+  return [west, south, east, north];
+}
 
 export type BuildAppOptions = {
   incidentRepository?: IncidentRepository;
@@ -522,7 +538,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
     },
   );
 
-  app.get<{ Params: { incidentCode: string } }>(
+  app.get<{ Params: { incidentCode: string }; Querystring: { bbox?: string } }>(
     "/v1/public/incidents/:incidentCode/community-reports",
     async (request, reply) => {
       const incident = await incidents.findByCode(request.params.incidentCode);
@@ -531,13 +547,23 @@ export async function buildApp(options: BuildAppOptions = {}) {
           .status(404)
           .send({ error: "incident_not_found", message: "La emergencia no existe." });
       }
+      const boundingBox = parseBoundingBox(request.query.bbox);
+      if (request.query.bbox !== undefined && !boundingBox) {
+        return reply.status(400).send({
+          error: "invalid_bbox",
+          message: "bbox debe ser 'oesteLng,surLat,esteLng,norteLat' con valores válidos.",
+        });
+      }
+      const page = await communityReports.listPublicByIncident(
+        incident.id,
+        boundingBox ? { boundingBox } : {},
+      );
       return reply
         .header("Cache-Control", "public, max-age=15, s-maxage=30, stale-while-revalidate=60")
-        .send(
-          publicCommunityReportSchema
-            .array()
-            .parse(await communityReports.listPublicByIncident(incident.id)),
-        );
+        .send({
+          reports: publicCommunityReportSchema.array().parse(page.reports),
+          total: page.total,
+        });
     },
   );
 

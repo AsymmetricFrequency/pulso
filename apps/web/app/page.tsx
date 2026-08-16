@@ -31,7 +31,7 @@ export default function PublicHome() {
           </p>
         </div>
         <div className="actions">
-          <a href="#informe" className="button secondary">
+          <a href="#mapa" className="button secondary">
             Explorar el mapa
           </a>
           <FieldEntryLink />

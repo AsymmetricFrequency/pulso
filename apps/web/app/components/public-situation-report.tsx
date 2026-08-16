@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { type CSSProperties, useEffect, useMemo, useState } from "react";
 import { AtlasMap, type PublicMapLayer } from "./atlas-map";
 import { CommunityReportDetailCard } from "./community-report-detail";
 import type { PublicCommunityReport } from "./community-report-form";
@@ -337,6 +337,44 @@ export function PublicSituationReport() {
             </article>
           ))}
         </div>
+      </section>
+
+      {/* Lo que está pasando en vivo va antes del mapa: quien entra quiere saber primero qué
+          ocurrió, y solo después dónde. El mapa es la herramienta para profundizar, no la portada. */}
+      <section className="situationSection" aria-labelledby="situation-title">
+        <div className="sectionHeading">
+          <div>
+            <p className="eyebrow">Actualizaciones verificables</p>
+            <h2 id="situation-title">Qué está pasando ahora</h2>
+          </div>
+          <span className="sectionNote">La identidad personal está protegida</span>
+        </div>
+        <div className="situationList">
+          {visibleUpdates.map((row, index) => (
+            <article key={row.title} style={{ "--stagger": index } as CSSProperties}>
+              <div>
+                <span className="recordType">Reporte territorial</span>
+                <h3>{row.title}</h3>
+                <p>{row.territory}</p>
+              </div>
+              <p className="recordDetail">{row.detail}</p>
+              <div className="recordVerification">
+                <strong>{row.state}</strong>
+                <span>{row.time}</span>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="mapSection" id="mapa" aria-labelledby="map-section-title">
+        <div className="sectionHeading">
+          <div>
+            <p className="eyebrow">Mapa territorial</p>
+            <h2 id="map-section-title">Dónde está pasando</h2>
+          </div>
+          <span className="sectionNote">Entra a un departamento para ver cada reporte</span>
+        </div>
 
         <div className="layerTabs" role="tablist" aria-label="Capas del informe">
           {layers.map((item) => (
@@ -446,32 +484,6 @@ export function PublicSituationReport() {
               </>
             )}
           </aside>
-        </div>
-      </section>
-
-      <section className="situationSection" aria-labelledby="situation-title">
-        <div className="sectionHeading">
-          <div>
-            <p className="eyebrow">Actualizaciones verificables</p>
-            <h2 id="situation-title">Qué está pasando ahora</h2>
-          </div>
-          <span className="sectionNote">La identidad personal está protegida</span>
-        </div>
-        <div className="situationList">
-          {visibleUpdates.map((row) => (
-            <article key={row.title}>
-              <div>
-                <span className="recordType">Reporte territorial</span>
-                <h3>{row.title}</h3>
-                <p>{row.territory}</p>
-              </div>
-              <p className="recordDetail">{row.detail}</p>
-              <div className="recordVerification">
-                <strong>{row.state}</strong>
-                <span>{row.time}</span>
-              </div>
-            </article>
-          ))}
         </div>
       </section>
 

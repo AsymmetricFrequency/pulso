@@ -3,6 +3,8 @@ import {
   CommunityReportNotFoundError,
   CommunityReportRateLimitError,
   type CommunityReportRepository,
+  type PublicCommunityReportPage,
+  type PublicCommunityReportQuery,
 } from "@pulso/domain";
 import type {
   CommunityReportDto,
@@ -82,19 +84,46 @@ export class PostgresCommunityReportRepository implements CommunityReportReposit
     return toPublic(reportFromRow(row));
   }
 
-  async listPublicByIncident(incidentId: string): Promise<PublicCommunityReportDto[]> {
-    // Capped: with tens of thousands of potential external + citizen points, an unbounded
-    // list would overwhelm the SVG map. Prioritize corroborated/validated signal, then recency.
-    const rows = await this.sql<DbRow[]>`
-      SELECT *, ST_AsGeoJSON(location)::json AS location
-      FROM community_reports
-      WHERE incident_id = ${incidentId} AND status <> 'rejected'
-      ORDER BY
-        CASE status WHEN 'validated' THEN 0 WHEN 'corroborated' THEN 1 ELSE 2 END,
-        created_at DESC
-      LIMIT 800
-    `;
-    return rows.map(reportFromRow).map(toPublic);
+  async listPublicByIncident(
+    incidentId: string,
+    query: PublicCommunityReportQuery = {},
+  ): Promise<PublicCommunityReportPage> {
+    // El listado va acotado: con decenas de miles de puntos externos y ciudadanos, una lista sin
+    // tope ahoga al mapa. Pero acotar por recencia sobre todo el país hace que cada ingesta empuje
+    // reportes viejos fuera de la ventana y desaparezcan del mapa sin que el usuario toque nada.
+    // Por eso el recorte grande solo aplica a la vista de país; con caja delimitadora —que es como
+    // el mapa consulta cuando estás dentro de un departamento— el universo ya viene acotado por
+    // geografía y cabe completo.
+    const box = query.boundingBox;
+    const scope = box
+      ? this.sql`AND ST_Intersects(
+          location,
+          ST_MakeEnvelope(${box[0]}, ${box[1]}, ${box[2]}, ${box[3]}, 4326)
+        )`
+      : this.sql``;
+    const limit = box ? 4_000 : 800;
+
+    const [rows, [totalRow]] = await Promise.all([
+      this.sql<DbRow[]>`
+        SELECT *, ST_AsGeoJSON(location)::json AS location
+        FROM community_reports
+        WHERE incident_id = ${incidentId} AND status <> 'rejected' ${scope}
+        ORDER BY
+          CASE status WHEN 'validated' THEN 0 WHEN 'corroborated' THEN 1 ELSE 2 END,
+          created_at DESC
+        LIMIT ${limit}
+      `,
+      this.sql<{ total: string }[]>`
+        SELECT count(*)::text AS total
+        FROM community_reports
+        WHERE incident_id = ${incidentId} AND status <> 'rejected' ${scope}
+      `,
+    ]);
+
+    return {
+      reports: rows.map(reportFromRow).map(toPublic),
+      total: Number(totalRow?.total ?? rows.length),
+    };
   }
 
   async listByIncident(incidentId: string): Promise<CommunityReportDto[]> {
