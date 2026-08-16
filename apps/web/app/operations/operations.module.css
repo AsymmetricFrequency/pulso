@@ -276,3 +276,232 @@
     gap: 8px;
   }
 }
+
+/* --- Revisión de contratos ---------------------------------------------- */
+
+.reviewSection {
+  margin-top: 40px;
+}
+
+.reviewHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 18px;
+}
+
+.reviewLead {
+  max-width: 60ch;
+  margin: 8px 0 0;
+  color: #aebcb6;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.reviewCounter {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  text-align: right;
+}
+
+.reviewCounter strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 34px;
+  line-height: 1;
+}
+
+.reviewCounter span {
+  color: #aebcb6;
+  font-size: 12px;
+}
+
+.reviewCounter small {
+  color: #75d4b5;
+  font-size: 11px;
+}
+
+.reviewList {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reviewCard {
+  display: grid;
+  gap: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 18px;
+}
+
+.reviewCardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.reviewAmount {
+  display: block;
+  /* Cifras tabulares: la columna de montos tiene que poder compararse de un vistazo. */
+  font-variant-numeric: tabular-nums;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 26px;
+  letter-spacing: -0.01em;
+}
+
+.reviewMeta {
+  display: block;
+  margin-top: 4px;
+  color: #aebcb6;
+  font-size: 12px;
+}
+
+.reviewBadge {
+  flex: 0 0 auto;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  padding: 4px 10px;
+  color: #aebcb6;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.reviewBadge.strong {
+  border-color: #d08b25;
+  color: #f0c078;
+}
+
+/* El objeto contractual es el dato que decide, así que se lee como texto, completo y sin
+   truncar — no como un campo más de una ficha. */
+.reviewObject {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.reviewFacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  color: #aebcb6;
+  font-size: 12px;
+}
+
+.reviewFacts a {
+  color: #75d4b5;
+}
+
+.reviewSignals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.reviewSignals span {
+  border-radius: 999px;
+  background: rgba(117, 212, 181, 0.16);
+  padding: 3px 9px;
+  color: #9fe3cb;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.reviewSignals span.strong {
+  background: rgba(208, 139, 37, 0.2);
+  color: #f0c078;
+}
+
+.reviewNote {
+  display: grid;
+  gap: 5px;
+}
+
+.reviewNote span {
+  color: #aebcb6;
+  font-size: 11px;
+}
+
+.reviewNote input {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 10px 12px;
+  color: inherit;
+  font-size: 13px;
+}
+
+.reviewActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.reviewActions button {
+  min-height: 44px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 140ms cubic-bezier(0.22, 0.85, 0.3, 1),
+    background 140ms cubic-bezier(0.22, 0.85, 0.3, 1);
+}
+
+.reviewActions button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.reviewActions button:disabled {
+  cursor: progress;
+  opacity: 0.5;
+}
+
+/* Confirmar publica dinero en las cifras públicas, así que es la única acción con peso visual
+   de acción primaria. */
+.reviewActions .confirm {
+  background: #2a7d57;
+  color: #fff;
+}
+
+.reviewActions .discard {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: transparent;
+  color: #e4ece8;
+}
+
+.reviewActions .defer {
+  border-color: transparent;
+  background: transparent;
+  color: #aebcb6;
+  text-decoration: underline;
+}
+
+.reviewProvenance {
+  color: #7e8f89;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 640px) {
+  .reviewHeading {
+    flex-direction: column;
+  }
+
+  .reviewCounter {
+    justify-items: start;
+    text-align: left;
+  }
+
+  .reviewActions button {
+    flex: 1 1 100%;
+  }
+}

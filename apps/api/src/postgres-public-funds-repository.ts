@@ -1,5 +1,15 @@
-import type { PublicContractQuery, PublicFundsRepository } from "@pulso/domain";
-import type { PublicContractDto, PublicFundsSummaryDto } from "@pulso/schemas";
+import {
+  ContractNotFoundError,
+  type ContractReviewQueueQuery,
+  type PublicContractQuery,
+  type PublicFundsRepository,
+} from "@pulso/domain";
+import type {
+  OperationsContractDto,
+  PublicContractDto,
+  PublicFundsSummaryDto,
+  ReviewContractInput,
+} from "@pulso/schemas";
 import type postgres from "postgres";
 
 type Sql = ReturnType<typeof postgres>;
@@ -10,6 +20,43 @@ const asNumber = (value: unknown) => {
 };
 
 const asIso = (value: unknown) => (value instanceof Date ? value.toISOString() : null);
+
+const toPublicContract = (row: Record<string, unknown>): PublicContractDto => ({
+  id: String(row.id),
+  externalId: String(row.external_id),
+  reference: (row.reference as string | null) ?? null,
+  entityName: String(row.entity_name),
+  entityNit: String(row.entity_nit),
+  supplierName: String(row.supplier_name),
+  supplierDocument: (row.supplier_document as string | null) ?? null,
+  object: (row.object as string | null) ?? null,
+  contractType: (row.contract_type as string | null) ?? null,
+  modality: (row.modality as string | null) ?? null,
+  status: (row.status as string | null) ?? null,
+  emergencyRelevance: row.emergency_relevance as PublicContractDto["emergencyRelevance"],
+  signedAt: asIso(row.signed_at),
+  currency: String(row.currency ?? "COP"),
+  totalValue: asNumber(row.total_value),
+  invoicedValue: asNumber(row.invoiced_value),
+  paidValue: asNumber(row.paid_value),
+  territoryName: (row.territory_name as string | null) ?? null,
+  sourceUrl: (row.source_url as string | null) ?? null,
+  provenance: {
+    sourceSystem: String(row.source_system),
+    sourceReference: String(row.source_reference),
+    retrievedAt: asIso(row.retrieved_at) ?? new Date(0).toISOString(),
+    parserVersion: String(row.parser_version),
+    contentHash: String(row.content_hash),
+  },
+});
+
+const toOperationsContract = (row: Record<string, unknown>): OperationsContractDto => ({
+  ...toPublicContract(row),
+  relevanceSignals: (row.relevance_signals as OperationsContractDto["relevanceSignals"]) ?? null,
+  reviewedAt: asIso(row.reviewed_at),
+  reviewedByActorId: (row.reviewed_by_actor_id as string | null) ?? null,
+  reviewNotes: (row.review_notes as string | null) ?? null,
+});
 
 export class PostgresPublicFundsRepository implements PublicFundsRepository {
   constructor(private readonly sql: Sql) {}
@@ -128,33 +175,78 @@ export class PostgresPublicFundsRepository implements PublicFundsRepository {
       LIMIT ${limit}
     `;
 
-    return rows.map((row) => ({
-      id: String(row.id),
-      externalId: String(row.external_id),
-      reference: (row.reference as string | null) ?? null,
-      entityName: String(row.entity_name),
-      entityNit: String(row.entity_nit),
-      supplierName: String(row.supplier_name),
-      supplierDocument: (row.supplier_document as string | null) ?? null,
-      object: (row.object as string | null) ?? null,
-      contractType: (row.contract_type as string | null) ?? null,
-      modality: (row.modality as string | null) ?? null,
-      status: (row.status as string | null) ?? null,
-      emergencyRelevance: row.emergency_relevance as PublicContractDto["emergencyRelevance"],
-      signedAt: asIso(row.signed_at),
-      currency: String(row.currency ?? "COP"),
-      totalValue: asNumber(row.total_value),
-      invoicedValue: asNumber(row.invoiced_value),
-      paidValue: asNumber(row.paid_value),
-      territoryName: (row.territory_name as string | null) ?? null,
-      sourceUrl: (row.source_url as string | null) ?? null,
-      provenance: {
-        sourceSystem: String(row.source_system),
-        sourceReference: String(row.source_reference),
-        retrievedAt: asIso(row.retrieved_at) ?? new Date(0).toISOString(),
-        parserVersion: String(row.parser_version),
-        contentHash: String(row.content_hash),
-      },
-    }));
+    return rows.map(toPublicContract);
+  }
+
+  /**
+   * Cola de revisión.
+   *
+   * Ordena por monto descendente dentro de lo pendiente: revisar primero el contrato de siete mil
+   * millones rinde más que el de cinco, y quien revisa nunca va a terminar los 357 de una sentada.
+   */
+  async listContractsForReview(
+    incidentId: string,
+    query: ContractReviewQueueQuery = {},
+  ): Promise<OperationsContractDto[]> {
+    const limit = Math.min(Math.max(query.limit ?? 100, 1), 500);
+    const pendingFilter =
+      query.pendingOnly === false ? this.sql`` : this.sql`AND c.reviewed_at IS NULL`;
+
+    const rows = await this.sql<Record<string, unknown>[]>`
+      SELECT c.id, c.external_id, c.reference, c.supplier_name, c.supplier_document,
+             c.object, c.contract_type, c.modality, c.status, c.emergency_relevance,
+             c.relevance_signals, c.signed_at, c.currency, c.total_value, c.invoiced_value,
+             c.paid_value, c.source_url, c.reviewed_at, c.reviewed_by_actor_id, c.review_notes,
+             e.name AS entity_name, e.nit AS entity_nit,
+             t.name AS territory_name,
+             p.source_system, p.source_reference, p.retrieved_at, p.parser_version, p.content_hash
+      FROM contracts c
+      JOIN public_entities e ON e.id = c.entity_id
+      JOIN provenance_records p ON p.id = c.provenance_id
+      LEFT JOIN territories t ON t.id = c.territory_id
+      WHERE c.incident_id = ${incidentId} ${pendingFilter}
+      ORDER BY
+        -- Los candidatos del clasificador primero: ya traen una señal que mirar.
+        CASE c.emergency_relevance WHEN 'probable' THEN 0 ELSE 1 END,
+        c.total_value DESC
+      LIMIT ${limit}
+    `;
+    return rows.map(toOperationsContract);
+  }
+
+  async reviewContract(
+    contractId: string,
+    reviewerActorId: string,
+    input: ReviewContractInput,
+  ): Promise<OperationsContractDto> {
+    const [updated] = await this.sql<{ id: string }[]>`
+      UPDATE contracts SET
+        emergency_relevance = ${input.relevance},
+        reviewed_by_actor_id = ${reviewerActorId},
+        reviewed_at = now(),
+        review_notes = ${input.notes},
+        updated_at = now()
+      WHERE id = ${contractId}
+      RETURNING id
+    `;
+    if (!updated) throw new ContractNotFoundError(contractId);
+
+    const [row] = await this.sql<Record<string, unknown>[]>`
+      SELECT c.id, c.external_id, c.reference, c.supplier_name, c.supplier_document,
+             c.object, c.contract_type, c.modality, c.status, c.emergency_relevance,
+             c.relevance_signals, c.signed_at, c.currency, c.total_value, c.invoiced_value,
+             c.paid_value, c.source_url, c.reviewed_at, c.reviewed_by_actor_id, c.review_notes,
+             e.name AS entity_name, e.nit AS entity_nit,
+             t.name AS territory_name,
+             p.source_system, p.source_reference, p.retrieved_at, p.parser_version, p.content_hash
+      FROM contracts c
+      JOIN public_entities e ON e.id = c.entity_id
+      JOIN provenance_records p ON p.id = c.provenance_id
+      LEFT JOIN territories t ON t.id = c.territory_id
+      WHERE c.id = ${contractId}
+      LIMIT 1
+    `;
+    if (!row) throw new ContractNotFoundError(contractId);
+    return toOperationsContract(row);
   }
 }

@@ -113,6 +113,41 @@ export const publicFundsSummarySchema = z.object({
     .array(),
 });
 
+/**
+ * Contrato en la cola de revisión de Operaciones.
+ *
+ * Trae lo que hace falta para decidir sin salir de la pantalla: el objeto completo, las señales que
+ * levantó el clasificador y el enlace a la fuente. Quien revisa no debería tener que adivinar por
+ * qué un contrato llegó a la cola.
+ */
+export const operationsContractSchema = publicContractSchema.extend({
+  relevanceSignals: z
+    .object({
+      emergencyTerms: z.string().array().default([]),
+      supportingTerms: z.string().array().default([]),
+      declaredUrgency: z.boolean().default(false),
+      strength: z.enum(["strong", "weak", "none"]).default("none"),
+    })
+    .nullable(),
+  reviewedAt: z.string().nullable(),
+  reviewedByActorId: z.uuid().nullable(),
+  reviewNotes: z.string().nullable(),
+});
+
+/**
+ * Decisión de revisión.
+ *
+ * `probable` sigue siendo una opción válida: devolver un contrato a la cola —"esto podría ser, pero
+ * no me alcanza para decidir"— es una respuesta legítima, y forzar un sí o un no produciría
+ * confirmaciones sin fundamento, que es justo lo que este flujo existe para evitar.
+ */
+export const reviewContractSchema = z.object({
+  relevance: z.enum(["confirmed", "probable", "unrelated"]),
+  notes: z.string().trim().max(2_000).nullable().default(null),
+});
+
+export type OperationsContractDto = z.infer<typeof operationsContractSchema>;
+export type ReviewContractInput = z.infer<typeof reviewContractSchema>;
 export type FundingStage = z.infer<typeof fundingStageSchema>;
 export type EmergencyRelevance = z.infer<typeof emergencyRelevanceSchema>;
 export type PublicContractDto = z.infer<typeof publicContractSchema>;

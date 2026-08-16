@@ -1,4 +1,10 @@
-import type { EmergencyRelevance, PublicContractDto, PublicFundsSummaryDto } from "@pulso/schemas";
+import type {
+  EmergencyRelevance,
+  OperationsContractDto,
+  PublicContractDto,
+  PublicFundsSummaryDto,
+  ReviewContractInput,
+} from "@pulso/schemas";
 
 export type PublicContractQuery = {
   /**
@@ -11,10 +17,32 @@ export type PublicContractQuery = {
   limit?: number;
 };
 
+export type ContractReviewQueueQuery = {
+  /** Por omisión la cola trae lo que nadie ha revisado todavía. */
+  pendingOnly?: boolean;
+  limit?: number;
+};
+
 export interface PublicFundsRepository {
   summarizeByIncident(incidentId: string): Promise<PublicFundsSummaryDto>;
   listContractsByIncident(
     incidentId: string,
     query?: PublicContractQuery,
   ): Promise<PublicContractDto[]>;
+  listContractsForReview(
+    incidentId: string,
+    query?: ContractReviewQueueQuery,
+  ): Promise<OperationsContractDto[]>;
+  reviewContract(
+    contractId: string,
+    reviewerActorId: string,
+    input: ReviewContractInput,
+  ): Promise<OperationsContractDto>;
+}
+
+export class ContractNotFoundError extends Error {
+  constructor(id: string) {
+    super(`Contract not found: ${id}`);
+    this.name = "ContractNotFoundError";
+  }
 }

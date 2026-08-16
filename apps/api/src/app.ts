@@ -7,6 +7,7 @@ import {
   CommunityReportNotFoundError,
   CommunityReportRateLimitError,
   type CommunityReportRepository,
+  ContractNotFoundError,
   EvidenceAssessmentNotFoundError,
   EvidenceIntegrityError,
   type EvidenceRepository,
@@ -77,6 +78,7 @@ import {
   issuedMissionInvitationSchema,
   issuedOperationsInvitationSchema,
   operationalZoneSchema,
+  operationsContractSchema,
   operationsSessionSchema,
   operationsWorkforceProfileSchema,
   organizationSchema,
@@ -94,6 +96,7 @@ import {
   redeemMissionInvitationSchema,
   redeemOperationsInvitationSchema,
   reviewCommunityReportSchema,
+  reviewContractSchema,
   teamMembershipSchema,
   teamSchema,
   territoryImportResultSchema,
@@ -356,7 +359,8 @@ export async function buildApp(options: BuildAppOptions = {}) {
       error instanceof EvidenceAssessmentNotFoundError ||
       error instanceof IdentityTrustNotFoundError ||
       error instanceof OperationsResourceNotFoundError ||
-      error instanceof CommunityReportNotFoundError
+      error instanceof CommunityReportNotFoundError ||
+      error instanceof ContractNotFoundError
     ) {
       return reply.status(404).send({
         error: "resource_not_found",
@@ -1080,6 +1084,51 @@ export async function buildApp(options: BuildAppOptions = {}) {
       return operationsWorkforceProfileSchema
         .array()
         .parse(await workforceProfiles.listByIncident(request.params.incidentId));
+    },
+  );
+
+  // Cola de revisión de contratos.
+  //
+  // Es la pieza que le falta al resumen público para dejar de mostrar ceros: el clasificador
+  // automático nunca confirma, así que sin una persona que decida aquí, ningún peso llega a
+  // publicarse como gasto de emergencia.
+  app.get<{ Params: { incidentId: string }; Querystring: { all?: string; limit?: string } }>(
+    "/v1/operations/incidents/:incidentId/contracts",
+    async (request) => {
+      const session = await operationsAccess.resolveSession(
+        bearerToken(request.headers.authorization),
+      );
+      if (session.incidentId !== request.params.incidentId) {
+        throw new MissionAccessDeniedError("La sesión pertenece a otra emergencia.");
+      }
+      const limit = Number.parseInt(request.query.limit ?? "", 10);
+      return operationsContractSchema.array().parse(
+        await publicFunds.listContractsForReview(request.params.incidentId, {
+          pendingOnly: request.query.all !== "true",
+          ...(Number.isFinite(limit) ? { limit } : {}),
+        }),
+      );
+    },
+  );
+
+  app.post<{ Params: { incidentId: string; contractId: string } }>(
+    "/v1/operations/incidents/:incidentId/contracts/:contractId/review",
+    async (request) => {
+      const session = await operationsAccess.resolveSession(
+        bearerToken(request.headers.authorization),
+      );
+      if (session.incidentId !== request.params.incidentId) {
+        throw new MissionAccessDeniedError("La sesión pertenece a otra emergencia.");
+      }
+      if (!["coordinator", "incident_admin"].includes(session.role)) {
+        throw new MissionAccessDeniedError(
+          "Este rol no puede decidir la relevancia de un contrato.",
+        );
+      }
+      const input = reviewContractSchema.parse(request.body);
+      return operationsContractSchema.parse(
+        await publicFunds.reviewContract(request.params.contractId, session.actorId, input),
+      );
     },
   );
 

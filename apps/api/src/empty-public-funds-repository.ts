@@ -1,5 +1,9 @@
-import type { PublicFundsRepository } from "@pulso/domain";
-import type { PublicContractDto, PublicFundsSummaryDto } from "@pulso/schemas";
+import { ContractNotFoundError, type PublicFundsRepository } from "@pulso/domain";
+import type {
+  OperationsContractDto,
+  PublicContractDto,
+  PublicFundsSummaryDto,
+} from "@pulso/schemas";
 
 /**
  * Implementación vacía para cuando la API corre sin Postgres.
@@ -24,5 +28,15 @@ export class EmptyPublicFundsRepository implements PublicFundsRepository {
 
   async listContractsByIncident(): Promise<PublicContractDto[]> {
     return [];
+  }
+
+  async listContractsForReview(): Promise<OperationsContractDto[]> {
+    return [];
+  }
+
+  async reviewContract(contractId: string): Promise<OperationsContractDto> {
+    // Sin base de datos no hay contrato que revisar; fingir que la revisión se guardó sería peor
+    // que fallar, porque el usuario creería haber confirmado algo.
+    throw new ContractNotFoundError(contractId);
   }
 }

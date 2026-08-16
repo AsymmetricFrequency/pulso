@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ContractReview } from "./contract-review";
 import styles from "./operations.module.css";
 
 type OperationsSession = {
@@ -272,6 +273,8 @@ export function OperationsFlow() {
             Actualizado {new Date(summary.calculatedAt).toLocaleString("es-CO")} · No incluye
             nombres, notas ni fotografías.
           </p>
+
+          <ContractReview incidentId={session.incident.id} sessionToken={session.sessionToken} />
         </>
       ) : (
         <p className={styles.loading}>Preparando el resumen de la emergencia…</p>
