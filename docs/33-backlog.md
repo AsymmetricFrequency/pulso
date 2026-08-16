@@ -67,6 +67,45 @@ cuentas que ya publican mapas, los organismos de socorro.
 - **Acepta cuando:** existe la pieza, está publicada, y podemos nombrar tres canales donde llegó.
 - **Ojo:** el mensaje tiene que decir «llama al 123 primero». Sin esa frase, no se publica.
 
+### `P0-6` · Avisar a los rescatistas cuando entra un reporte · **M** · Backend + DevOps
+
+Hoy un reporte de personas atrapadas se queda esperando a que alguien mire la pantalla. Sin aviso,
+toda la ventaja de que reportar sea rápido se pierde en el último tramo.
+
+El webhook de `#alertas` ya existe y el cliente de Discord ya sabe publicar; falta disparar en el
+momento del reporte, y una segunda vía que no dependa de que alguien tenga Discord abierto.
+
+- **Acepta cuando:** al enviar un rescate, en menos de un minuto aparece un aviso en `#alertas` con
+  las personas, las señales de vida y un enlace al punto.
+- **Ojo:** un fallo al avisar **nunca** puede impedir que el reporte se guarde. El aviso se manda
+  después de escribir, no antes, y su error se traga — igual que en `DiscordClient.alert`.
+
+### `P0-7` · Sala de situación por ciudad · **L** · Frontend + GIS
+
+Pulso pinta 2.300 puntos sobre el país y **no responde «qué pasa en esta ciudad ahora mismo»**. Para
+coordinar un rescate esa es la única pregunta que importa, y hoy exige entrar a un departamento,
+esperar a que cargue el otro motor de mapa y contar puntos a ojo.
+
+Una pantalla por ciudad con los puntos críticos juntos: rescates abiertos, PMU, albergues y carpas,
+centros de acopio, necesidades sin cubrir.
+
+- **Acepta cuando:** desde el informe público se elige una ciudad y se ven sus puntos críticos
+  agrupados por tipo, cada uno con cuándo se reportó y su estado. Los rescates van arriba y
+  separados.
+- **Ojo:** no esperes a `PL-1`. Esta vista puede salir con lo que hay; si se ata al mapa único, se
+  queda esperando una decisión que todavía no está tomada.
+
+### `P0-8` · Distinguir un alojamiento temporal de un centro de acopio · **M** · Backend + Frontend
+
+Hoy todo cae en la categoría `refugio` o en un PMU, y no son lo mismo: una carpa donde duerme gente
+esta noche tiene capacidad, ocupación y necesidades propias; un acopio recibe y despacha. Mezclarlos
+hace que el mapa no pueda decir **dónde queda espacio para alojar a alguien**.
+
+- **Acepta cuando:** un alojamiento temporal se reporta como tal, con capacidad y ocupación
+  aproximadas, y el mapa lo distingue de un acopio a simple vista.
+- **Ojo:** las fuentes externas ya ingeridas se reclasifican sin perder procedencia. Nada de borrar
+  y volver a importar.
+
 ### `P0-5` · Que el triaje de contratos corra · **S** · AI + DevOps
 
 Está desplegado y quieto: falta `ANTHROPIC_API_KEY` en `/opt/pulso/.env`. Son ~3 USD por los 357

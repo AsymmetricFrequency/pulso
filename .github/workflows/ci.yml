@@ -39,8 +39,14 @@ jobs:
       # `pnpm test` compila `@pulso/schemas` y `@pulso/domain` antes de correr: los consumidores
       # chequean tipos contra `dist`, no contra el fuente. Sin ese paso el typecheck falla por una
       # razón que no tiene nada que ver con el cambio.
+      #
+      # `@pulso/solana` queda fuera: sus tipos los genera `anchor build` en `target/types/`, que no
+      # está versionado, así que aquí siempre faltarían. Instalar Rust, Solana CLI y Anchor costaría
+      # varios minutos en cada PR para comprobar un programa que casi nunca cambia; se verifica con
+      # `pnpm test:solana:integration` cuando se toca. Que el trabajo del día a día espere por eso
+      # sería la forma más segura de que la gente empiece a ignorar la CI.
       - name: Tipos
-        run: pnpm typecheck
+        run: pnpm -r --filter '!@pulso/solana' typecheck
 
       - name: Pruebas
         run: pnpm test
