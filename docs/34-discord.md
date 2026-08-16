@@ -240,9 +240,15 @@ Cinco pasos. Solo los puede dar quien es dueño del servidor de Discord.
    ```
    Tiene que coincidir carácter por carácter con `DISCORD_REDIRECT_URI` o Discord rechaza la
    entrada sin explicar cuál de los dos está mal.
-3. **Bot** → **Reset Token** y cópialo. Intents: ninguno hace falta marcar — el panel usa la API
-   REST, no la pasarela. **No** pidas `Message Content`: exige verificación de Discord y aquí no se
-   usa.
+3. **Bot** → **Reset Token** y cópialo. En **Privileged Gateway Intents** activa
+   **`SERVER MEMBERS INTENT`** y guarda.
+
+   Hace falta aunque el panel use la API REST y no la pasarela: leer *un* miembro funciona sin él,
+   pero **listar todos los miembros del servidor devuelve 403** sin ese intent, y la lista del
+   equipo es la mitad del panel. No exige verificación de Discord mientras el bot esté en menos de
+   100 servidores.
+
+   Deja **`MESSAGE CONTENT INTENT` apagado**: ese sí exige verificación y aquí no se usa.
 4. **OAuth2 → URL Generator**: scopes `bot` + `applications.commands`; permisos **Manage Roles**,
    *Send Messages*, *Create Public Threads*. Abre la URL e invita el bot al servidor.
    **En Ajustes del servidor → Roles, arrastra el rol del bot por encima de los roles que va a
@@ -299,6 +305,20 @@ sesión dura dos horas en vez de doce, y el panel lo anuncia en rojo mientras es
 Dejarlo vacío desactiva la vía por completo.
 
 Ninguno de los dos va al repositorio.
+
+### Tres 403 que no explican nada
+
+Discord responde `403 Forbidden` a tres cosas distintas sin decir cuál es. Las tres las tropezamos
+al montar esto:
+
+| Síntoma | Causa | Arreglo |
+| --- | --- | --- |
+| Todo da 403, incluso leer roles | Falta `User-Agent` propio en la petición | Ya resuelto en `discord.ts` |
+| Listar miembros da 403, leer uno funciona | Falta el **Server Members Intent** | Portal → Bot → Privileged Gateway Intents |
+| Asignar un rol da 403 | El rol del bot está por debajo del que intenta asignar | Ajustes del servidor → Roles → subir `Pulso` |
+
+El tercero es el más confuso porque el permiso `Manage Roles` sí está concedido: lo que manda es la
+posición en la lista, no el permiso.
 
 ### Un detalle que cuesta una tarde si no se sabe
 

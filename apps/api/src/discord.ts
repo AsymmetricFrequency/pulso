@@ -106,11 +106,23 @@ export class DiscordClient {
       headers: {
         Authorization: `Bot ${this.config.botToken}`,
         "Content-Type": "application/json",
+        // Discord exige un User-Agent propio en su API REST y responde 403 sin explicar nada
+        // cuando no lo encuentra. El que ponen los clientes HTTP por defecto está bloqueado.
+        "User-Agent": "DiscordBot (https://pulso.my, 0.1)",
         ...init.headers,
       },
     });
     if (!response.ok) {
       const body = await response.text();
+      // Listar miembros exige el Server Members Intent, que se activa en el portal y no en el
+      // código. Discord solo devuelve un 403 pelado, así que el mensaje se escribe aquí — es la
+      // diferencia entre un clic y una tarde de búsqueda.
+      if (response.status === 403 && path.includes("/members?")) {
+        throw new Error(
+          "Discord no deja listar los miembros: falta activar SERVER MEMBERS INTENT en " +
+            "Developer Portal → Bot → Privileged Gateway Intents.",
+        );
+      }
       throw new Error(`Discord ${init.method ?? "GET"} ${path} -> ${response.status}: ${body}`);
     }
     return response.status === 204 ? (undefined as T) : ((await response.json()) as T);
