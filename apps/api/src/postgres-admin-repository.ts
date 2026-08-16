@@ -226,8 +226,10 @@ export class PostgresAdminRepository {
       this.sql<Record<string, unknown>[]>`
         SELECT
           count(*)::int AS open,
-          count(*) FILTER (WHERE signs_of_life = 'yes')::int AS with_signs,
-          max(EXTRACT(EPOCH FROM (now() - created_at)) / 3600)::numeric(10,1) AS oldest_hours
+          count(*) FILTER (WHERE c.signs_of_life = 'yes')::int AS with_signs,
+          -- Calificada con el alias: la tabla incidents también tiene created_at, y sin el prefijo
+          -- Postgres rechaza la consulta entera por ambigua.
+          max(EXTRACT(EPOCH FROM (now() - c.created_at)) / 3600)::numeric(10,1) AS oldest_hours
         FROM community_reports c
         JOIN incidents i ON i.id = c.incident_id
         WHERE i.code = ${incidentCode}
