@@ -93,3 +93,41 @@ Referencias técnicas:
 - SGC, visor de sismicidad: <https://www.sgc.gov.co/sismos>
 - DANE, FeatureServer MGN 2023: <https://geoportal.dane.gov.co/mparcgis/rest/services/MGN2023/Serv_CapasMGN_2023/FeatureServer>
 - Alcaldía de Cali, repositorio oficial: <https://www.cali.gov.co/gobierno/publicaciones/193607/terremoto-de-cali-repositorio-oficial-de-informacion/>
+
+## Estado real en producción (16 ago 2026)
+
+El worker corre en el VPS con `SOURCE_INGESTION_ENABLED=true`. Cada fuente tiene su propia
+cadencia, elegida por el `crawl-delay` o la ventana de caché que declara la fuente — no hay un
+intervalo único de 20 minutos para todas, y forzarlo solo re-descargaría el mismo snapshot cacheado:
+
+| Fuente | Cadencia | Estado observado |
+| --- | --- | --- |
+| SGC (sismos) | 5 min | 120 corridas, 0 fallos |
+| contemos | 10 min | 60 corridas, **16 fallos** (404/500 intermitentes de su feed) |
+| gravitas | 10 min | 60 corridas, 0 fallos · 181 puntos |
+| ayudaspereira | 15 min | 40 corridas, 0 fallos |
+| redcaliayuda (necesidades) | 15 min | 40 corridas, 0 fallos |
+| redcaliayuda (acopio) | 15 min | 40 corridas, 0 fallos |
+| publicación del informe | 20 min | 30 corridas, 0 fallos |
+| terremotocolombia | 4 h | 3 corridas (su CDN cachea 4 h) |
+| DANE MGN | 24 h | 1 corrida |
+| **Cali oficial** | 30 min | **20 corridas, 20 fallos — HTTP 403** |
+
+### Cali bloquea al servidor
+
+`cali.gov.co` responde 200 a la misma URL desde una conexión residencial colombiana y **403 desde
+el VPS**, con cualquier User-Agent. No es el parser ni el rate-limit propio: es un bloqueo por
+origen de la petición (IP de datacenter o geografía). La última ingesta exitosa fue justo antes de
+migrar el worker al servidor.
+
+No se intenta rodear ese bloqueo. La vía correcta es la que ya plantea el plan P0: pedir la misma
+información por el portal de datos abiertos (`datos.gov.co`) o por solicitud formal bajo la Ley
+1712, que además entrega datos estructurados y versionables en vez de HTML raspado.
+
+### Observabilidad incompleta
+
+Solo `sgc`, `cali` y `dane` escriben en `source_ingestion_runs`. Las seis fuentes comunitarias
+corren bien pero no registran nada, así que su estado solo existe en el log del worker. Por eso el
+403 de Cali pasó desapercibido hasta que se revisó a mano: **una fuente puede estar caída sin que
+ninguna consulta lo muestre**. Unificar el registro de corridas es el siguiente paso de este
+módulo.
