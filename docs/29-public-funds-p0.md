@@ -3,9 +3,10 @@
 ## Decisión
 
 Pulso deja de terminar en "qué está pasando" y empieza a responder "con qué dinero". El P0 sigue el
-orden que fija el plan técnico: dominio, migraciones, procedencia y adaptadores — sin interfaz
-nueva, porque una pantalla sobre un modelo que todavía no representa bien un contrato solo
-adelanta el error.
+orden que fija el plan técnico: primero dominio, migraciones, procedencia y adaptadores, porque una
+pantalla sobre un modelo que todavía no representa bien un contrato solo adelanta el error. La
+única interfaz que se construyó después es la cola de revisión, y no por estética: sin una persona
+que decida, el resumen público se queda en ceros para siempre.
 
 ## Paso 1: qué ya existía
 
@@ -107,8 +108,8 @@ viaja con su procedencia —sistema, referencia original, hash, versión del par
 captura— para que cualquiera pueda volver al dato en su fuente.
 
 Estado real hoy en producción: 357 contratos ingeridos, 0 confirmados, 1 candidato, 356 sin
-revisar, y por lo tanto **cero pesos publicados como gasto de emergencia**. Es el estado honesto: el
-ciclo de revisión humana todavía no existe.
+revisar, y por lo tanto **cero pesos publicados como gasto de emergencia**. Es el estado honesto, y
+ahora sí es reversible: la cola de revisión ya existe y espera a que alguien la trabaje.
 
 ## Revisión humana (migración `021_contract_review.sql`)
 
