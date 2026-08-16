@@ -12,7 +12,7 @@
   "dependencies": {
     "@simplewebauthn/browser": "13.3.0",
     "d3-geo": "3.1.1",
-    "maplibre-gl": "^6.4.0",
+    "maplibre-gl": "^5.24.0",
     "next": "16.3.1",
     "react": "19.2.8",
     "react-dom": "19.2.8"
