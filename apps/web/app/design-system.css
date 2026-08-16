@@ -136,7 +136,7 @@
 .psCard {
   border: 1px solid var(--border-subtle);
   border-radius: var(--r-md);
-  background: linear-gradient(180deg, #fff 0%, var(--surface-raised) 100%);
+  background: linear-gradient(180deg, var(--white) 0%, var(--surface-raised) 100%);
   box-shadow: var(--elev-1);
   transition:
     transform var(--dur) var(--ease-out),
@@ -183,23 +183,23 @@
 }
 .psBadge[data-status="severe"] {
   background: var(--status-severe-soft);
-  color: #a8331f;
+  color: var(--status-severe-ink);
 }
 .psBadge[data-status="strong"] {
   background: var(--status-strong-soft);
-  color: #8a5a12;
+  color: var(--status-strong-ink);
 }
 .psBadge[data-status="moderate"] {
   background: var(--status-moderate-soft);
-  color: #245268;
+  color: var(--status-moderate-ink);
 }
 .psBadge[data-status="light"] {
   background: var(--status-light-soft);
-  color: #1a5a3d;
+  color: var(--status-light-ink);
 }
 .psBadge[data-status="none"] {
   background: var(--status-none-soft);
-  color: #6a736d;
+  color: var(--text-secondary);
 }
 
 /* --- Cifra destacada ------------------------------------------------------- */
@@ -367,7 +367,7 @@
 .psLegend i {
   width: 10px;
   height: 10px;
-  border-radius: 3px;
+  border-radius: var(--r-xs);
 }
 
 /* =============================================================================
@@ -449,7 +449,7 @@
   background: var(--status-strong-soft);
   border-radius: 0 var(--r-sm) var(--r-sm) 0;
   padding: var(--space-3) var(--space-4);
-  color: #7a4f13;
+  color: var(--status-strong-ink);
   font-size: var(--text-sm);
   line-height: 1.6;
 }
@@ -504,7 +504,7 @@
   border-radius: var(--r-sm);
   background: var(--primary);
   padding: 0 var(--space-4);
-  color: #fff;
+  color: var(--white);
   font-size: var(--text-sm);
   font-weight: 700;
   text-decoration: none;
@@ -566,7 +566,7 @@
   border: 1px solid var(--border-subtle);
   border-right: 1px solid var(--border-subtle);
   border-radius: var(--r-md);
-  background: linear-gradient(180deg, #fff 0%, var(--surface-raised) 100%);
+  background: linear-gradient(180deg, var(--white) 0%, var(--surface-raised) 100%);
   padding: var(--space-4);
   box-shadow: var(--elev-1);
 }
