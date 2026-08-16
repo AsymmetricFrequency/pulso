@@ -131,7 +131,12 @@ export async function fetchSgcEarthquakes(options: { etag?: string; lastModified
   };
 }
 
-export async function runSgcEarthquakeIngestion(options: { databaseUrl?: string; since: string }) {
+export async function runSgcEarthquakeIngestion(options: {
+  databaseUrl?: string;
+  since: string;
+  /** Corrida ya abierta por el orquestador; sin ella la fuente abre la suya. */
+  runId?: string;
+}) {
   const sql = openSourceDatabase(options.databaseUrl);
   try {
     const store = sql ? new OfficialSourceStore(sql) : undefined;
@@ -141,10 +146,14 @@ export async function runSgcEarthquakeIngestion(options: { databaseUrl?: string;
       ...(previous?.last_modified ? { lastModified: previous.last_modified } : {}),
     });
     if (response.status === 304) {
-      await store?.saveUnchanged(SGC_EARTHQUAKE_SOURCE, {
-        ...(response.etag ? { etag: response.etag } : {}),
-        ...(response.lastModified ? { lastModified: response.lastModified } : {}),
-      });
+      await store?.saveUnchanged(
+        SGC_EARTHQUAKE_SOURCE,
+        {
+          ...(response.etag ? { etag: response.etag } : {}),
+          ...(response.lastModified ? { lastModified: response.lastModified } : {}),
+        },
+        options.runId ? { runId: options.runId } : {},
+      );
       return { status: "unchanged" as const, count: 0 };
     }
     const events = parseSgcEarthquakes(response.payload, options.since);
@@ -154,13 +163,17 @@ export async function runSgcEarthquakeIngestion(options: { databaseUrl?: string;
       recordType: "seismic_event" as const,
       payload: { ...event },
     }));
-    const runId = await store?.save(SGC_EARTHQUAKE_SOURCE, {
-      observedAt,
-      contentHash: contentHash(events),
-      records,
-      ...(response.etag ? { etag: response.etag } : {}),
-      ...(response.lastModified ? { lastModified: response.lastModified } : {}),
-    });
+    const runId = await store?.save(
+      SGC_EARTHQUAKE_SOURCE,
+      {
+        observedAt,
+        contentHash: contentHash(events),
+        records,
+        ...(response.etag ? { etag: response.etag } : {}),
+        ...(response.lastModified ? { lastModified: response.lastModified } : {}),
+      },
+      options.runId ? { runId: options.runId } : {},
+    );
     return {
       status: options.databaseUrl ? ("stored" as const) : ("preview" as const),
       count: events.length,

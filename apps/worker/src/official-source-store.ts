@@ -36,6 +36,13 @@ export class OfficialSourceStore {
     return row;
   }
 
+  /**
+   * `options.runId` es la corrida que el orquestador ya abrió antes de invocar la fuente. Cuando
+   * viene, esta función la completa en vez de crear otra: si insertara la suya, cada ingesta
+   * programada dejaría dos filas —una "running" huérfana y una "succeeded"— y el historial
+   * quedaría al doble. Sin `runId` (una corrida manual con `pnpm ingest:*`) abre la suya, para que
+   * ejecutar a mano tampoco pase sin registro.
+   */
   async save(
     source: OfficialSourceDefinition,
     snapshot: {
@@ -45,8 +52,10 @@ export class OfficialSourceStore {
       etag?: string;
       lastModified?: string;
     },
+    options: { runId?: string } = {},
   ) {
-    const runId = randomUUID();
+    const runId = options.runId ?? randomUUID();
+    const reusesOpenRun = Boolean(options.runId);
     await this.sql.begin(async (transaction) => {
       await transaction`
         INSERT INTO external_sources (
@@ -65,16 +74,26 @@ export class OfficialSourceStore {
           active = true,
           updated_at = now()
       `;
-      await transaction`
-        INSERT INTO source_ingestion_runs (
-          id, source_id, status, started_at, finished_at, http_status,
-          etag, last_modified, content_hash, records_seen
-        ) VALUES (
-          ${runId}, ${source.id}, 'succeeded', ${snapshot.observedAt}, now(), 200,
-          ${snapshot.etag ?? null}, ${snapshot.lastModified ?? null},
-          ${snapshot.contentHash}, ${snapshot.records.length}
-        )
-      `;
+      if (reusesOpenRun) {
+        await transaction`
+          UPDATE source_ingestion_runs SET
+            status = 'succeeded', finished_at = now(), http_status = 200,
+            etag = ${snapshot.etag ?? null}, last_modified = ${snapshot.lastModified ?? null},
+            content_hash = ${snapshot.contentHash}, records_seen = ${snapshot.records.length}
+          WHERE id = ${runId}
+        `;
+      } else {
+        await transaction`
+          INSERT INTO source_ingestion_runs (
+            id, source_id, status, started_at, finished_at, http_status,
+            etag, last_modified, content_hash, records_seen
+          ) VALUES (
+            ${runId}, ${source.id}, 'succeeded', ${snapshot.observedAt}, now(), 200,
+            ${snapshot.etag ?? null}, ${snapshot.lastModified ?? null},
+            ${snapshot.contentHash}, ${snapshot.records.length}
+          )
+        `;
+      }
 
       for (const record of snapshot.records) {
         const recordHash = contentHash(record.payload);
@@ -121,7 +140,18 @@ export class OfficialSourceStore {
   async saveUnchanged(
     source: OfficialSourceDefinition,
     metadata: { etag?: string; lastModified?: string },
+    options: { runId?: string } = {},
   ) {
+    if (options.runId) {
+      await this.sql`
+        UPDATE source_ingestion_runs SET
+          status = 'unchanged', finished_at = now(), http_status = 304,
+          etag = ${metadata.etag ?? null}, last_modified = ${metadata.lastModified ?? null},
+          records_seen = 0
+        WHERE id = ${options.runId}
+      `;
+      return;
+    }
     await this.sql`
       INSERT INTO source_ingestion_runs (
         id, source_id, status, started_at, finished_at, http_status,

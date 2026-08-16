@@ -1,13 +1,25 @@
-import { runAyudasPereiraIngestion } from "./ayudaspereira.js";
-import { runCaliOfficialIngestion } from "./cali-official.js";
-import { runContemosIngestion } from "./contemos.js";
-import { runDaneTerritoryIngestion } from "./dane-territories.js";
-import { runGravitasIngestion } from "./gravitas.js";
+import postgres from "postgres";
+import { AYUDAS_PEREIRA_SOURCE, runAyudasPereiraIngestion } from "./ayudaspereira.js";
+import { CALI_OFFICIAL_SOURCE, runCaliOfficialIngestion } from "./cali-official.js";
+import { CONTEMOS_SOURCE, runContemosIngestion } from "./contemos.js";
+import { DANE_MGN_SOURCE, runDaneTerritoryIngestion } from "./dane-territories.js";
+import { GRAVITAS_SOURCE, runGravitasIngestion } from "./gravitas.js";
+import {
+  completeIngestionRun,
+  httpStatusFromError,
+  type IngestionSourceDefinition,
+  outcomeFromResult,
+  recordsSeenFromResult,
+  startIngestionRun,
+} from "./ingestion-run-log.js";
 import { runPublishSituationReport } from "./publish-situation-report.js";
-import { runRedCaliAyudaIngestion } from "./redcaliayuda.js";
-import { runRedCaliAyudaAcopioIngestion } from "./redcaliayuda-acopio.js";
-import { runSgcEarthquakeIngestion } from "./sgc-earthquakes.js";
-import { runTerremotoColombiaIngestion } from "./terremotocolombia.js";
+import { REDCALIAYUDA_SOURCE, runRedCaliAyudaIngestion } from "./redcaliayuda.js";
+import {
+  REDCALIAYUDA_ACOPIO_SOURCE,
+  runRedCaliAyudaAcopioIngestion,
+} from "./redcaliayuda-acopio.js";
+import { runSgcEarthquakeIngestion, SGC_EARTHQUAKE_SOURCE } from "./sgc-earthquakes.js";
+import { runTerremotoColombiaIngestion, TERREMOTOCOLOMBIA_SOURCE } from "./terremotocolombia.js";
 
 export type IngestionSourceName =
   | "sgc"
@@ -25,7 +37,18 @@ export type IngestionSourceConfig = {
   name: IngestionSourceName;
   /** How often BullMQ re-runs this job — chosen per source's own crawl-delay/cache guidance. */
   everyMs: number;
-  run: () => Promise<unknown>;
+  /**
+   * La fuente externa que representa este trabajo, para dejar constancia de cada corrida en
+   * `source_ingestion_runs`. Se omite en trabajos que no ingieren nada de afuera —publicar el
+   * informe agrega datos que ya son nuestros— porque anotarlos como ingesta externa sería
+   * inventar una fuente que no existe.
+   */
+  source?: IngestionSourceDefinition;
+  /**
+   * `runId` es la corrida que el orquestador ya abrió. Las fuentes oficiales lo necesitan para
+   * colgar de ella sus versiones de registro en vez de abrir una segunda corrida en paralelo.
+   */
+  run: (context: { runId: string | null }) => Promise<unknown>;
 };
 
 // `?? undefined`-style spreads on a value returned from a function call don't narrow under
@@ -49,32 +72,44 @@ export const INGESTION_SOURCES: IngestionSourceConfig[] = [
     // Real-time seismic feed — the most time-sensitive source.
     name: "sgc",
     everyMs: 5 * MINUTE,
-    run: () => runSgcEarthquakeIngestion(withDatabaseUrl({ since: incidentStartedAt() })),
+    source: SGC_EARTHQUAKE_SOURCE,
+    run: ({ runId }) =>
+      runSgcEarthquakeIngestion(
+        withDatabaseUrl({ since: incidentStartedAt(), ...(runId ? { runId } : {}) }),
+      ),
   },
   {
     name: "cali",
     everyMs: 30 * MINUTE,
-    run: () => runCaliOfficialIngestion(process.env.DATABASE_URL),
+    source: CALI_OFFICIAL_SOURCE,
+    run: ({ runId }) => runCaliOfficialIngestion(process.env.DATABASE_URL, runId ? { runId } : {}),
   },
   {
     // Administrative boundaries — effectively static.
     name: "dane",
     everyMs: 24 * HOUR,
-    run: () => runDaneTerritoryIngestion(withDatabaseUrl({ incidentCode: incidentCode() })),
+    source: DANE_MGN_SOURCE,
+    run: ({ runId }) =>
+      runDaneTerritoryIngestion(
+        withDatabaseUrl({ incidentCode: incidentCode(), ...(runId ? { runId } : {}) }),
+      ),
   },
   {
     name: "contemos",
     everyMs: 10 * MINUTE,
+    source: CONTEMOS_SOURCE,
     run: () => runContemosIngestion(withDatabaseUrl({ incidentCode: incidentCode() })),
   },
   {
     name: "gravitas",
     everyMs: 10 * MINUTE,
+    source: GRAVITAS_SOURCE,
     run: () => runGravitasIngestion(withDatabaseUrl({ incidentCode: incidentCode() })),
   },
   {
     name: "ayudaspereira",
     everyMs: 15 * MINUTE,
+    source: AYUDAS_PEREIRA_SOURCE,
     run: () => runAyudasPereiraIngestion(withDatabaseUrl({ incidentCode: incidentCode() })),
   },
   {
@@ -82,16 +117,19 @@ export const INGESTION_SOURCES: IngestionSourceConfig[] = [
     // the same cached snapshot.
     name: "terremotocolombia",
     everyMs: 4 * HOUR,
+    source: TERREMOTOCOLOMBIA_SOURCE,
     run: () => runTerremotoColombiaIngestion(withDatabaseUrl({ incidentCode: incidentCode() })),
   },
   {
     name: "redcaliayuda",
     everyMs: 15 * MINUTE,
+    source: REDCALIAYUDA_SOURCE,
     run: () => runRedCaliAyudaIngestion(withDatabaseUrl({ incidentCode: incidentCode() })),
   },
   {
     name: "redcaliayuda-acopio",
     everyMs: 15 * MINUTE,
+    source: REDCALIAYUDA_ACOPIO_SOURCE,
     run: () => runRedCaliAyudaAcopioIngestion(withDatabaseUrl({ incidentCode: incidentCode() })),
   },
   {
@@ -105,3 +143,46 @@ export const INGESTION_SOURCES: IngestionSourceConfig[] = [
     },
   },
 ];
+
+/**
+ * Ejecuta una fuente dejando constancia de la corrida —incluido el fallo— en
+ * `source_ingestion_runs`.
+ *
+ * El fallo se anota aquí y no dentro de cada módulo porque casi siempre ocurre en la descarga,
+ * que es lo primero que hace el módulo y sucede antes de que abra su propia conexión: un HTTP 403
+ * no deja rastro si el único que puede escribirlo es quien ya se cayó. Este envoltorio abre su
+ * conexión primero, así que puede anotar tanto lo que funcionó como lo que no.
+ *
+ * El error se vuelve a lanzar después de registrarlo: BullMQ tiene que seguir viendo el trabajo
+ * como fallido para reintentarlo, y un registro que se traga la excepción convertiría una fuente
+ * caída en una corrida aparentemente normal.
+ */
+export async function runIngestionSourceWithLog(source: IngestionSourceConfig): Promise<unknown> {
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!source.source || !databaseUrl) {
+    return source.run({ runId: null });
+  }
+
+  const definition = source.source;
+  const sql = postgres(databaseUrl, { max: 1 });
+  try {
+    const runId = await startIngestionRun(sql, definition);
+    try {
+      const result = await source.run({ runId });
+      await completeIngestionRun(sql, runId, {
+        status: outcomeFromResult(result),
+        recordsSeen: recordsSeenFromResult(result),
+      });
+      return result;
+    } catch (error) {
+      await completeIngestionRun(sql, runId, {
+        status: "failed",
+        httpStatus: httpStatusFromError(error),
+        errorMessage: (error instanceof Error ? error.message : String(error)).slice(0, 2_000),
+      });
+      throw error;
+    }
+  } finally {
+    await sql.end();
+  }
+}

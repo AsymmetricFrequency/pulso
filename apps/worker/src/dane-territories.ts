@@ -184,6 +184,8 @@ async function upsertOperationalTerritories(
 export async function runDaneTerritoryIngestion(options: {
   databaseUrl?: string;
   incidentCode?: string;
+  /** Corrida ya abierta por el orquestador; sin ella la fuente abre la suya. */
+  runId?: string;
 }) {
   const [departmentsPayload, municipalitiesPayload] = await Promise.all([
     fetchLayer(DEPARTMENT_LAYER, "DPTO_CCDGO,DPTO_CNMBRE,DPTO_NANO,DPTO_NAREA"),
@@ -204,11 +206,15 @@ export async function runDaneTerritoryIngestion(options: {
       recordType: "territory" as const,
       payload: { ...territory },
     }));
-    const runId = await (sql ? new OfficialSourceStore(sql) : undefined)?.save(DANE_MGN_SOURCE, {
-      observedAt: new Date().toISOString(),
-      contentHash: contentHash(territories),
-      records,
-    });
+    const runId = await (sql ? new OfficialSourceStore(sql) : undefined)?.save(
+      DANE_MGN_SOURCE,
+      {
+        observedAt: new Date().toISOString(),
+        contentHash: contentHash(territories),
+        records,
+      },
+      options.runId ? { runId: options.runId } : {},
+    );
     if (sql && options.incidentCode)
       await upsertOperationalTerritories(sql, options.incidentCode, territories);
     return {

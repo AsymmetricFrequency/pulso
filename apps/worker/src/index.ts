@@ -2,7 +2,9 @@ import path from "node:path";
 import { Queue, Worker } from "bullmq";
 import { config as loadEnv } from "dotenv";
 import { Redis } from "ioredis";
-import { INGESTION_SOURCES } from "./scheduler.js";
+import postgres from "postgres";
+import { closeAbandonedRuns } from "./ingestion-run-log.js";
+import { INGESTION_SOURCES, runIngestionSourceWithLog } from "./scheduler.js";
 
 // `pnpm --filter @pulso/worker dev` runs with this package's directory as cwd, not the repo
 // root, so the shared .env at the repo root has to be loaded explicitly.
@@ -36,7 +38,9 @@ if (!redisUrl) {
         const source = INGESTION_SOURCES.find((item) => item.name === job.name);
         if (!source) throw new Error(`Unknown ingestion source: ${job.name}`);
         console.info("Ingestion job started", { source: source.name });
-        const result = await source.run();
+        // Con registro: la corrida queda anotada en `source_ingestion_runs` pase lo que pase, así
+        // que una fuente caída se puede ver consultando la base y no solo leyendo este log.
+        const result = await runIngestionSourceWithLog(source);
         console.info("Ingestion job finished", { source: source.name, result });
         return result;
       },
@@ -54,6 +58,23 @@ if (!redisUrl) {
         { name: source.name },
       );
     }
+    // Un despliegue o un reinicio deja corridas a medias marcadas como 'running'. Cerrarlas al
+    // arrancar evita confundirlas con una ingesta que de verdad se quedó colgada.
+    const databaseUrl = process.env.DATABASE_URL;
+    if (databaseUrl) {
+      const sql = postgres(databaseUrl, { max: 1 });
+      try {
+        const closed = await closeAbandonedRuns(sql);
+        if (closed > 0) console.info("Closed abandoned ingestion runs", { closed });
+      } catch (error) {
+        console.error("Could not close abandoned ingestion runs", {
+          error: error instanceof Error ? error.message : String(error),
+        });
+      } finally {
+        await sql.end();
+      }
+    }
+
     console.info("Automated ingestion scheduling enabled", {
       sources: INGESTION_SOURCES.map((source) => source.name),
     });

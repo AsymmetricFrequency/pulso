@@ -8,6 +8,7 @@ export const CALI_OFFICIAL_SOURCE = {
   url: "https://www.cali.gov.co/gobierno/publicaciones/193607/terremoto-de-cali-repositorio-oficial-de-informacion/",
   authority: "official",
   classification: "public_operational",
+  collectionMode: "html_import",
   crawlDelaySeconds: 5,
 } as const;
 
@@ -177,8 +178,14 @@ export class SourceIngestionRepository {
     return row;
   }
 
-  async save(snapshot: CaliOfficialSnapshot, metadata: { etag?: string; lastModified?: string }) {
-    const runId = randomUUID();
+  /** Ver `OfficialSourceStore.save`: con `runId` completa la corrida abierta en vez de crear otra. */
+  async save(
+    snapshot: CaliOfficialSnapshot,
+    metadata: { etag?: string; lastModified?: string },
+    options: { runId?: string } = {},
+  ) {
+    const runId = options.runId ?? randomUUID();
+    const reusesOpenRun = Boolean(options.runId);
     await this.sql.begin(async (transaction) => {
       await transaction`
         INSERT INTO external_sources (
@@ -187,23 +194,34 @@ export class SourceIngestionRepository {
         ) VALUES (
           ${CALI_OFFICIAL_SOURCE.id}, ${CALI_OFFICIAL_SOURCE.name}, ${CALI_OFFICIAL_SOURCE.url},
           ${CALI_OFFICIAL_SOURCE.authority}, ${CALI_OFFICIAL_SOURCE.classification},
-          'html_import', ${CALI_OFFICIAL_SOURCE.crawlDelaySeconds}
+          ${CALI_OFFICIAL_SOURCE.collectionMode}, ${CALI_OFFICIAL_SOURCE.crawlDelaySeconds}
         )
         ON CONFLICT (id) DO UPDATE SET
           display_name = EXCLUDED.display_name,
           source_url = EXCLUDED.source_url,
           updated_at = now()
       `;
-      await transaction`
-        INSERT INTO source_ingestion_runs (
-          id, source_id, status, started_at, finished_at, http_status,
-          etag, last_modified, content_hash, records_seen
-        ) VALUES (
-          ${runId}, ${snapshot.sourceId}, 'succeeded', ${snapshot.fetchedAt}, now(), 200,
-          ${metadata.etag ?? null}, ${metadata.lastModified ?? null},
-          ${snapshot.contentHash}, ${snapshot.metrics.length + snapshot.servicePoints.length}
-        )
-      `;
+      const recordsSeen = snapshot.metrics.length + snapshot.servicePoints.length;
+      if (reusesOpenRun) {
+        await transaction`
+          UPDATE source_ingestion_runs SET
+            status = 'succeeded', finished_at = now(), http_status = 200,
+            etag = ${metadata.etag ?? null}, last_modified = ${metadata.lastModified ?? null},
+            content_hash = ${snapshot.contentHash}, records_seen = ${recordsSeen}
+          WHERE id = ${runId}
+        `;
+      } else {
+        await transaction`
+          INSERT INTO source_ingestion_runs (
+            id, source_id, status, started_at, finished_at, http_status,
+            etag, last_modified, content_hash, records_seen
+          ) VALUES (
+            ${runId}, ${snapshot.sourceId}, 'succeeded', ${snapshot.fetchedAt}, now(), 200,
+            ${metadata.etag ?? null}, ${metadata.lastModified ?? null},
+            ${snapshot.contentHash}, ${recordsSeen}
+          )
+        `;
+      }
 
       const records = [
         ...snapshot.metrics.map((metric) => ({
@@ -260,7 +278,20 @@ export class SourceIngestionRepository {
     return runId;
   }
 
-  async saveUnchanged(metadata: { etag?: string; lastModified?: string }) {
+  async saveUnchanged(
+    metadata: { etag?: string; lastModified?: string },
+    options: { runId?: string } = {},
+  ) {
+    if (options.runId) {
+      await this.sql`
+        UPDATE source_ingestion_runs SET
+          status = 'unchanged', finished_at = now(), http_status = 304,
+          etag = ${metadata.etag ?? null}, last_modified = ${metadata.lastModified ?? null},
+          records_seen = 0
+        WHERE id = ${options.runId}
+      `;
+      return;
+    }
     await this.sql`
       INSERT INTO source_ingestion_runs (
         id, source_id, status, started_at, finished_at, http_status, etag, last_modified, records_seen
@@ -272,7 +303,11 @@ export class SourceIngestionRepository {
   }
 }
 
-export async function runCaliOfficialIngestion(databaseUrl?: string) {
+export async function runCaliOfficialIngestion(
+  databaseUrl?: string,
+  /** Corrida ya abierta por el orquestador; sin ella la fuente abre la suya. */
+  options: { runId?: string } = {},
+) {
   const sql = databaseUrl ? postgres(databaseUrl, { max: 1 }) : undefined;
   try {
     const repository = sql ? new SourceIngestionRepository(sql) : undefined;
@@ -282,17 +317,24 @@ export async function runCaliOfficialIngestion(databaseUrl?: string) {
       ...(previous?.last_modified ? { lastModified: previous.last_modified } : {}),
     });
     if (response.status === 304) {
-      await repository?.saveUnchanged({
-        ...(response.etag ? { etag: response.etag } : {}),
-        ...(response.lastModified ? { lastModified: response.lastModified } : {}),
-      });
+      await repository?.saveUnchanged(
+        {
+          ...(response.etag ? { etag: response.etag } : {}),
+          ...(response.lastModified ? { lastModified: response.lastModified } : {}),
+        },
+        options.runId ? { runId: options.runId } : {},
+      );
       return { status: "unchanged" as const };
     }
     const snapshot = parseCaliOfficialPage(response.html);
-    const runId = await repository?.save(snapshot, {
-      ...(response.etag ? { etag: response.etag } : {}),
-      ...(response.lastModified ? { lastModified: response.lastModified } : {}),
-    });
+    const runId = await repository?.save(
+      snapshot,
+      {
+        ...(response.etag ? { etag: response.etag } : {}),
+        ...(response.lastModified ? { lastModified: response.lastModified } : {}),
+      },
+      options.runId ? { runId: options.runId } : {},
+    );
     return { status: databaseUrl ? ("stored" as const) : ("preview" as const), runId, snapshot };
   } finally {
     await sql?.end();
