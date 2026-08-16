@@ -4,7 +4,7 @@ import type { Feature, FeatureCollection, Geometry } from "geojson";
 import type { GeoJSONSource, MapMouseEvent } from "maplibre-gl";
 import * as maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { PublicCommunityReport } from "./community-report-form";
 import { buildPulsoMapStyle, MAP_ATTRIBUTION } from "./map-style";
 
@@ -112,6 +112,9 @@ export function PulsoMap({
   const mapRef = useRef<maplibregl.Map | null>(null);
   const readyRef = useRef(false);
   const pendingMarkerRef = useRef<maplibregl.Marker | null>(null);
+  // El error se muestra en pantalla, no solo en consola: un rectángulo blanco sin explicación es
+  // lo peor que puede hacer un mapa, y quien lo ve no siempre tiene la consola abierta.
+  const [mapError, setMapError] = useState<string | null>(null);
   // Los datos llegan por fetch y el estilo tarda en cargar; cualquiera de los dos puede ganar la
   // carrera. Se guarda lo último recibido y se aplica también al terminar de cargar, para que un
   // dato que llegó antes que el mapa no se pierda en silencio.
@@ -157,7 +160,9 @@ export function PulsoMap({
     // Un mapa que falla en silencio es peor que uno que no carga: deja un rectángulo blanco sin
     // explicación. El error se registra siempre para poder diagnosticarlo desde la consola.
     map.on("error", (event) => {
-      console.error("[PulsoMap]", event.error?.message ?? event);
+      const message = event.error?.message ?? String(event);
+      console.error("[PulsoMap]", message);
+      setMapError(message);
     });
 
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-left");
@@ -412,7 +417,16 @@ export function PulsoMap({
       .addTo(map);
   }, [pendingPoint]);
 
-  return <div className="pulsoMapCanvas" ref={containerRef} />;
+  return (
+    <div className="pulsoMapShell">
+      <div className="pulsoMapCanvas" ref={containerRef} />
+      {mapError ? (
+        <p className="pulsoMapError" role="alert">
+          El mapa no pudo cargarse: {mapError}
+        </p>
+      ) : null}
+    </div>
+  );
 }
 
 const emptyCollection = (): FeatureCollection => ({ type: "FeatureCollection", features: [] });
