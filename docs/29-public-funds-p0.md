@@ -98,6 +98,8 @@ exista evidencia de lo contrario. Descartar también es una afirmación.
 | --- | --- | --- |
 | `GET` | `/v1/public/incidents/:code/funds` | Totales por etapa, conteo de revisión, territorios y fuentes |
 | `GET` | `/v1/public/incidents/:code/contracts` | Contratos con procedencia; filtros `relevance`, `territoryCode`, `limit` |
+| `GET` | `/v1/operations/incidents/:id/contracts` | Cola de revisión (sesión de Operaciones) |
+| `POST` | `/v1/operations/incidents/:id/contracts/:contractId/review` | Decisión humana (rol `coordinator` o `incident_admin`) |
 
 **El resumen solo suma lo confirmado por una persona.** La lista, en cambio, no filtra por defecto:
 esconder los contratos sin revisar los volvería invisibles y nadie podría revisarlos. Cada contrato
@@ -108,11 +110,28 @@ Estado real hoy en producción: 357 contratos ingeridos, 0 confirmados, 1 candid
 revisar, y por lo tanto **cero pesos publicados como gasto de emergencia**. Es el estado honesto: el
 ciclo de revisión humana todavía no existe.
 
+## Revisión humana (migración `021_contract_review.sql`)
+
+Es la pieza que convierte la ingesta en cifra publicable. El centro operacional muestra una cola
+ordenada por lo pendiente y, dentro de eso, por monto descendente, con los candidatos del
+clasificador primero: nadie revisa 357 contratos de una sentada, y revisar el de siete mil millones
+rinde más que el de cinco.
+
+Cada tarjeta muestra **el objeto contractual completo y sin truncar** —es el único dato que
+distingue un albergue de damnificados de uno de animales—, las señales que levantó el clasificador,
+el proveedor, la modalidad y el enlace directo a SECOP.
+
+Hay **tres** decisiones, no dos: *es de la emergencia*, *no está relacionado* y *no me alcanza para
+decidir*, que devuelve el contrato a la cola. Forzar un sí o un no produciría confirmaciones sin
+fundamento, que es justo lo que este flujo existe para evitar. La nota de la decisión queda
+guardada junto con quién revisó y cuándo.
+
+La revisión humana **sobrevive a la reingesta**: el upsert de SECOP preserva `confirmed` y
+`unrelated` frente a lo que proponga el clasificador en la siguiente corrida.
+
 ## Qué falta para que esto muestre dinero
 
-1. **Flujo de revisión en Operaciones**: alguien tiene que poder marcar un contrato como
-   `confirmed` o `unrelated`. Sin eso el resumen se queda en ceros para siempre.
-2. **Presupuesto, no solo contratación**: SECOP empieza en `contracted`. Las etapas `announced`,
+1. **Presupuesto, no solo contratación**: SECOP empieza en `contracted`. Las etapas `announced`,
    `appropriated` y `available` requieren actos administrativos y ejecución presupuestal, que hoy
    no son legibles por máquina — es el caso de uso de `information-requests` (Ley 1712).
 3. **`delivery_links` poblado**: conectar un contrato con una entrega, una necesidad cerrada o un
