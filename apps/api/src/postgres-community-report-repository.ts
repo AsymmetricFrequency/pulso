@@ -15,6 +15,7 @@ import type {
 } from "@pulso/schemas";
 import type postgres from "postgres";
 import { v7 as uuidv7 } from "uuid";
+import { decryptField, encryptField } from "./field-encryption.js";
 
 type DbRow = Record<string, unknown>;
 
@@ -30,7 +31,7 @@ const reportFromRow = (row: DbRow): CommunityReportDto => ({
   description: row.description ? String(row.description) : null,
   location: typeof row.location === "string" ? JSON.parse(row.location) : (row.location as never),
   status: row.status as CommunityReportDto["status"],
-  contact: row.contact_encrypted ? "•••" : null,
+  contact: null, // lo rellena `listByIncident`, que es la única vista autenticada
   metadata: (row.metadata as CommunityReportDto["metadata"]) ?? null,
   externalSourceId: row.external_source_id ? String(row.external_source_id) : null,
   externalKey: row.external_key ? String(row.external_key) : null,
@@ -61,7 +62,32 @@ const toPublic = (report: CommunityReportDto): PublicCommunityReportDto => ({
 });
 
 export class PostgresCommunityReportRepository implements CommunityReportRepository {
-  constructor(private readonly sql: postgres.Sql) {}
+  /**
+   * `contactSecret` es opcional: sin él la ruta pública sigue aceptando reportes y el contacto
+   * simplemente no se guarda. En una emergencia, un fallo de configuración no puede hacer que un
+   * reporte de personas atrapadas sea rechazado.
+   */
+  constructor(
+    private readonly sql: postgres.Sql,
+    private readonly contactSecret?: string,
+  ) {}
+
+  /**
+   * Descifra el contacto para Operaciones, o devuelve la marca si no se puede.
+   *
+   * Un dato que no se puede descifrar —secreto rotado, columna corrupta— se muestra como presente
+   * pero ilegible en vez de romper la lista entera: quien coordina necesita ver los otros treinta
+   * reportes aunque uno tenga el contacto ilegible.
+   */
+  #readContact(payload: unknown): string | null {
+    if (!payload) return null;
+    if (!this.contactSecret) return "•••";
+    try {
+      return decryptField(this.contactSecret, payload as Buffer);
+    } catch {
+      return "(no se pudo descifrar)";
+    }
+  }
 
   async create(
     incidentId: string,
@@ -70,19 +96,27 @@ export class PostgresCommunityReportRepository implements CommunityReportReposit
   ): Promise<PublicCommunityReportDto> {
     if (context.sourceIpHash) await this.#consumeRateLimit(context.sourceIpHash);
 
-    // contact_encrypted is intentionally left NULL here: there is no shared encryption
-    // helper yet for bytea contact columns (see affected_people.contact_encrypted).
-    // Wire this once that mechanism exists instead of hand-rolling a second one.
+    // El contacto se guarda cifrado y solo lo lee Operaciones.
+    //
+    // La persona lo escribió en un campo que dice «solo para seguimiento, no se publica». Pedirlo
+    // bajo esa promesa y después tirarlo era lo peor de las dos opciones: la molestia de darlo sin
+    // la posibilidad de que sirviera. Es dato de primera mano y consentido — distinto de un
+    // teléfono copiado de otra plataforma, que sigue sin entrar.
     const [row] = await this.sql<DbRow[]>`
       INSERT INTO community_reports (
         id, incident_id, report_type, category, title, description, location,
         people_reported, signs_of_life, responders_on_site,
-        source_ip_hash, client_mutation_id
+        contact_encrypted, source_ip_hash, client_mutation_id
       ) VALUES (
         ${uuidv7()}, ${incidentId}, ${input.reportType}, ${input.category}, ${input.title},
         ${input.description},
         ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(input.location)}), 4326),
         ${input.peopleReported}, ${input.signsOfLife}, ${input.respondersOnSite},
+        ${
+          input.contact && this.contactSecret
+            ? encryptField(this.contactSecret, input.contact)
+            : null
+        },
         ${context.sourceIpHash}, ${input.clientMutationId}
       )
       ON CONFLICT (incident_id, client_mutation_id) DO UPDATE SET incident_id = EXCLUDED.incident_id
@@ -181,7 +215,12 @@ export class PostgresCommunityReportRepository implements CommunityReportReposit
       WHERE incident_id = ${incidentId}
       ORDER BY created_at DESC
     `;
-    return rows.map(reportFromRow);
+    // El único sitio donde el contacto se descifra. La ruta que llega aquí exige sesión de
+    // Operaciones; la pública usa `toPublic`, que ni siquiera incluye el campo.
+    return rows.map((row) => ({
+      ...reportFromRow(row),
+      contact: this.#readContact(row.contact_encrypted),
+    }));
   }
 
   async review(
