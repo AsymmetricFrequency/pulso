@@ -284,3 +284,25 @@ export const IconStore = (props: IconProps) => (
     <path d="M9 20v-6h6v6" />
   </Icon>
 );
+
+/* -------------------------------------------------------------------------
+   Marcadores del mapa
+   -------------------------------------------------------------------------
+   Se exportan como trazo y no como componente porque tienen que dibujarse en
+   dos contextos distintos: dentro del SVG del mapa de país (donde son nodos de
+   React) y dentro del `divIcon` de Leaflet (donde son una cadena de HTML). Un
+   componente no sirve para lo segundo. */
+
+export const REPORT_MARKER_PATH: Record<"pmu" | "necesidad", string> = {
+  // Bandera: puesto de mando.
+  pmu: "M6 21V3M6 3h11l-2 3.5L17 10H6",
+  // Triángulo de alerta: necesidad.
+  necesidad:
+    "M10.3 3.9 1.9 18a2 2 0 0 0 1.7 3h16.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0ZM12 9v4M12 17h.01",
+};
+
+/** Marcador listo para incrustar como HTML, para el `divIcon` de Leaflet. */
+export const reportMarkerSvg = (type: "pmu" | "necesidad", size = 14) =>
+  `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" ` +
+  `stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">` +
+  `<path d="${REPORT_MARKER_PATH[type]}"/></svg>`;

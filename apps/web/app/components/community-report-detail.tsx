@@ -2,19 +2,16 @@
 
 import { externalSourceLabels, type PublicCommunityReport } from "./community-report-form";
 import {
+  IconAlert,
   IconBox,
   IconBuilding,
   IconCalendar,
   IconCheck,
   IconClock,
+  IconFlag,
   IconLocation,
   IconUsers,
 } from "./icons";
-
-export const REPORT_TYPE_ICON: Record<PublicCommunityReport["reportType"], string> = {
-  pmu: "🏳️",
-  necesidad: "🆘",
-};
 
 export const REPORT_TYPE_LABEL: Record<PublicCommunityReport["reportType"], string> = {
   pmu: "Puesto de mando",
@@ -102,8 +99,9 @@ export function CommunityReportDetailCard({ report, onClose }: CommunityReportDe
         ← Volver al resumen
       </button>
 
-      <p className="eyebrow">
-        {REPORT_TYPE_ICON[report.reportType]} {REPORT_TYPE_LABEL[report.reportType]}
+      <p className="eyebrow reportDetailKind">
+        {report.reportType === "pmu" ? <IconFlag /> : <IconAlert />}
+        {REPORT_TYPE_LABEL[report.reportType]}
       </p>
       <h3>{report.title}</h3>
 

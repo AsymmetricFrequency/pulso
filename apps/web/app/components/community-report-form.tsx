@@ -1,6 +1,24 @@
 "use client";
 
 import { useState } from "react";
+import {
+  IconDot,
+  IconFlag,
+  IconFood,
+  IconHealth,
+  IconHygiene,
+  IconPaw,
+  IconRubble,
+  IconShelter,
+  IconSos,
+  IconTools,
+  IconTruck,
+  IconVolunteer,
+  IconWater,
+} from "./icons";
+
+/** Cualquiera del set de `icons.tsx`: comparten firma, así que se pasan como dato. */
+type IconComponent = typeof IconDot;
 
 export type CommunityReportType = "pmu" | "necesidad";
 export type CommunityReportCategory =
@@ -64,20 +82,23 @@ export const externalSourceLabels: Record<string, { name: string; url: string }>
   },
 };
 
-export const categoryOptions: Array<{ id: CommunityReportCategory; label: string; icon: string }> =
-  [
-    { id: "agua", label: "Agua", icon: "💧" },
-    { id: "alimentos", label: "Alimentos", icon: "🍞" },
-    { id: "salud", label: "Salud", icon: "🩺" },
-    { id: "refugio", label: "Refugio", icon: "⛺" },
-    { id: "higiene", label: "Higiene", icon: "🧴" },
-    { id: "herramienta", label: "Herramientas", icon: "🛠️" },
-    { id: "escombros", label: "Escombros", icon: "⛏️" },
-    { id: "voluntariado", label: "Voluntariado", icon: "🤝" },
-    { id: "animales", label: "Animales", icon: "🐾" },
-    { id: "logistica", label: "Logística", icon: "🚚" },
-    { id: "otro", label: "Otro", icon: "🔹" },
-  ];
+export const categoryOptions: Array<{
+  id: CommunityReportCategory;
+  label: string;
+  Icon: IconComponent;
+}> = [
+  { id: "agua", label: "Agua", Icon: IconWater },
+  { id: "alimentos", label: "Alimentos", Icon: IconFood },
+  { id: "salud", label: "Salud", Icon: IconHealth },
+  { id: "refugio", label: "Refugio", Icon: IconShelter },
+  { id: "higiene", label: "Higiene", Icon: IconHygiene },
+  { id: "herramienta", label: "Herramientas", Icon: IconTools },
+  { id: "escombros", label: "Escombros", Icon: IconRubble },
+  { id: "voluntariado", label: "Voluntariado", Icon: IconVolunteer },
+  { id: "animales", label: "Animales", Icon: IconPaw },
+  { id: "logistica", label: "Logística", Icon: IconTruck },
+  { id: "otro", label: "Otro", Icon: IconDot },
+];
 
 type CommunityReportFormProps = {
   point: [number, number];
@@ -158,14 +179,16 @@ export function CommunityReportForm({
           className={reportType === "pmu" ? "active" : ""}
           onClick={() => setReportType("pmu")}
         >
-          🏳️ Puesto de mando (PMU)
+          <IconFlag />
+          Puesto de mando (PMU)
         </button>
         <button
           type="button"
           className={reportType === "necesidad" ? "active" : ""}
           onClick={() => setReportType("necesidad")}
         >
-          🆘 Necesidad
+          <IconSos />
+          Necesidad
         </button>
       </div>
 
@@ -178,7 +201,8 @@ export function CommunityReportForm({
               className={category === option.id ? "active" : ""}
               onClick={() => setCategory(option.id)}
             >
-              <span aria-hidden="true">{option.icon}</span> {option.label}
+              <option.Icon />
+              {option.label}
             </button>
           ))}
         </div>

@@ -2,6 +2,21 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
+import {
+  IconBrick,
+  IconCompass,
+  IconCrane,
+  IconDot,
+  IconPlug,
+  IconSaw,
+  IconStore,
+  IconTools,
+  IconWorker,
+  IconWrench,
+} from "./icons";
+
+/** Cualquiera del set de `icons.tsx`: comparten firma, así que se pasan como dato. */
+type IconComponent = typeof IconDot;
 
 const LocationPicker = dynamic(
   () => import("./location-picker").then((mod) => mod.LocationPicker),
@@ -84,15 +99,15 @@ const CATALOG_OPTIONS = [
   { code: "cable-electrico", name: "Cable eléctrico", unit: "m" },
 ];
 
-const ROLE_OPTIONS: Array<{ id: WorkforceProfile["role"]; label: string; icon: string }> = [
-  { id: "site_lead", label: "Líder de obra", icon: "🧭" },
-  { id: "construction_master", label: "Maestro de construcción", icon: "🏗️" },
-  { id: "mason", label: "Albañil", icon: "🧱" },
-  { id: "electrician", label: "Electricista", icon: "🔌" },
-  { id: "plumber", label: "Plomero", icon: "🔧" },
-  { id: "carpenter", label: "Carpintero", icon: "🪚" },
-  { id: "general_labor", label: "Obrero general", icon: "🛠️" },
-  { id: "other", label: "Otro oficio", icon: "🔹" },
+const ROLE_OPTIONS: Array<{ id: WorkforceProfile["role"]; label: string; Icon: IconComponent }> = [
+  { id: "site_lead", label: "Líder de obra", Icon: IconCompass },
+  { id: "construction_master", label: "Maestro de construcción", Icon: IconCrane },
+  { id: "mason", label: "Albañil", Icon: IconBrick },
+  { id: "electrician", label: "Electricista", Icon: IconPlug },
+  { id: "plumber", label: "Plomero", Icon: IconWrench },
+  { id: "carpenter", label: "Carpintero", Icon: IconSaw },
+  { id: "general_labor", label: "Obrero general", Icon: IconTools },
+  { id: "other", label: "Otro oficio", Icon: IconDot },
 ];
 
 function SupplierRegistrationForm({
@@ -371,7 +386,8 @@ function WorkforceRegistrationForm({
             className={role === option.id ? "active" : ""}
             onClick={() => setRole(option.id)}
           >
-            <span aria-hidden="true">{option.icon}</span> {option.label}
+            <option.Icon />
+            {option.label}
           </button>
         ))}
       </div>
@@ -634,7 +650,10 @@ export function ReconstructionPage() {
             className={joinTab === "suppliers" ? "active" : ""}
             onClick={() => setJoinTab("suppliers")}
           >
-            <strong>🏬 Proveedores de materiales</strong>
+            <strong>
+              <IconStore />
+              Proveedores de materiales
+            </strong>
             <span>{suppliers.length} registrados</span>
           </button>
           <button
@@ -644,7 +663,10 @@ export function ReconstructionPage() {
             className={joinTab === "workforce" ? "active" : ""}
             onClick={() => setJoinTab("workforce")}
           >
-            <strong>👷 Mano de obra y voluntarios</strong>
+            <strong>
+              <IconWorker />
+              Mano de obra y voluntarios
+            </strong>
             <span>{totals?.workforceHeadcount ?? 0} personas</span>
           </button>
         </div>
@@ -774,7 +796,8 @@ export function ReconstructionPage() {
                     className={workforceRoleFilter === role.id ? "active" : ""}
                     onClick={() => setWorkforceRoleFilter(role.id)}
                   >
-                    <span aria-hidden="true">{role.icon}</span> {role.label}
+                    <role.Icon />
+                    {role.label}
                   </button>
                 ))}
               </div>
@@ -807,8 +830,8 @@ export function ReconstructionPage() {
                 {filteredWorkforceByRole.map((role) => (
                   <div className="workforceRoleGroup" key={role.id}>
                     <p>
-                      <span aria-hidden="true">{role.icon}</span> {role.label}:{" "}
-                      <strong>{role.headcount}</strong>
+                      <role.Icon />
+                      {role.label}: <strong>{role.headcount}</strong>
                     </p>
                     <ul className="workforceProfileList">
                       {role.profiles.map((profile) => (

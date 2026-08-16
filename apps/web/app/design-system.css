@@ -641,3 +641,39 @@
   flex: 0 0 auto;
   opacity: 0.75;
 }
+
+/* El marcador del mapa hereda el color del texto, así que el glifo se pinta con
+   `color` sobre el fondo de estado en vez de con un segundo `fill`. */
+.pulsoMarkerDot {
+  color: var(--white);
+}
+
+.reportDetailKind {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Iconos dentro de opciones seleccionables: mismo tratamiento que en las
+   etiquetas, alineados a la línea del texto y sin robarle peso. */
+.communityReportCategoryGrid button,
+.communityReportTypeToggle button,
+.reconstructionRoleGrid button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.communityReportCategoryGrid button svg,
+.communityReportTypeToggle button svg,
+.reconstructionRoleGrid button svg,
+.reconstructionTabs strong svg {
+  flex: 0 0 auto;
+  opacity: 0.8;
+}
+
+.reconstructionTabs strong {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}

@@ -4,9 +4,9 @@ import { geoBounds, geoIdentity, geoPath } from "d3-geo";
 import type { Feature, FeatureCollection, Geometry } from "geojson";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { REPORT_TYPE_ICON, reportStatusToken } from "./community-report-detail";
+import { reportStatusToken } from "./community-report-detail";
 import { CommunityReportForm, type PublicCommunityReport } from "./community-report-form";
-import { IconCrosshair, IconLocation } from "./icons";
+import { IconCrosshair, IconLocation, REPORT_MARKER_PATH } from "./icons";
 
 // Leaflet touches `window` at module scope, which breaks Next.js's server render pass
 // even inside a "use client" component — it must only ever be loaded in the browser.
@@ -916,9 +916,17 @@ export function AtlasMap({
                   tabIndex={0}
                 >
                   <circle r={9} />
-                  <text textAnchor="middle" dominantBaseline="central">
-                    {REPORT_TYPE_ICON[report.reportType]}
-                  </text>
+                  {/* El glifo se dibuja a escala 0.55 y centrado: el trazo del set está pensado
+                      para 24 y aquí el marcador mide 18 de diámetro. */}
+                  <path
+                    d={REPORT_MARKER_PATH[report.reportType]}
+                    transform="scale(0.55) translate(-12, -12)"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2.4}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                   <title>{report.title}</title>
                 </g>
               );

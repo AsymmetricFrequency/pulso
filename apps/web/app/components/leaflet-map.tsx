@@ -8,6 +8,7 @@ import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import { useEffect, useRef } from "react";
 import type { PublicCommunityReport } from "./community-report-form";
+import { reportMarkerSvg } from "./icons";
 
 type DepartmentProperties = { dpto_ccdgo: string; dpto_cnmbre: string };
 type MunicipalityProperties = {
@@ -28,11 +29,6 @@ type SgcEvent = {
   status: "manual" | "automatic" | "unknown";
 };
 
-const REPORT_ICON: Record<PublicCommunityReport["reportType"], string> = {
-  pmu: "🏳️",
-  necesidad: "🆘",
-};
-
 const statusColor = (status: PublicCommunityReport["status"]) => {
   if (status === "corroborated" || status === "validated") return "#2a7d57";
   if (status === "reported") return "#d08b25";
@@ -44,7 +40,7 @@ function reportDivIcon(report: PublicCommunityReport) {
   const dashed = report.status === "reported" ? "border-style:dashed;" : "";
   return L.divIcon({
     className: "pulsoMarker",
-    html: `<span style="background:${color};${dashed}" class="pulsoMarkerDot">${REPORT_ICON[report.reportType]}</span>`,
+    html: `<span style="background:${color};${dashed}" class="pulsoMarkerDot">${reportMarkerSvg(report.reportType)}</span>`,
     iconSize: [26, 26],
     iconAnchor: [13, 13],
   });
