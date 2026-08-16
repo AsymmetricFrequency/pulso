@@ -510,3 +510,57 @@
     white-space: nowrap;
   }
 }
+
+/* =============================================================================
+   Cifras del encabezado
+   ===========================================================================
+   Se dejan de dibujar como una sola caja dividida por líneas y pasan a ser
+   tarjetas propias. La diferencia no es adorno: cada cifra viene de una fuente
+   distinta y con una confianza distinta, así que separarlas visualmente dice la
+   verdad sobre el dato, mientras que una tabla continua sugiere un bloque
+   homogéneo que no existe. */
+
+.headlineGrid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--space-3);
+  border: 0;
+  border-radius: 0;
+  overflow: visible;
+  background: none;
+  box-shadow: none;
+}
+
+.headlineMetric {
+  border: 1px solid var(--border-subtle);
+  border-right: 1px solid var(--border-subtle);
+  border-radius: var(--r-md);
+  background: linear-gradient(180deg, #fff 0%, var(--surface-raised) 100%);
+  padding: var(--space-4);
+  box-shadow: var(--elev-1);
+}
+
+.headlineMetric:last-child {
+  border-right: 1px solid var(--border-subtle);
+}
+
+.headlineMetric strong {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Una cifra en cero no es un logro ni un fracaso: es ausencia de dato. Se
+   atenúa para que no compita visualmente con las cifras que sí existen. */
+.headlineMetric[data-empty="true"] strong {
+  color: var(--text-tertiary);
+}
+
+@media (max-width: 1080px) {
+  .headlineGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .headlineGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

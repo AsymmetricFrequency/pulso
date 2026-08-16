@@ -339,7 +339,11 @@ export function PublicSituationReport() {
 
         <div className="headlineGrid">
           {visibleMetrics.map((metric) => (
-            <article className="headlineMetric" key={metric.id ?? metric.label}>
+            <article
+              className="headlineMetric"
+              key={metric.id ?? metric.label}
+              data-empty={/^\$?0$/.test(metric.value) ? "true" : undefined}
+            >
               <span>{metric.label}</span>
               <strong>{metric.value}</strong>
               <small>{metric.note}</small>

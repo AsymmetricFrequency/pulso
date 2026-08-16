@@ -16,16 +16,19 @@ type TerritoryShaking = {
 };
 
 /**
- * Color por grado de Mercalli, tomado de los tokens de estado.
+ * Color por grado de Mercalli.
  *
- * La escala es la del USGS: el salto de tono ocurre donde la percepción cambia
- * de nombre, no repartido a ojo.
+ * Los cortes son **exactamente** los mismos que usa `mmiLabel` en el worker para
+ * nombrar la percepción. Cuando no coincidían, dos departamentos con la misma
+ * etiqueta "Fuerte" salían con colores distintos —uno ámbar y otro azul— porque
+ * el color cambiaba en 6.0 y el nombre en 6.5. Un color que contradice a su
+ * propia etiqueta no es un detalle estético: rompe la lectura de la tabla.
  */
 const mmiStatus = (value: number): { token: string; color: string } => {
-  if (value >= 8) return { token: "critical", color: "var(--status-critical)" };
-  if (value >= 7) return { token: "severe", color: "var(--status-severe)" };
-  if (value >= 6) return { token: "strong", color: "var(--status-strong)" };
-  if (value >= 5) return { token: "moderate", color: "var(--status-moderate)" };
+  if (value >= 8.5) return { token: "critical", color: "var(--status-critical)" };
+  if (value >= 7.5) return { token: "severe", color: "var(--status-severe)" };
+  if (value >= 6.5) return { token: "strong", color: "var(--status-strong)" };
+  if (value >= 5.5) return { token: "moderate", color: "var(--status-moderate)" };
   return { token: "light", color: "var(--status-light)" };
 };
 
