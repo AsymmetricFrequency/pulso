@@ -19,10 +19,26 @@ export class DiscordNotConfiguredError extends Error {
   }
 }
 
+/** Quien intenta entrar no pertenece al servidor. Es un rechazo legítimo, no un fallo. */
 export class DiscordAccessDeniedError extends Error {
   constructor(message: string) {
     super(message);
     this.name = "DiscordAccessDeniedError";
+  }
+}
+
+/**
+ * Discord no aceptó nuestras propias credenciales.
+ *
+ * Es una clase aparte de `DiscordAccessDeniedError` porque son problemas de personas distintas: uno
+ * lo arregla quien entra pidiendo que le den acceso al servidor, el otro lo arregla quien administra
+ * el servidor cambiando una variable. Cuando compartían clase, un secreto caducado le decía a la
+ * gente «no perteneces al servidor de Pulso» y todo el mundo buscaba en el sitio equivocado.
+ */
+export class DiscordCredentialsError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "DiscordCredentialsError";
   }
 }
 
@@ -145,14 +161,26 @@ export class DiscordClient {
       }),
     });
     if (!response.ok) {
-      throw new DiscordAccessDeniedError("Discord rechazó el código de autorización");
+      const body = await response.text();
+      // `invalid_client` significa que DISCORD_CLIENT_SECRET no es el vigente: casi siempre porque
+      // alguien pulsó «Reset Secret» en el portal y el servidor se quedó con el anterior.
+      if (body.includes("invalid_client")) {
+        throw new DiscordCredentialsError(
+          "Discord rechazó las credenciales de la aplicación. DISCORD_CLIENT_SECRET no coincide " +
+            "con el actual del Developer Portal.",
+        );
+      }
+      throw new DiscordCredentialsError(`Discord rechazó el canje del código: ${body}`);
     }
     const { access_token } = (await response.json()) as { access_token: string };
 
     const me = await fetch(`${API}/users/@me`, {
-      headers: { Authorization: `Bearer ${access_token}` },
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+        "User-Agent": "DiscordBot (https://pulso.my, 0.1)",
+      },
     });
-    if (!me.ok) throw new DiscordAccessDeniedError("No se pudo leer la identidad de Discord");
+    if (!me.ok) throw new DiscordCredentialsError("No se pudo leer la identidad de Discord");
     return (await me.json()) as { id: string; username: string; avatar: string | null };
   }
 

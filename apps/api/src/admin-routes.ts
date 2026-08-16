@@ -1,7 +1,13 @@
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { canRead, canWrite, DiscordAccessDeniedError, type DiscordClient } from "./discord.js";
+import {
+  canRead,
+  canWrite,
+  DiscordAccessDeniedError,
+  type DiscordClient,
+  DiscordCredentialsError,
+} from "./discord.js";
 import type { PostgresAdminRepository } from "./postgres-admin-repository.js";
 
 /**
@@ -144,6 +150,11 @@ export function registerAdminRoutes(app: FastifyInstance, options: AdminRoutesOp
       request.log.error({ err: error }, "fallo en el callback de Discord");
       if (error instanceof DiscordAccessDeniedError) {
         return reply.redirect(`${panelUrl}/admin?error=no_miembro`);
+      }
+      // Un problema de configuración se nombra como tal. Decirle «no perteneces al servidor» a
+      // quien sí pertenece manda a buscar en Discord un fallo que está en el `.env`.
+      if (error instanceof DiscordCredentialsError) {
+        return reply.redirect(`${panelUrl}/admin?error=credenciales`);
       }
       return reply.redirect(`${panelUrl}/admin?error=discord`);
     }

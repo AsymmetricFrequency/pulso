@@ -2,26 +2,111 @@
    inventara sus colores, un estado "crítico" aquí no querría decir lo mismo que en el informe
    público, y esa es exactamente la confusión que los tokens existen para evitar. */
 
+.app {
+  min-height: 100dvh;
+}
+
 .shell {
   width: min(1240px, calc(100% - 32px));
   margin: 0 auto;
   padding: 24px 0 64px;
 }
 
-.header {
+/* Barra fija con las tres secciones. Se queda arriba porque el contador de rescates abiertos vive
+   ahí: la cifra que justifica el panel no puede desaparecer al bajar por una lista de tickets. */
+.topBar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 16px;
+  align-items: center;
+  gap: 24px;
   border-bottom: 1px solid var(--line);
-  padding-bottom: 16px;
-  margin-bottom: 24px;
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter: blur(10px);
+  padding: 0 max(16px, calc((100% - 1240px) / 2));
+  min-height: 60px;
 }
 
-.header h1 {
-  margin: 0;
-  font-size: 32px;
-  letter-spacing: -0.03em;
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-decoration: none;
+}
+
+.brand em {
+  margin-left: 6px;
+  color: var(--muted);
+  font-style: normal;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+}
+
+.brandMark {
+  width: 22px;
+  height: 22px;
+  background: url("/brand/pulso-mark.png") center / contain no-repeat;
+}
+
+.tabs {
+  display: flex;
+  gap: 2px;
+  margin-right: auto;
+}
+
+.tab,
+.tabOn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  padding: 0 14px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tab:hover {
+  color: var(--ink);
+}
+
+.tabOn {
+  composes: tab;
+  border-bottom-color: var(--primary);
+  color: var(--ink);
+}
+
+/* Dos contadores con significados distintos: uno informa, el otro reclama atención. Si los dos se
+   vieran igual, el que importa dejaría de importar. */
+.badgeQuiet,
+.badgeAlert {
+  min-width: 20px;
+  border-radius: var(--r-full);
+  padding: 1px 6px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  text-align: center;
+}
+
+.badgeQuiet {
+  background: var(--status-none-soft);
+  color: var(--muted);
+}
+
+.badgeAlert {
+  background: var(--status-critical);
+  color: white;
 }
 
 .eyebrow {
@@ -161,6 +246,68 @@
 .empty {
   color: var(--muted);
   font-size: 13px;
+}
+
+/* Un área sin nadie detrás. Ámbar y no rojo: no está roto, falta gente. */
+.gap {
+  margin: 0 0 16px;
+  border-left: 3px solid var(--status-strong);
+  background: var(--status-strong-soft);
+  padding: 10px 12px;
+  color: var(--status-strong-ink);
+  font-size: 13px;
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.filterGroup {
+  display: flex;
+  gap: 2px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 2px;
+  background: var(--surface);
+}
+
+.chip,
+.chipOn {
+  min-height: 32px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  padding: 0 12px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.chipOn {
+  composes: chip;
+  background: var(--primary);
+  color: white;
+}
+
+.filterSelect select {
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  padding: 0 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.filterCount {
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
 }
 
 /* --- Rescate -------------------------------------------------------------- */
