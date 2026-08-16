@@ -206,7 +206,10 @@ const formatMoney = (value: number) => `$${Math.round(value / 1_000_000)} M`;
 
 export function PublicSituationReport() {
   const [report, setReport] = useState<PublicReportPayload | null>(null);
-  const [reportSource, setReportSource] = useState<"fallback" | "api">("fallback");
+  // Tres estados, no dos: mientras el fetch está en vuelo el sitio no puede afirmar ni que los
+  // datos son reales ni que son de respaldo. Antes arrancaba en "fallback" y el primer render
+  // anunciaba "datos sintéticos" aunque un instante después llegara el informe real.
+  const [reportSource, setReportSource] = useState<"loading" | "fallback" | "api">("loading");
   const [layer, setLayer] = useState<PublicMapLayer>("coverage");
   const [departmentCode, setDepartmentCode] = useState("27");
   const [departmentName, setDepartmentName] = useState("Chocó");
@@ -306,13 +309,20 @@ export function PublicSituationReport() {
             <span className="liveDot" aria-hidden="true" />
             <div>
               <strong>
-                {report?.incident.dataMode === "live"
+                {reportSource === "loading"
                   ? "Informe público"
-                  : "Demostración · datos sintéticos"}
+                  : reportSource === "fallback"
+                    ? "Sin conexión con la API pública"
+                    : report?.incident.dataMode === "live"
+                      ? "Informe público"
+                      : "Demostración · datos sintéticos"}
               </strong>
               <span>
-                {reportSource === "api" ? "API pública conectada" : "Respaldo local"} · Último
-                corte: {cutoffLabel} COT
+                {reportSource === "loading"
+                  ? "Conectando con la API pública…"
+                  : reportSource === "api"
+                    ? `API pública conectada · Último corte: ${cutoffLabel} COT`
+                    : "Cifras de referencia, no el estado actual del incidente"}
               </span>
             </div>
           </div>
