@@ -156,7 +156,7 @@ export function PulsoMap({
 
     // Un mapa que falla en silencio es peor que uno que no carga: deja un rectángulo blanco sin
     // explicación. El error se registra siempre para poder diagnosticarlo desde la consola.
-    map.on("error", (event: { error?: Error }) => {
+    map.on("error", (event) => {
       console.error("[PulsoMap]", event.error?.message ?? event);
     });
 
