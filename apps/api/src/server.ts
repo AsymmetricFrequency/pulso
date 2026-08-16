@@ -51,6 +51,7 @@ const app = await buildApp({
         operationsAccessRepository: postgresRepositories.operationsAccess,
         operationsRepository: postgresRepositories.operations,
         publicFundsRepository: postgresRepositories.publicFunds,
+        seismicShakingRepository: postgresRepositories.seismicShaking,
         publicReportRepository: postgresRepositories.publicReports,
         caliPublicSourceRepository: postgresRepositories.caliPublicSource,
         reconstructionProgressRepository: postgresRepositories.reconstructionProgress,

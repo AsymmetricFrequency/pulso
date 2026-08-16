@@ -4,6 +4,7 @@ import type {
   PublicContractDto,
   PublicFundsSummaryDto,
   ReviewContractInput,
+  TerritoryShakingDto,
 } from "@pulso/schemas";
 
 export type PublicContractQuery = {
@@ -45,4 +46,10 @@ export class ContractNotFoundError extends Error {
     super(`Contract not found: ${id}`);
     this.name = "ContractNotFoundError";
   }
+}
+
+export type TerritoryShakingQuery = { level?: "department" | "municipality"; limit?: number };
+
+export interface SeismicShakingRepository {
+  listByIncident(incidentId: string, query?: TerritoryShakingQuery): Promise<TerritoryShakingDto[]>;
 }

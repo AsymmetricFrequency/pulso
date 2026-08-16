@@ -33,6 +33,7 @@ import {
   type PublicFundsRepository,
   type PublicReportRepository,
   type ReconstructionProgressRepository,
+  type SeismicShakingRepository,
   type TerritoryRepository,
   WorkforceProfileRateLimitError,
   type WorkforceProfileRepository,
@@ -102,6 +103,7 @@ import {
   territoryImportResultSchema,
   territoryImportSchema,
   territorySchema,
+  territoryShakingSchema,
   verifyIdentityClaimSchema,
   verifyPasskeyAuthenticationSchema,
 } from "@pulso/schemas";
@@ -133,6 +135,7 @@ import { MemoryTerritoryRepository } from "./memory-territory-repository.js";
 import { MemoryWorkforceProfileRepository } from "./memory-workforce-profile-repository.js";
 import { MemoryMissionAccessRepository } from "./mission-access-repositories.js";
 import { MemoryOperationsAccessRepository } from "./operations-access-repositories.js";
+import { EmptySeismicShakingRepository } from "./postgres-seismic-shaking-repository.js";
 import {
   EmptySgcPublicSourceRepository,
   type SgcPublicSourceRepository,
@@ -164,6 +167,7 @@ export type BuildAppOptions = {
   evidenceRepository?: EvidenceRepository;
   communityReportRepository?: CommunityReportRepository;
   publicFundsRepository?: PublicFundsRepository;
+  seismicShakingRepository?: SeismicShakingRepository;
   publicReportRepository?: PublicReportRepository;
   caliPublicSourceRepository?: CaliPublicSourceRepository;
   sgcPublicSourceRepository?: SgcPublicSourceRepository;
@@ -223,6 +227,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
     options.reconstructionProgressRepository ??
     new MemoryReconstructionProgressRepository(incidents, materialSuppliers, workforceProfiles);
   const publicFunds = options.publicFundsRepository ?? new EmptyPublicFundsRepository();
+  const seismicShaking = options.seismicShakingRepository ?? new EmptySeismicShakingRepository();
   const publicReports = options.publicReportRepository ?? new MemoryPublicReportRepository();
   const caliPublicSource =
     options.caliPublicSourceRepository ?? new EmptyCaliPublicSourceRepository();
@@ -714,6 +719,29 @@ export async function buildApp(options: BuildAppOptions = {}) {
         ),
       );
   });
+
+  // Intensidad sísmica por territorio. Va en su propia ruta y no dentro de la capa de daños a
+  // propósito: la sacudida modelada no es afectación observada, y mezclarlas haría que un
+  // municipio apareciera "con daño severo" sin que nadie haya ido a mirar.
+  app.get<{ Params: { incidentCode: string }; Querystring: { level?: string } }>(
+    "/v1/public/incidents/:incidentCode/shaking",
+    async (request, reply) => {
+      const incident = await incidents.findByCode(request.params.incidentCode);
+      if (!incident) {
+        return reply
+          .status(404)
+          .send({ error: "incident_not_found", message: "La emergencia no existe." });
+      }
+      const level = request.query.level === "municipality" ? "municipality" : "department";
+      return reply
+        .header("Cache-Control", "public, max-age=300, s-maxage=600, stale-while-revalidate=1800")
+        .send(
+          territoryShakingSchema
+            .array()
+            .parse(await seismicShaking.listByIncident(incident.id, { level })),
+        );
+    },
+  );
 
   app.get("/v1/incidents", async () => incidentListSchema.parse(await incidents.list()));
 

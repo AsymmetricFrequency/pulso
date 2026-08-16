@@ -152,3 +152,24 @@ export type FundingStage = z.infer<typeof fundingStageSchema>;
 export type EmergencyRelevance = z.infer<typeof emergencyRelevanceSchema>;
 export type PublicContractDto = z.infer<typeof publicContractSchema>;
 export type PublicFundsSummaryDto = z.infer<typeof publicFundsSummarySchema>;
+
+/**
+ * Intensidad sísmica por territorio.
+ *
+ * Se publica aparte de las capas de daño y con rótulo propio: la intensidad es la sacudida que
+ * modeló el USGS, no la afectación observada. Confundirlas haría que un municipio con MMI 7
+ * apareciera como "con daño severo" sin que nadie haya ido a mirar.
+ */
+export const territoryShakingSchema = z.object({
+  territoryCode: z.string().nullable(),
+  territoryName: z.string(),
+  territoryType: z.string(),
+  mmiMax: z.number(),
+  mmiMean: z.number().nullable(),
+  mmiLabel: z.string(),
+  gridCells: z.number().int().min(0),
+  sourceId: z.string(),
+  computedAt: z.string(),
+});
+
+export type TerritoryShakingDto = z.infer<typeof territoryShakingSchema>;

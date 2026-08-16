@@ -21,6 +21,7 @@ import {
 import { runSecopIngestion, SECOP_SOURCE } from "./secop.js";
 import { runSgcEarthquakeIngestion, SGC_EARTHQUAKE_SOURCE } from "./sgc-earthquakes.js";
 import { runTerremotoColombiaIngestion, TERREMOTOCOLOMBIA_SOURCE } from "./terremotocolombia.js";
+import { runUsgsShakingIngestion, USGS_SHAKEMAP_SOURCE } from "./usgs.js";
 
 export type IngestionSourceName =
   | "sgc"
@@ -33,6 +34,7 @@ export type IngestionSourceName =
   | "redcaliayuda"
   | "redcaliayuda-acopio"
   | "secop"
+  | "usgs"
   | "publish-situation-report";
 
 export type IngestionSourceConfig = {
@@ -148,6 +150,14 @@ export const INGESTION_SOURCES: IngestionSourceConfig[] = [
           signedFrom: incidentStartedAt().slice(0, 10),
         }),
       ),
+  },
+  {
+    // El ShakeMap se revisa durante los primeros días y luego se estabiliza; no hay nada que ganar
+    // recalculando la malla contra 1.154 polígonos cada pocos minutos.
+    name: "usgs",
+    everyMs: 6 * HOUR,
+    source: USGS_SHAKEMAP_SOURCE,
+    run: () => runUsgsShakingIngestion(withDatabaseUrl({ incidentCode: incidentCode() })),
   },
   {
     // Staggered after the community-report sources so each refresh picks up their latest counts.

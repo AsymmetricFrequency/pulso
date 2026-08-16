@@ -48,6 +48,7 @@ import { PostgresMaterialSupplierRepository } from "./postgres-material-supplier
 import { PostgresPublicFundsRepository } from "./postgres-public-funds-repository.js";
 import { PostgresPublicReportRepository } from "./postgres-public-report-repository.js";
 import { PostgresReconstructionProgressRepository } from "./postgres-reconstruction-progress-repository.js";
+import { PostgresSeismicShakingRepository } from "./postgres-seismic-shaking-repository.js";
 import { PostgresWorkforceProfileRepository } from "./postgres-workforce-profile-repository.js";
 import { PostgresSgcPublicSourceRepository } from "./sgc-public-source-repositories.js";
 
@@ -780,6 +781,7 @@ export function createPostgresRepositories(
     publicReports: new PostgresPublicReportRepository(sql),
     caliPublicSource: new PostgresCaliPublicSourceRepository(sql),
     publicFunds: new PostgresPublicFundsRepository(sql),
+    seismicShaking: new PostgresSeismicShakingRepository(sql),
     reconstructionProgress: new PostgresReconstructionProgressRepository(sql),
     sgcPublicSource: new PostgresSgcPublicSourceRepository(sql),
     territories: new PostgresTerritoryRepository(sql),
