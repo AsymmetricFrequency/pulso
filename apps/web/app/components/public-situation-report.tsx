@@ -215,8 +215,11 @@ export function PublicSituationReport() {
   // anunciaba "datos sintéticos" aunque un instante después llegara el informe real.
   const [reportSource, setReportSource] = useState<"loading" | "fallback" | "api">("loading");
   const [layer, setLayer] = useState<PublicMapLayer>("coverage");
-  const [departmentCode, setDepartmentCode] = useState("27");
-  const [departmentName, setDepartmentName] = useState("Chocó");
+  // Valle del Cauca por omisión: concentra 1.004 de los 2.288 reportes. El valor anterior era
+  // Chocó, que tiene el epicentro pero solo 38 reportes, así que la vista abría donde casi no hay
+  // nada que mirar.
+  const [departmentCode, setDepartmentCode] = useState("76");
+  const [departmentName, setDepartmentName] = useState("Valle del Cauca");
   const [activeReport, setActiveReport] = useState<PublicCommunityReport | null>(null);
   const [feedExpanded, setFeedExpanded] = useState(false);
   useEffect(() => {

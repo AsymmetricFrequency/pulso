@@ -317,10 +317,22 @@ export function AtlasMap({
     setActiveReport(null);
   }, [zoomedCode]);
 
-  // Picking a municipality/locality should actually move the map there — jump into the
-  // Leaflet view for its department if we aren't already zoomed into it.
+  /**
+   * Elegir un municipio mueve el mapa hasta él.
+   *
+   * El primer render se excluye a propósito. Antes no: el selector arranca con el primer municipio
+   * del departamento por omisión, así que el mapa abría metido en la vista de detalle de Acandí,
+   * Chocó — el extremo norte del país, sin relación con el sismo— en vez de mostrar Colombia. Nadie
+   * había pedido ir ahí; era el valor inicial de un desplegable comportándose como una decisión del
+   * usuario.
+   */
+  const municipalityFocusReady = useRef(false);
   useEffect(() => {
     if (!focusMunicipalityCode) return;
+    if (!municipalityFocusReady.current) {
+      municipalityFocusReady.current = true;
+      return;
+    }
     setZoomedCode((current) => (current === selectedCode ? current : selectedCode));
   }, [focusMunicipalityCode, selectedCode]);
 
