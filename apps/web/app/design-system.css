@@ -596,3 +596,28 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Esqueleto de carga.
+   El pulso es de opacidad y no de color: un degradado que barre obliga a
+   repintar en cada cuadro, y aquí hay seis a la vez. */
+.shakingSkeleton {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.shakingSkeleton i {
+  height: 26px;
+  border-radius: var(--r-sm);
+  background: var(--surface-sunken);
+  animation: psPulse 1.4s var(--ease-out) infinite;
+}
+
+@keyframes psPulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}

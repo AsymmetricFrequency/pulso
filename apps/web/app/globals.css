@@ -81,7 +81,11 @@ body {
     linear-gradient(180deg, var(--paper) 0, var(--paper-deep) 100%);
   background-attachment: fixed;
   color: var(--ink);
-  font-family: Arial, Helvetica, sans-serif;
+  /* La pila del sistema en vez de Arial: cada plataforma rinde su propia
+     tipografía de interfaz —San Francisco, Segoe, Roboto— y el texto se ve
+     nativo sin descargar un solo byte de fuente. Arial era, además, la única
+     familia del sitio que no salía de un token. */
+  font-family: var(--font-body);
 }
 
 button,
@@ -190,7 +194,7 @@ p {
 h1 {
   max-width: 760px;
   margin-bottom: 14px;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   font-size: clamp(42px, 7vw, 76px);
   font-weight: 400;
   letter-spacing: -0.045em;
@@ -204,7 +208,7 @@ h1 {
 
 h2 {
   margin-bottom: 0;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   font-size: 28px;
   font-weight: 400;
 }
@@ -300,7 +304,7 @@ h2 {
 
 .metric strong {
   grid-column: 1 / -1;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   font-size: 38px;
   font-weight: 400;
 }
@@ -627,7 +631,7 @@ h2 {
 
 .priorityNumber {
   color: var(--signal);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   font-size: 18px;
 }
 
@@ -720,7 +724,7 @@ h2 {
 .headlineMetric strong {
   display: block;
   margin: 8px 0 5px;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   font-size: 28px;
   font-weight: 400;
 }
@@ -810,7 +814,7 @@ h2 {
 
 .territorySummary h3 {
   margin: 0;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   font-size: 36px;
   font-weight: 400;
 }
@@ -903,7 +907,7 @@ h2 {
 
 .situationList h3 {
   margin: 4px 0;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   font-size: 22px;
   font-weight: 400;
 }
@@ -1045,7 +1049,7 @@ h2 {
 
 .methodSection li > strong {
   color: var(--signal);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   font-size: 18px;
 }
 
@@ -1738,7 +1742,7 @@ footer a {
 }
 
 .reconstructionHero h2 {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   font-size: 34px;
   font-weight: 400;
   margin: 8px 0 12px;

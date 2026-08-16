@@ -59,9 +59,33 @@ export function ShakingSection() {
     return () => controller.abort();
   }, []);
 
-  // Sin dato no se dibuja la sección: una gráfica vacía sugiere que no hubo
+  // Mientras carga se dibuja el esqueleto, no `null`.
+  //
+  // No es solo estética: si la sección no existe en el primer pintado, el ancla
+  // `#intensidad` no encuentra a dónde saltar y un enlace compartido a esta
+  // sección deja al visitante arriba de la página sin explicación.
+  if (rows === null) {
+    return (
+      <section className="shakingSection" id="intensidad" aria-labelledby="shaking-title">
+        <div className="sectionHeading">
+          <div>
+            <p className="psEyebrow">Intensidad sísmica</p>
+            <h2 id="shaking-title">Dónde sacudió más fuerte</h2>
+          </div>
+        </div>
+        <div className="shakingSkeleton" role="status" aria-live="polite">
+          <span className="srOnly">Cargando la intensidad por territorio…</span>
+          {Array.from({ length: 6 }, (_, index) => (
+            <i key={`skeleton-${index}`} style={{ animationDelay: `${index * 90}ms` }} />
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  // Con la lista vacía sí se omite: una gráfica sin barras sugiere que no hubo
   // sacudida, que es exactamente lo contrario de lo que significa.
-  if (!rows || rows.length === 0) return null;
+  if (rows.length === 0) return null;
 
   const chartData: BarDatum[] = rows.slice(0, 10).map((row) => ({
     label: row.territoryName,

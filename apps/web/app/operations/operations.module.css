@@ -29,7 +29,7 @@
 .login h1,
 .hero h1 {
   margin: 0 0 14px;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   font-size: clamp(38px, 6vw, 64px);
   font-weight: 400;
   letter-spacing: -0.04em;
@@ -138,7 +138,7 @@
   border-right: 0;
 }
 .metrics strong {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   font-size: 38px;
   font-weight: 400;
 }
@@ -163,7 +163,7 @@
 }
 .panel h2 {
   margin: 0 0 24px;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   font-size: 28px;
   font-weight: 400;
 }
@@ -295,7 +295,7 @@
 
 .reviewHeading h2 {
   margin: 0;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   font-size: 28px;
   font-weight: 400;
 }
@@ -316,7 +316,7 @@
 }
 
 .reviewCounter strong {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   font-size: 34px;
   line-height: 1;
 }
@@ -362,7 +362,7 @@
   color: var(--text-primary);
   /* Cifras tabulares: la columna de montos tiene que poder compararse de un vistazo. */
   font-variant-numeric: tabular-nums;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   font-size: 26px;
   letter-spacing: -0.01em;
 }
