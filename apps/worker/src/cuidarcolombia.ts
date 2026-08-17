@@ -228,6 +228,7 @@ export async function runCuidarColombiaIngestion(options: {
   }
 
   const sql = postgres(options.databaseUrl, { max: 1 });
+  let held = false;
   try {
     // Un solo pase de geocodificación a la vez, en toda la instalación.
     //
@@ -239,8 +240,16 @@ export async function runCuidarColombiaIngestion(options: {
       SELECT pg_try_advisory_lock(hashtext('pulso:geocode')) AS acquired
     `;
     if (!lock?.acquired) {
-      return { status: "unchanged" as const, httpStatus: snapshot.httpStatus, etag: snapshot.etag };
+      // No es «no había nada nuevo»: es «otro pase está trabajando». Se dice, porque un registro
+      // que no distingue las dos cosas hace creer que la fuente está quieta cuando no lo está.
+      return {
+        status: "unchanged" as const,
+        skipped: "otro pase de geocodificación está en curso",
+        httpStatus: snapshot.httpStatus,
+        etag: snapshot.etag,
+      };
     }
+    held = true;
 
     const geocoder = new Geocoder(sql);
     const points: MappedAcopio[] = [];
@@ -275,9 +284,12 @@ export async function runCuidarColombiaIngestion(options: {
       etag: snapshot.etag,
     };
   } finally {
-    // `sql.end()` cierra la conexión y con ella se suelta el cerrojo, pero soltarlo explícitamente
-    // deja dicho que es intencional y no un efecto secundario del cierre.
-    await sql`SELECT pg_advisory_unlock(hashtext('pulso:geocode'))`.catch(() => undefined);
+    // Solo se suelta si se llegó a coger. Soltarlo siempre hacía que Postgres avisara «you don't
+    // own a lock of type ExclusiveLock» en cada corrida que se apartó — ruido que enmascara un
+    // aviso de verdad el día que lo haya.
+    if (held) {
+      await sql`SELECT pg_advisory_unlock(hashtext('pulso:geocode'))`.catch(() => undefined);
+    }
     await sql.end({ timeout: 5 });
   }
 }
