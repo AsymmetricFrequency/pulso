@@ -522,6 +522,14 @@ export function AtlasMap({
     [allReports],
   );
 
+  // Cuántos puntos tienen la coordenada deducida de una dirección escrita. Va a la leyenda porque
+  // el círculo de precisión se entiende solo, pero saber **cuántos** hay cambia cómo se lee el mapa
+  // entero: no es lo mismo que sean tres que ochenta.
+  const geocodedCount = useMemo(
+    () => allReports.filter((report) => report.locationPrecision === "geocoded").length,
+    [allReports],
+  );
+
   const blockedRouteCount = useMemo(
     () =>
       allReports.filter(
@@ -1065,6 +1073,14 @@ export function AtlasMap({
             {blockedRouteCount === 1
               ? "1 vía o terminal sin paso"
               : `${blockedRouteCount} vías o terminales sin paso`}
+          </li>
+        ) : null}
+        {geocodedCount > 0 ? (
+          <li>
+            <i className="statusDot geocoded" />{" "}
+            {geocodedCount === 1
+              ? "1 punto con ubicación aproximada, deducida de su dirección"
+              : `${geocodedCount} puntos con ubicación aproximada, deducida de su dirección`}
           </li>
         ) : null}
         {allReports.length > 0 ? (

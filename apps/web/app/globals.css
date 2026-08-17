@@ -1604,6 +1604,13 @@ footer a {
   margin-top: 2px;
 }
 
+/* El mismo gris del círculo de precisión del mapa, y punteado como él: la leyenda y el dibujo
+   tienen que verse hermanos o la leyenda no explica nada. */
+.statusDot.geocoded {
+  background: transparent;
+  border: 1px dashed #8a7f66;
+}
+
 .statusDot.damage {
   background: var(--damage);
 }
@@ -1960,6 +1967,16 @@ footer a {
 
 .reportDetailMeta {
   margin: 4px 0;
+}
+
+/* La columna de etiquetas heredaba los 82 px de `.territorySummary`, y ahí no caben palabras como
+   «Confirmaciones»: se montaba encima de su propio valor y se leía «Confirmacion2reportes». */
+.reportDetailMeta div {
+  grid-template-columns: 96px 1fr;
+}
+
+.reportDetailMeta dt {
+  overflow-wrap: anywhere;
 }
 
 /* El aviso de contacto va destacado y sobre la línea de procedencia: quien abre una necesidad y

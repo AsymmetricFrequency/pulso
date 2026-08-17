@@ -76,13 +76,11 @@ function reportDivIcon(report: PublicCommunityReport) {
     });
   }
   const color = statusColor(report.status);
-  // Punteado si el estado es «sin verificar» **o** si la coordenada se dedujo de una dirección
-  // escrita. Son dos incertidumbres distintas —quién lo dice, y dónde está— y el borde abierto
-  // significa lo mismo en las dos: no des este punto por firme.
-  const dashed =
-    report.status === "reported" || report.locationPrecision === "geocoded"
-      ? "border-style:dashed;"
-      : "";
+  // Punteado significa **una** cosa: «sin verificar». Antes también marcaba las coordenadas
+  // deducidas, y eso lo volvía ilegible: quien mira no podía separar «nadie ha confirmado esto» de
+  // «dedujimos dónde está», que son problemas distintos con consecuencias distintas. La
+  // incertidumbre de ubicación se dibuja aparte, con el círculo de precisión.
+  const dashed = report.status === "reported" ? "border-style:dashed;" : "";
   return L.divIcon({
     className: "pulsoMarker",
     html: `<span style="background:${color};${dashed}" class="pulsoMarkerDot">${reportMarkerSvg(reportMarkerKey(report))}</span>`,
@@ -243,6 +241,13 @@ export function LeafletMap({
     // Las vías van en la misma capa por la misma razón, y son pocas: un cierre escondido dentro de
     // un clúster manda a un equipo por una carretera que no existe.
     const rescueLayer = L.layerGroup();
+    // Los puntos cuya coordenada se dedujo de una dirección escrita llevan el círculo de precisión:
+    // la misma convención que usa el GPS de un teléfono para decir «está en algún sitio de aquí
+    // dentro». Es legible sin leyenda y no compite con ningún otro código del mapa.
+    //
+    // 300 m es el orden de magnitud real del error a nivel de calle: Nominatim sin número de casa
+    // devuelve el centroide de la vía, y una carrera larga mide bastante más que una cuadra.
+    const accuracyLayer = L.layerGroup();
     for (const report of reports) {
       const [lng, lat] = report.location.coordinates;
       // Los colapsos salen del clúster con los rescates y las vías: son ~100 entre miles de puntos
@@ -255,13 +260,29 @@ export function LeafletMap({
         icon: reportDivIcon(report),
         zIndexOffset: report.reportType === "rescate" ? 1_000 : alwaysVisible ? 900 : 0,
       });
+      if (report.locationPrecision === "geocoded") {
+        accuracyLayer.addLayer(
+          L.circle([lat, lng], {
+            radius: 300,
+            interactive: false,
+            color: "#8a7f66",
+            weight: 1,
+            dashArray: "3 3",
+            fillColor: "#8a7f66",
+            fillOpacity: 0.1,
+          }),
+        );
+      }
       marker.bindPopup(`<strong>${report.title}</strong>`);
       marker.on("click", () => callbacksRef.current.onSelectReport(report));
       (alwaysVisible ? rescueLayer : group).addLayer(marker);
     }
+    // El círculo va debajo de todo: es contexto, no un punto más que atender.
+    map.addLayer(accuracyLayer);
     map.addLayer(group);
     map.addLayer(rescueLayer);
     return () => {
+      map.removeLayer(accuracyLayer);
       map.removeLayer(group);
       map.removeLayer(rescueLayer);
     };
