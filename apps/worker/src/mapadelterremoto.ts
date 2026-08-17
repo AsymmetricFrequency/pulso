@@ -119,6 +119,32 @@ export function stripDescriptionWithNames(text: string | null | undefined): stri
   return PERSON_ATTRIBUTION.test(value) ? null : value;
 }
 
+/**
+ * Nombre de una persona **dentro de la dirección**.
+ *
+ * Este se descubrió tarde y en producción: el mapa llegó a publicar «Barrio Grisales · vivienda de
+ * Olmedo Zapata». La dirección se había dado por segura porque son edificios e instituciones, y en
+ * el 99 % de los casos lo es — pero cuando la casa que cayó es de un particular, la fuente la
+ * identifica por su dueño. Nueve de 1.100.
+ *
+ * Publicar el nombre de alguien junto a «su casa colapsó» es exactamente el dato que este proyecto
+ * se comprometió a no republicar: dice dónde vive, que lo perdió todo y que hoy no está ahí.
+ *
+ * `casa` sola no basta como señal —«Casa de la Cultura Lucelly García de Montoya» es un equipamiento
+ * público— así que se exige un sustantivo de vivienda particular, y a `casa` se le pide además que
+ * no vaya seguida de un calificativo institucional.
+ */
+const DWELLING_OWNER =
+  /\b(?:vivienda|residencia|predio|inmueble|hogar|apartamento|habitaci[óo]n|finca)\s+de\s+(?:la\s+|el\s+)?[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{2,}\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{2,}/i;
+const HOUSE_OWNER =
+  /\bcasa\s+de\s+(?!la\s+cultura|la\s+memoria|la\s+juventud|la\s+mujer|el\s+pueblo|la\s+paz)(?:la\s+|el\s+)?[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{2,}\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{2,}/i;
+
+export function namesAPrivateResident(text: string | null | undefined): boolean {
+  const value = text?.trim();
+  if (!value) return false;
+  return DWELLING_OWNER.test(value) || HOUSE_OWNER.test(value);
+}
+
 type PersonCount = { valor?: unknown; confirmado?: unknown; fuente?: unknown };
 
 type RegistryPoint = {
@@ -198,12 +224,17 @@ export function mapRegistryPoint(point: RegistryPoint): MappedRegistryPoint | un
   // está, y en su ausencia no se inventa una reapertura.
   const routeStatus = isRoute ? ("bloqueada" as const) : null;
 
-  const direccion = text(point.direccion);
   const label = TYPE_LABEL[tipo] ?? "Punto afectado";
-  const title = (direccion ?? `${label} — ${text(point.municipio) ?? "sin municipio"}`).slice(
-    0,
-    140,
-  );
+  const municipio = text(point.municipio);
+  const barrio = text(point.barrio);
+  const rawAddress = text(point.direccion);
+
+  // Cuando la dirección identifica a quien vive ahí, no se guarda ni se titula con ella: el punto
+  // entra como «Vivienda afectada — Quimbaya» y conserva su coordenada, su severidad y su fuente.
+  // La ubicación sigue sirviendo para coordinar; el nombre de la familia no aportaba nada a eso.
+  const identifiesResident = namesAPrivateResident(rawAddress) || namesAPrivateResident(barrio);
+  const direccion = identifiesResident ? undefined : rawAddress;
+  const title = (direccion ?? `${label} — ${municipio ?? "sin municipio"}`).slice(0, 140);
   if (title.length < 3) return undefined;
 
   const evidencias = Array.isArray(point.evidencias) ? point.evidencias.length : 0;
@@ -212,8 +243,10 @@ export function mapRegistryPoint(point: RegistryPoint): MappedRegistryPoint | un
     : [];
 
   // La descripción va tal cual **solo si no introduce a nadie por su nombre**; si lo hace, se cae
-  // entera y el punto conserva todo lo demás. Ver `stripDescriptionWithNames`.
-  const source = stripDescriptionWithNames(text(point.descripcion));
+  // entera y el punto conserva todo lo demás. Ver `stripDescriptionWithNames`. Y si la dirección ya
+  // identificaba a una familia, su descripción habla de esa misma familia —«la vivienda de mi hijo
+  // y la mía se perdieron»— así que se cae con ella.
+  const source = identifiesResident ? null : stripDescriptionWithNames(text(point.descripcion));
   const description = [
     source,
     isDamage ? `${label} · ${SEVERITY_LABEL[severity]}` : label,
@@ -231,8 +264,8 @@ export function mapRegistryPoint(point: RegistryPoint): MappedRegistryPoint | un
 
   const metadata: CommunityReportMetadata = {
     address: direccion,
-    neighborhood: text(point.barrio),
-    city: text(point.municipio),
+    neighborhood: identifiesResident ? undefined : barrio,
+    city: municipio,
     department: text(point.departamento),
     sourceStatus: text(point.atencion),
     // Cuántas fuentes independientes respaldan el punto. La fuente lo publica por punto y es la

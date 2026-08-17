@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { mapRegistryPoint, stripDescriptionWithNames } from "./mapadelterremoto.js";
+import {
+  mapRegistryPoint,
+  namesAPrivateResident,
+  stripDescriptionWithNames,
+} from "./mapadelterremoto.js";
 
 const base = {
   id: "6f0c1a54-8e2b-4d31-9a77-1f3b0c2d4e51",
@@ -73,6 +77,26 @@ describe("mapRegistryPoint", () => {
     expect(mapped?.metadata.personsNeeded).toBe(25);
   });
 
+  it("keeps the point but not the household when the address names a resident", () => {
+    const mapped = mapRegistryPoint({
+      ...base,
+      tipo: "VIVIENDA",
+      severidad: "COLAPSO",
+      municipio: "Quimbaya",
+      barrio: "Grisales",
+      direccion: "Barrio Grisales · vivienda de Olmedo Zapata",
+      descripcion: "«La vivienda de mi hijo y la mía se perdieron».",
+    });
+
+    expect(mapped?.title).toBe("Vivienda afectada — Quimbaya");
+    expect(mapped?.metadata.address).toBeUndefined();
+    expect(mapped?.metadata.neighborhood).toBeUndefined();
+    expect(mapped?.description).toBe("Vivienda afectada · Colapso");
+    // Lo que sirve para coordinar se conserva entero.
+    expect(mapped?.location.coordinates).toEqual([-76.529565, 3.402565]);
+    expect(mapped?.damageSeverity).toBe("colapso");
+  });
+
   it("keeps the point when its prose has to be dropped", () => {
     const mapped = mapRegistryPoint({
       ...base,
@@ -82,6 +106,31 @@ describe("mapRegistryPoint", () => {
     });
     expect(mapped).toBeDefined();
     expect(mapped?.description).toBe("Vivienda afectada · Daño leve");
+  });
+});
+
+// Se descubrió tarde y en producción: el mapa llegó a publicar «Barrio Grisales · vivienda de
+// Olmedo Zapata». La dirección se había dado por segura porque casi siempre son edificios e
+// instituciones — pero cuando la casa que cayó es de un particular, la fuente la identifica por su
+// dueño. Publicar su nombre junto a «su casa colapsó» dice dónde vive, que lo perdió todo y que hoy
+// no está ahí.
+describe("namesAPrivateResident", () => {
+  it("flags a dwelling identified by its owner", () => {
+    expect(namesAPrivateResident("Barrio Grisales · vivienda de Olmedo Zapata")).toBe(true);
+    expect(namesAPrivateResident("Vivienda de Lina Quintero · barrio Tokio")).toBe(true);
+    expect(namesAPrivateResident("Casa de Flor Marina González")).toBe(true);
+  });
+
+  // Un equipamiento público lleva el nombre de alguien y no identifica a nadie que viva ahí.
+  it("does not flag a public building named after someone", () => {
+    expect(namesAPrivateResident("Casa de la Cultura Lucelly García de Montoya")).toBe(false);
+    expect(namesAPrivateResident("Hospital Universitario del Valle Evaristo García")).toBe(false);
+    expect(namesAPrivateResident("Casa de la Memoria Jorge Eliécer Gaitán")).toBe(false);
+  });
+
+  it("does not flag an ordinary address", () => {
+    expect(namesAPrivateResident("Carrera 72 con Calle 10 BIS")).toBe(false);
+    expect(namesAPrivateResident(null)).toBe(false);
   });
 });
 
