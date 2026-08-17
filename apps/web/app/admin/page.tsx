@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { AdminPanel } from "./admin-panel";
 
 export const metadata: Metadata = {
-  title: "Panel · PULSO",
+  title: "Panel",
   description: "Estado de la operación y del equipo que construye Pulso.",
   // Es una herramienta interna: no tiene por qué aparecer en un buscador.
   robots: { index: false, follow: false },

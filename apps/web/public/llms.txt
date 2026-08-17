@@ -1,0 +1,59 @@
+# PULSO
+
+> Mapa público del terremoto de Colombia del 10 de agosto de 2026 (magnitud 7,4, epicentro cerca de
+> San José del Palmar, Chocó). Reúne reportes ciudadanos y de fuentes públicas georreferenciados, y
+> conserva de qué fuente vino cada dato y con qué precisión se ubicó.
+
+Este fichero existe para que un asistente pueda usar y citar estos datos sin raspar la web. Es lo
+mismo que le pedimos a las plataformas de las que ingerimos, así que lo hacemos primero nosotros.
+
+## Qué hay, y qué no
+
+**Hay** puntos georreferenciados de: personas atrapadas reportadas por ciudadanos, daño estructural
+(incluidas edificaciones colapsadas), centros de acopio y albergues, estado de vías y terminales,
+necesidades por municipio, y contratación pública de la emergencia.
+
+**No hay, y no va a haber:** nombres, teléfonos, documentos ni fotografías de personas. Ni de
+desaparecidos, ni de damnificados, ni de quien reporta. Las listas de personas desaparecidas tienen
+su ruta institucional —SIRDEC y el Mecanismo de Búsqueda Urgente— y no pasan por aquí. Si un
+importador encuentra un teléfono en un texto libre, un disparador de la base lo tapa antes de que se
+guarde.
+
+## Cómo leer un punto antes de citarlo
+
+Cada reporte trae dos cosas que cambian lo que se puede afirmar sobre él:
+
+- **`status`** — `reported` es «alguien lo dijo», `corroborated` es «hay más de una fuente»,
+  `validated` es «alguien de operaciones lo revisó». La mayoría del mapa es `reported`, y decirlo es
+  parte del dato.
+- **`locationPrecision`** — `geocoded` significa que la coordenada se dedujo de una dirección
+  escrita y puede estar a cuadras del portal. Nunca se geocodifica un rescate ni un colapso.
+
+Un punto no es un hecho verificado por defecto. Citarlo sin su estado lo convierte en algo que no es.
+
+## Datos
+
+- Reportes territoriales: https://pulso.my/v1/public/incidents/colombia-2026/community-reports
+- Proyección ligera para mapa: https://pulso.my/v1/public/incidents/colombia-2026/community-reports?view=map
+- Informe de situación: https://pulso.my/v1/public/incidents/colombia-2026/report
+- Territorios (DANE MGN 2023): https://pulso.my/v1/public/incidents/colombia-2026/territories?level=department
+
+## Fuentes de las que se ingiere
+
+Oficiales: Servicio Geológico Colombiano, USGS, DANE, SECOP II. El repositorio oficial de Cali
+responde 403 y **no se rodea**.
+
+Comunitarias: mapadelterremoto.com, contemos.org, GRAVITAS, Red Cali Ayuda, Ayudas Pereira,
+terremotocolombia.co, Cuidar a Colombia.
+
+El estado verificado de cada una, con sus cifras y sus fallos, está en
+https://github.com/AsymmetricFrequency/pulso/blob/main/docs/37-fuentes.md
+
+## Licencia
+
+El código es Apache-2.0. **La licencia de los datos publicados todavía no está decidida**: hasta que
+exista, no asumas nada sobre reutilizarlos más allá de citarlos con su procedencia.
+
+## Contacto
+
+https://github.com/AsymmetricFrequency/pulso
