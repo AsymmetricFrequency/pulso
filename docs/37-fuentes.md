@@ -3,7 +3,7 @@
 Estado verificado el 16 de agosto de 2026 corriendo las once ingestas y consultando la base. No es
 una lista de intenciones: cada cifra salió de `source_ingestion_runs`.
 
-**Doce fuentes conectadas. Once funcionan. Una está bloqueada en origen.**
+**Trece fuentes conectadas. Doce funcionan. Una está bloqueada en origen.**
 
 En el panel administrativo, `admin.pulso.my` → Operación, esta misma tabla se ve en vivo con la
 última corrida de cada una.
@@ -46,6 +46,7 @@ institucional; nunca registros de personas.
 | `gravitas-mapa-ciudadano` | Edificios, acopios, logística, voluntariado | 200 | Funciona |
 | `redcaliayuda-acopio` | Centros de acopio de Cali | 127 | Funciona |
 | `mapadelterremoto-registro` | Registro nacional de daños: colapsos, escuelas, hospitales, vías | 1.089 | Funciona |
+| `cuidarcolombia-acopios` | Acopios verificados fuera de Cali y Pereira, con horario | geocodificados | Funciona |
 
 ### Lo que no se importa nunca
 
@@ -150,6 +151,66 @@ estructurado que sea.
 El disparador de redacción sí hizo su trabajo en paralelo: **30 descripciones importadas traían
 teléfono y las tapó en la base**, sin que el importador tuviera que acordarse. Comprobado: cero
 móviles en las 1.089 filas.
+
+---
+
+## Geocodificar: cuándo sí, y qué se promete
+
+`cuidarcolombia` publica tan bien como mapadelterremoto —fichero estático en `/data/`, CORS abierto,
+ETag— pero **sus 118 puntos de acopio no traen coordenada.** Las únicas del fichero son 32
+centroides de ciudad. Clavar 118 acopios en 32 centros de ciudad es justamente lo que rechazamos
+antes con las sobras de mapadelterremoto y con Ayudas Pereira.
+
+Así que se geocodifica. Con tres reglas que no se relajan.
+
+### 1. El resultado tiene que caer en el municipio declarado
+
+Sin ese guardarraíl, «Alcaldía Municipal de Atrato» resuelve en **Medio Atrato** —otro municipio, a
+horas— con toda la confianza del mundo. Medido: **uno de cada seis aciertos aparentes estaba en otro
+municipio.**
+
+La comparación es **igualdad tras normalizar**, no contención. La contención se probó primero y es
+un agujero: «Medio Atrato» *contiene* «Atrato», así que habría aceptado exactamente el error que el
+guardarraíl existe para atrapar. Normalizar sí resuelve las variantes reales de nombre —«Bogotá
+D.C.» y «Bogotá», «Cali ciudad» y «Cali», «Alto Baudó (Pie de Pató)» y «Alto Baudó» quedan
+idénticos—, que en la primera medición eran 3 de 4 rechazos.
+
+### 2. La precisión más fina que se puede afirmar es «calle»
+
+Nominatim sin número de casa devuelve el centroide de la vía. Para una carrera larga eso queda a
+cuadras del portal, y hay casos peores: «Carrera 15 #31-110, barrio El Espinal» de Cartagena
+resolvió en **Bayunca**, que es rural y está al norte. Acierta el nombre de la calle, no la cuadra.
+
+Por eso el punto entra con `public_location_precision = 'geocoded'`, **el mapa lo dibuja punteado** y
+la ficha lo dice antes de la descripción, no en una nota al pie: alguien puede estar leyéndolo para
+decidir si coge el carro.
+
+### 3. Nunca un rescate, nunca un colapso
+
+Lo impone un `CHECK` en la base, no la buena memoria de quien escriba el próximo importador. Un
+equipo que va a sacar a alguien de debajo de unos escombros necesita la esquina, no la calle.
+
+### Qué tasa de acierto tiene, de verdad
+
+| Fuente | Muestra | Aciertos | Por qué |
+| --- | --- | --- | --- |
+| `cuidarcolombia` | 22 | **20 (91 %)** | Direcciones de calle reales, en ciudades grandes, que nadie había geocodificado |
+| Sobras de `mapadelterremoto` | 25 | **4 (16 %)** | Nominatim ya falló con ellas una vez |
+
+**La segunda fila es la que ahorra trabajo.** Parecía que había ~2.060 puntos sin coordenada
+esperando; son ~177. Los 1.891 de mapadelterremoto ya pasaron por Nominatim —su propio campo
+`metodoUbicacion` lo dice— y muchos ni siquiera son direcciones: son frases de nivel municipio
+(«Casco urbano de Trujillo», «Cuatro fallecidos reportados en el municipio de…»).
+
+### Somos invitados en su infraestructura
+
+La política de Nominatim limita las tareas en lote a **4 peticiones por minuto** desde una sola
+máquina y **exige cachear**. Por eso hay tabla `geocoded_addresses` y por eso se guarda también el
+«no se encontró»: sin caché, cada corrida repetiría las mismas consultas cada media hora, que es el
+comportamiento que su política llama «faulty» y bloquea.
+
+Es el mismo criterio que con el 403 de Cali y con el fichero de mapadelterremoto: **que se pueda no
+significa que se deba a cualquier ritmo.**
 
 ---
 

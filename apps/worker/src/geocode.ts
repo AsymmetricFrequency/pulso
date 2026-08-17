@@ -182,19 +182,9 @@ export class Geocoder {
       const longitude = Number(hit.lon);
       if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) continue;
 
-      const got = municipalityOf(hit);
-      const declared = normalizePlace(input.municipality);
-      const resolved = normalizePlace(got);
-      // Igualdad exacta, no contención. `normalizePlace` ya quita lo que de verdad es ruido de
-      // nomenclatura —«Bogotá D.C.» y «Bogotá», «Cali ciudad» y «Cali», «Alto Baudó (Pie de Pató)»
-      // y «Alto Baudó» quedan idénticos—, así que lo que sobrevive a la comparación es señal.
-      //
-      // La contención se probó primero y era un agujero: «Medio Atrato» **contiene** «Atrato», así
-      // que habría aceptado exactamente el error que este guardarraíl existe para atrapar.
-      const sameMunicipality = Boolean(resolved) && resolved === declared;
-
-      if (!sameMunicipality) {
-        const reason = `resolvió en «${got ?? "sin municipio"}» y la fuente dice «${input.municipality}»`;
+      const inside = await this.#fallsInsideMunicipality(input.municipality, latitude, longitude);
+      if (!inside.ok) {
+        const reason = `${inside.reason} (el geocodificador dijo «${municipalityOf(hit) ?? "sin municipio"}»)`;
         await this.#writeCache(hash, queryText, input.municipality, null, "municipio", hit, reason);
         return { found: false, precision: "municipio", reason };
       }
@@ -227,6 +217,58 @@ export class Geocoder {
       "el geocodificador no devolvió nada",
     );
     return { found: false, precision: "sin_resultado", reason: "sin resultado" };
+  }
+
+  /**
+   * ¿Cae el punto dentro del polígono del municipio que declaró la fuente?
+   *
+   * Comparar los **nombres que devuelve el geocodificador** no funciona, y no es un detalle: OSM
+   * etiqueta los municipios colombianos como «Perímetro Urbano Medellín», «Cartagena de Indias» o
+   * directamente por el corregimiento —«La Buitrera» para un punto que sí está en Cali—. La
+   * igualdad rechaza los tres siendo correctos; la contención acepta «Medio Atrato» cuando la
+   * fuente dijo «Atrato», que es otro municipio a horas de camino.
+   *
+   * La geometría sí responde. Tenemos los 1.121 municipios del DANE con su polígono y el índice
+   * GiST existe desde `001_foundation.sql`.
+   */
+  async #fallsInsideMunicipality(
+    municipality: string,
+    latitude: number,
+    longitude: number,
+  ): Promise<{ ok: true } | { ok: false; reason: string }> {
+    const declared = normalizePlace(municipality);
+    if (!declared) return { ok: false, reason: "la fuente no dijo el municipio" };
+
+    // Dos candidatas posibles: la que se llama exactamente así, y las que la contienen como palabra
+    // entera. El orden importa y es toda la regla:
+    //
+    // - Si existe la coincidencia **exacta**, manda ella y solo ella. «Atrato» existe en el DANE,
+    //   así que un punto que cayó en «Medio Atrato» se rechaza — que es el error medido.
+    // - Si no existe, se elige entre las candidatas la que contenga el punto. «Cartagena» no existe
+    //   como tal: el DANE dice «Cartagena de Indias» y «Cartagena del Chairá», y el punto decide
+    //   cuál. Igual con «Cúcuta» → «San José de Cúcuta».
+    const [row] = await this.sql<{ name: string; inside: boolean; exact: boolean }[]>`
+      SELECT
+        name,
+        ST_Contains(geometry, ST_SetSRID(ST_MakePoint(${longitude}, ${latitude}), 4326)) AS inside,
+        pulso_normalize_place(name) = ${declared} AS exact
+      FROM territories
+      WHERE territory_type = 'municipality'
+        AND deleted_at IS NULL
+        AND (
+          pulso_normalize_place(name) = ${declared}
+          OR pulso_normalize_place(name) ~ ${`(^| )${declared}( |$)`}
+        )
+      ORDER BY exact DESC, inside DESC
+      LIMIT 1
+    `;
+
+    // Sin polígono no hay comprobación, y sin comprobación no se acepta: un municipio que no está
+    // en el marco del DANE es más probable que sea un error de escritura de la fuente que un
+    // municipio real que nos falte.
+    if (!row) return { ok: false, reason: `«${municipality}» no existe en el marco DANE` };
+    if (!row.inside) return { ok: false, reason: `el punto cae fuera del polígono de ${row.name}` };
+    return { ok: true };
   }
 
   async #readCache(hash: string): Promise<GeocodeResult | null> {
