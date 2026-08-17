@@ -2,6 +2,7 @@ import postgres from "postgres";
 import { AYUDAS_PEREIRA_SOURCE, runAyudasPereiraIngestion } from "./ayudaspereira.js";
 import { CALI_OFFICIAL_SOURCE, runCaliOfficialIngestion } from "./cali-official.js";
 import { CONTEMOS_SOURCE, runContemosIngestion } from "./contemos.js";
+import { CUIDARCOLOMBIA_SOURCE, runCuidarColombiaIngestion } from "./cuidarcolombia.js";
 import { DANE_MGN_SOURCE, runDaneTerritoryIngestion } from "./dane-territories.js";
 import { GRAVITAS_SOURCE, runGravitasIngestion } from "./gravitas.js";
 import {
@@ -40,6 +41,7 @@ export type IngestionSourceName =
   | "secop"
   | "usgs"
   | "mapadelterremoto"
+  | "cuidarcolombia"
   | "publish-situation-report";
 
 export type IngestionSourceConfig = {
@@ -172,6 +174,18 @@ export const INGESTION_SOURCES: IngestionSourceConfig[] = [
     source: MAPADELTERREMOTO_SOURCE,
     run: ({ previousEtag }) =>
       runMapaDelTerremotoIngestion(
+        withDatabaseUrl({ incidentCode: incidentCode(), previousEtag: previousEtag ?? null }),
+      ),
+  },
+  {
+    // Cada hora y con `If-None-Match`. Su fichero cambia una vez al día («próxima revisión» a las
+    // 7:20), y la geocodificación de los puntos nuevos va a 4 peticiones por minuto: no conviene
+    // que dos corridas se pisen.
+    name: "cuidarcolombia",
+    everyMs: 60 * MINUTE,
+    source: CUIDARCOLOMBIA_SOURCE,
+    run: ({ previousEtag }) =>
+      runCuidarColombiaIngestion(
         withDatabaseUrl({ incidentCode: incidentCode(), previousEtag: previousEtag ?? null }),
       ),
   },

@@ -185,6 +185,16 @@ export function CommunityReportDetailCard({ report, onClose }: CommunityReportDe
         )}
       </div>
 
+      {/* El aviso va antes de la descripción, no en una nota al pie: alguien puede estar leyendo
+          esto para decidir si coge el carro. */}
+      {report.locationPrecision === "geocoded" && (
+        <p className="reportDetailGeocoded">
+          <IconLocation />
+          Punto aproximado: la ubicación se dedujo de la dirección escrita, no la puso nadie desde
+          el sitio. Guíate por la dirección y confirma antes de desplazarte.
+        </p>
+      )}
+
       {report.description && <p className="reportDetailDescription">{report.description}</p>}
 
       {metadata?.needs && metadata.needs.length > 0 && (

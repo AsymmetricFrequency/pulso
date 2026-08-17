@@ -25,6 +25,7 @@ export type CommunityReportType = "rescate" | "pmu" | "necesidad" | "via" | "dan
 export type RescueSignsOfLife = "yes" | "no" | "unknown";
 export type RouteStatus = "bloqueada" | "habilitada";
 export type DamageSeverity = "colapso" | "grave" | "moderado" | "leve" | "sin_evaluar";
+export type LocationPrecision = "hidden" | "zone" | "neighborhood" | "approximate" | "geocoded";
 export type CommunityReportCategory =
   | "agua"
   | "alimentos"
@@ -77,6 +78,7 @@ export type PublicCommunityReport = {
   respondersOnSite: boolean | null;
   routeStatus: RouteStatus | null;
   damageSeverity: DamageSeverity | null;
+  locationPrecision: LocationPrecision;
   createdAt: string;
 };
 

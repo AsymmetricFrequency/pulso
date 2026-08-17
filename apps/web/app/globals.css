@@ -1585,6 +1585,25 @@ footer a {
   background: var(--route-blocked);
 }
 
+.reportDetailGeocoded {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--paper-deep);
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.reportDetailGeocoded svg {
+  flex: none;
+  margin-top: 2px;
+}
+
 .statusDot.damage {
   background: var(--damage);
 }

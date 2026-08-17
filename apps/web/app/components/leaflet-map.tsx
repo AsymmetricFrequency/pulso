@@ -76,7 +76,13 @@ function reportDivIcon(report: PublicCommunityReport) {
     });
   }
   const color = statusColor(report.status);
-  const dashed = report.status === "reported" ? "border-style:dashed;" : "";
+  // Punteado si el estado es «sin verificar» **o** si la coordenada se dedujo de una dirección
+  // escrita. Son dos incertidumbres distintas —quién lo dice, y dónde está— y el borde abierto
+  // significa lo mismo en las dos: no des este punto por firme.
+  const dashed =
+    report.status === "reported" || report.locationPrecision === "geocoded"
+      ? "border-style:dashed;"
+      : "";
   return L.divIcon({
     className: "pulsoMarker",
     html: `<span style="background:${color};${dashed}" class="pulsoMarkerDot">${reportMarkerSvg(reportMarkerKey(report))}</span>`,

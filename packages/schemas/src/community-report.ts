@@ -36,6 +36,22 @@ export const routeStatusSchema = z.enum(["bloqueada", "habilitada"]);
  * con criterio técnico ha ido a calificarlo. Es el más frecuente en los registros de daños, y
  * colapsarlo a `null` borraría justamente la cola de trabajo de las brigadas de evaluación.
  */
+/**
+ * De dónde salió la ubicación de un punto.
+ *
+ * `geocoded` es el valor que importa aquí: la coordenada no la puso nadie que estuviera en el
+ * sitio, se dedujo de una dirección escrita. Nominatim sin número de casa devuelve el centroide de
+ * la vía, así que el marcador puede quedar a cuadras del portal. El mapa lo dibuja distinto y la
+ * ficha lo dice, porque quien va a desplazarse tiene que leer la dirección y no fiarse del punto.
+ */
+export const locationPrecisionSchema = z.enum([
+  "hidden",
+  "zone",
+  "neighborhood",
+  "approximate",
+  "geocoded",
+]);
+
 export const damageSeveritySchema = z.enum(["colapso", "grave", "moderado", "leve", "sin_evaluar"]);
 
 export const communityReportCategorySchema = z.enum([
@@ -164,6 +180,7 @@ export const publicCommunityReportSchema = z.object({
   respondersOnSite: z.boolean().nullable(),
   routeStatus: routeStatusSchema.nullable(),
   damageSeverity: damageSeveritySchema.nullable(),
+  locationPrecision: locationPrecisionSchema,
   createdAt: z.iso.datetime({ offset: true }),
 });
 
@@ -206,6 +223,9 @@ export const mapCommunityReportSchema = publicCommunityReportSchema.pick({
   // Un edificio colapsado no puede dibujarse igual que una fachada agrietada, y con ~200 colapsos
   // entre miles de daños leves esa diferencia es la mitad del valor del mapa.
   damageSeverity: true,
+  // Decide el dibujo del marcador: un punto deducido de un texto no puede parecerse a uno que
+  // alguien puso estando allí.
+  locationPrecision: true,
 });
 
 export const reviewCommunityReportSchema = z.object({
@@ -240,6 +260,7 @@ export type CommunityReportType = z.infer<typeof communityReportTypeSchema>;
 export type RescueSignsOfLife = z.infer<typeof rescueSignsOfLifeSchema>;
 export type RouteStatus = z.infer<typeof routeStatusSchema>;
 export type DamageSeverity = z.infer<typeof damageSeveritySchema>;
+export type LocationPrecision = z.infer<typeof locationPrecisionSchema>;
 export type CommunityReportCategory = z.infer<typeof communityReportCategorySchema>;
 export type CommunityReportStatus = z.infer<typeof communityReportStatusSchema>;
 export type CommunityReportMetadata = z.infer<typeof communityReportMetadataSchema>;

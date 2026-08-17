@@ -43,6 +43,8 @@ const reportFromRow = (row: DbRow): CommunityReportDto => ({
   respondersOnSite: typeof row.responders_on_site === "boolean" ? row.responders_on_site : null,
   routeStatus: (row.route_status as CommunityReportDto["routeStatus"]) ?? null,
   damageSeverity: (row.damage_severity as CommunityReportDto["damageSeverity"]) ?? null,
+  locationPrecision:
+    (row.public_location_precision as CommunityReportDto["locationPrecision"]) ?? "approximate",
   createdAt: new Date(String(row.created_at)).toISOString(),
   updatedAt: new Date(String(row.updated_at)).toISOString(),
 });
@@ -62,6 +64,7 @@ const toPublic = (report: CommunityReportDto): PublicCommunityReportDto => ({
   respondersOnSite: report.respondersOnSite,
   routeStatus: report.routeStatus,
   damageSeverity: report.damageSeverity,
+  locationPrecision: report.locationPrecision,
   createdAt: report.createdAt,
 });
 

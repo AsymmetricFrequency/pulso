@@ -67,6 +67,7 @@ describe("community report schemas", () => {
       respondersOnSite: null,
       routeStatus: null,
       damageSeverity: null,
+      locationPrecision: "approximate",
       createdAt: "2026-08-14T12:00:00Z",
       updatedAt: "2026-08-14T12:00:00Z",
     });
@@ -158,6 +159,7 @@ describe("community report schemas", () => {
       respondersOnSite: null,
       routeStatus: "bloqueada",
       damageSeverity: null,
+      locationPrecision: "approximate",
       createdAt: "2026-08-14T12:00:00Z",
     });
 
@@ -190,6 +192,7 @@ describe("community report schemas", () => {
       respondersOnSite: null,
       routeStatus: null,
       damageSeverity: "colapso",
+      locationPrecision: "approximate",
       createdAt: "2026-08-14T12:00:00Z",
     });
 
