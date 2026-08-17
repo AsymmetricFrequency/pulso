@@ -163,17 +163,29 @@ antes con las sobras de mapadelterremoto y con Ayudas Pereira.
 
 Así que se geocodifica. Con tres reglas que no se relajan.
 
-### 1. El resultado tiene que caer en el municipio declarado
+### 1. El punto tiene que caer dentro del polígono del municipio declarado
 
-Sin ese guardarraíl, «Alcaldía Municipal de Atrato» resuelve en **Medio Atrato** —otro municipio, a
+Sin guardarraíl, «Alcaldía Municipal de Atrato» resuelve en **Medio Atrato** —otro municipio, a
 horas— con toda la confianza del mundo. Medido: **uno de cada seis aciertos aparentes estaba en otro
 municipio.**
 
-La comparación es **igualdad tras normalizar**, no contención. La contención se probó primero y es
-un agujero: «Medio Atrato» *contiene* «Atrato», así que habría aceptado exactamente el error que el
-guardarraíl existe para atrapar. Normalizar sí resuelve las variantes reales de nombre —«Bogotá
-D.C.» y «Bogotá», «Cali ciudad» y «Cali», «Alto Baudó (Pie de Pató)» y «Alto Baudó» quedan
-idénticos—, que en la primera medición eran 3 de 4 rechazos.
+**Ninguna comparación de texto sirve, y costó dos intentos descubrirlo.** Contención: «Medio Atrato»
+*contiene* «Atrato», así que acepta justo el error que hay que atrapar. Igualdad: rechaza casi todo,
+porque OSM devuelve «Perímetro Urbano Medellín», «Cartagena de Indias» y, para un punto que sí está
+en Cali, el corregimiento «La Buitrera». Los tres son correctos y los tres se caían.
+
+La pregunta tiene respuesta geométrica y los datos ya estaban: **1.121 polígonos municipales del
+DANE**, con índice GiST desde la migración `001`. ¿Cae el punto dentro del polígono del municipio
+que declaró la fuente?
+
+Emparejar el nombre declarado con un polígono todavía necesita normalizar, así que eso es ahora una
+regla escrita en la base (`pulso_normalize_place`) y no algo que cada consulta reinvente. **La
+coincidencia exacta manda:** «Atrato» existe en el DANE, gana por sí sola, y el punto de Medio
+Atrato se rechaza. Solo cuando no hay exacta —«Cartagena», «Cúcuta»— compiten los nombres oficiales
+largos, y el punto elige entre ellos.
+
+Verificado contra los seis casos que fallaban: acepta Medellín, Cartagena, Cúcuta, Bogotá y Cali, y
+rechaza Atrato.
 
 ### 2. La precisión más fina que se puede afirmar es «calle»
 
