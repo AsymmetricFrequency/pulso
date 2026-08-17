@@ -38,6 +38,15 @@ export function rescueAlertMessage(
   const signs = report.signsOfLife ? SIGNS[report.signsOfLife] : "señales sin confirmar";
 
   return [
+    // El `@everyone` no es énfasis: es la única forma de que esto suene.
+    //
+    // El servidor tiene Comunidad activada, y Discord **obliga** a esos servidores a «Solo
+    // @menciones» —le quita el ajuste—. Sin mención, este aviso llega al canal y no despierta a
+    // nadie, que es exactamente el fallo que P0-6 existe para cerrar.
+    //
+    // Y es el único sitio del sistema donde se usa. Un canal que menciona a todos por cualquier
+    // cosa acaba silenciado, y entonces tampoco suena el día que hay alguien bajo escombros.
+    "@everyone",
     "🆘 **RESCATE REPORTADO**",
     report.title,
     "",

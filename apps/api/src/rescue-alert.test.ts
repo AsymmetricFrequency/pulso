@@ -65,6 +65,12 @@ describe("rescueAlertMessage", () => {
     );
   });
 
+  // Sin mención no suena: el servidor tiene Comunidad activada y Discord fuerza «solo @menciones».
+  // Un aviso de rescate que no despierta a nadie no es un aviso.
+  it("mentions everyone, because otherwise nothing rings", () => {
+    expect(rescueAlertMessage(base, "x")?.startsWith("@everyone")).toBe(true);
+  });
+
   it("warns that nobody has verified this", () => {
     expect(rescueAlertMessage(base, "x")).toContain("sin verificar");
   });
