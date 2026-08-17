@@ -8,6 +8,20 @@ import {
 
 const located = { latitude: 4.702, longitude: -74.0899, precision: "calle" as const };
 
+/** La primera fila del payload de prueba. Falla ruidosamente si el extractor deja de devolverla,
+ *  que es más útil que un `!` silenciando al comprobador de tipos. */
+const primerAcopio = () => {
+  const [row] = extractAcopioPoints(payload);
+  if (!row) throw new Error("el payload de prueba debe traer al menos un acopio");
+  return row;
+};
+
+const primerBanco = () => {
+  const [row] = extractBloodPoints(payload);
+  if (!row) throw new Error("el payload de prueba debe traer al menos un banco de sangre");
+  return row;
+};
+
 const payload = {
   ayuda: {
     acopios: [
@@ -75,7 +89,7 @@ describe("extractBloodPoints", () => {
 
 describe("buildAcopio", () => {
   it("carries what someone needs in order to go", () => {
-    const point = buildAcopio(extractAcopioPoints(payload)[0]!, located);
+    const point = buildAcopio(primerAcopio(), located);
     expect(point?.title).toBe("Minuto de Dios — Banco de Ropas");
     expect(point?.metadata.address).toBe("Transversal 73A #82-61");
     expect(point?.metadata.needs).toEqual(["alimentos no perecederos", "kits de aseo"]);
@@ -85,14 +99,14 @@ describe("buildAcopio", () => {
   // El marcador está donde el geocodificador puso la calle, que puede ser cuadras antes del portal.
   // Quien va a desplazarse tiene que leerlo, así que va en el texto y no solo en un icono.
   it("says out loud that the pin is approximate", () => {
-    const point = buildAcopio(extractAcopioPoints(payload)[0]!, located);
+    const point = buildAcopio(primerAcopio(), located);
     expect(point?.description).toContain("Ubicación aproximada");
     expect(point?.precision).toBe("calle");
   });
 
   it("refuses a point that landed outside Colombia", () => {
     const outside = { latitude: -33.44, longitude: -70.65, precision: "calle" as const };
-    expect(buildAcopio(extractAcopioPoints(payload)[0]!, outside)).toBeUndefined();
+    expect(buildAcopio(primerAcopio(), outside)).toBeUndefined();
   });
 });
 
@@ -100,7 +114,7 @@ describe("buildBloodPoint", () => {
   // Tres bancos se llamaban igual en tres ciudades distintas: «Cruz Roja — Banco Regional
   // permanente». En una lista eran el mismo punto repetido.
   it("titles the point by what it is, who runs it and where", () => {
-    const point = buildBloodPoint(extractBloodPoints(payload)[0]!, located);
+    const point = buildBloodPoint(primerBanco(), located);
     expect(point?.title).toBe("Donación de sangre — IDCBIS · Bogotá");
     expect(point?.metadata.sourceStatus).toBe("recibiendo");
     expect(point?.description).toContain("Ubicación aproximada");
