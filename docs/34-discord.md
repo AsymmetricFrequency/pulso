@@ -43,11 +43,43 @@ Los que ya existen tienen un uso definido:
 | `#solutions` | Preguntas técnicas y desatascos | — |
 | `#frontend` `#backend` `#devops` `#data` `#gis` `#blockchain` `#ai` | Trabajo del día a día de cada área | — |
 
-Hacen falta tres:
+Los tres que faltaban ya existen:
 
-- **`#tareas`** — canal de **foro**, no de texto. Un hilo por ticket. Es el tablero.
-- **`#github`** — solo el webhook. Nadie escribe aquí.
-- **`#alertas`** — fallos de ingesta, caídas, y (cuando exista `PL-3`) rescates nuevos.
+- **`#tareas`** — canal de **foro**, no de texto. Un hilo por ticket. Es el tablero. 26 de 27
+  tickets publicados; el que falta está hecho.
+- **`#github`** — solo el webhook. Nadie escribe aquí. Eventos: `push`, `pull_request`, `issues`,
+  `issue_comment`, `release`.
+- **`#alertas`** — cambios de estado de las ingestas y rescates nuevos.
+
+### Qué suena y qué no
+
+Esto importa más de lo que parece, y se aprendió a base de que no sonara nada.
+
+**El servidor tiene Comunidad activada**, y Discord **obliga** a esos servidores a «Solo
+@menciones»: no es un ajuste que se pueda cambiar, se lo quita del menú. Consecuencia directa: **un
+mensaje sin mención no notifica a nadie.** Llega al canal y se queda ahí.
+
+Por eso hay exactamente dos menciones en todo el sistema, y ninguna más:
+
+| Aviso | Menciona | Por qué |
+| --- | --- | --- |
+| Rescate reportado | `@everyone` | Es lo único que justifica despertar a catorce personas |
+| Fuente caída o recuperada | `@DevOps` | Le interesa a quien la puede arreglar, no a todos |
+
+**Un canal que suena por todo acaba silenciado**, y entonces tampoco suena el día que hay alguien
+bajo escombros. Si añades un aviso nuevo, la pregunta no es «¿es importante?» sino «¿justifica
+gastar la atención que el próximo rescate va a necesitar?».
+
+Y los avisos de fuentes van **en el cambio de estado**, no en cada fallo: Cali falla cada 30 minutos
+por diseño, y 48 mensajes diarios de algo ya sabido es exactamente cómo se pierde un canal.
+
+### Configuración que vive en `/opt/pulso/.env`
+
+- `DISCORD_WEBHOOK_ALERTS` — el webhook de `#alertas`. **Sin esto los avisos no salen, y no fallan
+  ruidosamente**: `alert()` hace `return` en la primera línea a propósito, porque un aviso roto
+  nunca puede tumbar la operación que lo originó.
+- `DISCORD_ALERT_ROLE_ID` — el rol al que se menciona en los avisos de ingesta. Opcional; sin él el
+  aviso sale sin mención y, con Comunidad activada, no notifica a nadie.
 
 **Por qué foro y no un tablero aparte:** un ticket en Discord es una conversación con estado. Un
 tablero aparte obliga a mantener dos lugares sincronizados a mano, y en la práctica uno de los dos
