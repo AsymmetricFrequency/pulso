@@ -141,6 +141,7 @@ import { MemoryMissionAccessRepository } from "./mission-access-repositories.js"
 import { MemoryOperationsAccessRepository } from "./operations-access-repositories.js";
 import type { PostgresAdminRepository } from "./postgres-admin-repository.js";
 import { EmptySeismicShakingRepository } from "./postgres-seismic-shaking-repository.js";
+import { rescueAlertMessage } from "./rescue-alert.js";
 import {
   EmptySgcPublicSourceRepository,
   type SgcPublicSourceRepository,
@@ -583,6 +584,19 @@ export async function buildApp(options: BuildAppOptions = {}) {
         ? createHash("sha256").update(`community-report:${request.ip}`).digest("hex")
         : null;
       const report = await communityReports.create(incident.id, input, { sourceIpHash });
+
+      // El aviso se manda **después** de escribir y **sin esperarlo**.
+      //
+      // Después, porque un fallo al avisar nunca puede impedir que el reporte se guarde: sería la
+      // peor forma posible de perder un rescate. Y sin esperarlo, porque quien reporta está de pie
+      // al lado de un derrumbe con mala señal, y no tiene por qué mirar una pantalla girando
+      // mientras hablamos con Discord. `alert()` se traga sus propios errores y tiene timeout, así
+      // que esta promesa no puede romper nada ni quedarse colgada.
+      const alertMessage = options.discordClient
+        ? rescueAlertMessage(publicCommunityReportSchema.parse(report), siteUrl)
+        : null;
+      if (alertMessage) void options.discordClient?.alert(alertMessage);
+
       return reply.status(201).send(publicCommunityReportSchema.parse(report));
     },
   );

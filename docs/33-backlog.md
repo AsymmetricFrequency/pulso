@@ -67,18 +67,26 @@ cuentas que ya publican mapas, los organismos de socorro.
 - **Acepta cuando:** existe la pieza, está publicada, y podemos nombrar tres canales donde llegó.
 - **Ojo:** el mensaje tiene que decir «llama al 123 primero». Sin esa frase, no se publica.
 
-### `P0-6` · Avisar a los rescatistas cuando entra un reporte · **M** · Backend + DevOps
+### ~~`P0-6` · Avisar a los rescatistas cuando entra un reporte~~ · **Hecho el 17/08**
 
-Hoy un reporte de personas atrapadas se queda esperando a que alguien mire la pantalla. Sin aviso,
-toda la ventaja de que reportar sea rápido se pierde en el último tramo.
+Al enviar un rescate sale un aviso a `#alertas` con las personas, las señales de vida, si ya hay
+equipo en el sitio y un enlace de navegación. `apps/api/src/rescue-alert.ts`.
 
-El webhook de `#alertas` ya existe y el cliente de Discord ya sabe publicar; falta disparar en el
-momento del reporte, y una segunda vía que no dependa de que alguien tenga Discord abierto.
+**Tres decisiones que conviene no deshacer**
 
-- **Acepta cuando:** al enviar un rescate, en menos de un minuto aparece un aviso en `#alertas` con
-  las personas, las señales de vida y un enlace al punto.
-- **Ojo:** un fallo al avisar **nunca** puede impedir que el reporte se guarde. El aviso se manda
-  después de escribir, no antes, y su error se traga — igual que en `DiscordClient.alert`.
+- **El aviso se manda después de escribir y sin esperarlo.** Después, porque un fallo al avisar
+  nunca puede impedir que el reporte se guarde. Sin esperarlo, porque quien reporta está de pie al
+  lado de un derrumbe con mala señal y no tiene por qué mirar una pantalla girando mientras
+  hablamos con Discord.
+- **`alert()` ahora tiene timeout.** No era cosmético: colgaba del camino de un rescate.
+- **Solo suenan los rescates.** Un canal que suena por todo es un canal que la gente silencia, y
+  entonces el aviso que importa tampoco llega.
+
+**Lo que falta y no está en este ticket:** la segunda vía que no dependa de que alguien tenga
+Discord abierto. Hoy, si nadie mira Discord, nadie se entera.
+
+**Requisito de operación:** sin `DISCORD_WEBHOOK_ALERTS` en `/opt/pulso/.env` el aviso no sale — y
+no falla ruidosamente, hace `return` en silencio a propósito.
 
 ### `P0-7` · Sala de situación por ciudad · **L** · Frontend + GIS
 

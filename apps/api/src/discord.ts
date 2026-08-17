@@ -266,6 +266,10 @@ export class DiscordClient {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: content.slice(0, 2000) }),
+        // Con timeout, y no es cosmético: esta llamada cuelga del camino de un reporte de rescate.
+        // Un `fetch` sin límite puede quedarse esperando a un webhook que no contesta mientras
+        // alguien está de pie al lado de un derrumbe mirando una pantalla que no responde.
+        signal: AbortSignal.timeout(5_000),
       });
     } catch {
       // Silencio deliberado. Ver arriba.
