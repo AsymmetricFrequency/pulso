@@ -40,7 +40,8 @@ UPDATE project_tasks SET
   updated_at = now()
 WHERE code = 'P0-10';
 
-INSERT INTO project_task_events (id, task_code, kind, actor_discord_id, actor_username, detail)
-SELECT gen_random_uuid(), 'P0-10', 'status_changed', NULL, NULL,
-       'Cerrado sin dueño: se construyó fuera del tablero y no había nombre honesto que ponerle.'
-WHERE EXISTS (SELECT 1 FROM project_tasks WHERE code = 'P0-10');
+-- No se registra un evento en `project_task_events`, y eso también es a propósito: esa tabla exige
+-- `actor_discord_id` y `actor_username` NOT NULL, y ahí la restricción **sí** está bien puesta —un
+-- evento lo hace alguien—. Como este cierre no lo hizo ningún usuario de Discord, inventar un actor
+-- sería la misma mentira por otra puerta. El cambio queda en `updated_at` y en el resumen del
+-- ticket, que dice cuándo se hizo y qué se desplegó.
