@@ -229,6 +229,19 @@ export async function runCuidarColombiaIngestion(options: {
 
   const sql = postgres(options.databaseUrl, { max: 1 });
   try {
+    // Un solo pase de geocodificación a la vez, en toda la instalación.
+    //
+    // La política de Nominatim pide «single thread, one machine». Sin cerrojo, el trabajo
+    // programado del worker y una corrida a mano pueden solaparse —pasó— y entre los dos duplican
+    // el ritmo de peticiones sin que ninguno lo sepa. El cerrojo es consultivo y se suelta solo si
+    // el proceso muere, que es exactamente el comportamiento que hace falta aquí.
+    const [lock] = await sql<{ acquired: boolean }[]>`
+      SELECT pg_try_advisory_lock(hashtext('pulso:geocode')) AS acquired
+    `;
+    if (!lock?.acquired) {
+      return { status: "unchanged" as const, httpStatus: snapshot.httpStatus, etag: snapshot.etag };
+    }
+
     const geocoder = new Geocoder(sql);
     const points: MappedAcopio[] = [];
     const skipped = { sinDireccion: 0, sinResultado: 0, otroMunicipio: 0 };
@@ -262,6 +275,9 @@ export async function runCuidarColombiaIngestion(options: {
       etag: snapshot.etag,
     };
   } finally {
+    // `sql.end()` cierra la conexión y con ella se suelta el cerrojo, pero soltarlo explícitamente
+    // deja dicho que es intencional y no un efecto secundario del cierre.
+    await sql`SELECT pg_advisory_unlock(hashtext('pulso:geocode'))`.catch(() => undefined);
     await sql.end({ timeout: 5 });
   }
 }
