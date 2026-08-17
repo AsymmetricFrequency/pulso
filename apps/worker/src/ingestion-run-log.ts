@@ -200,3 +200,34 @@ export function httpStatusFromError(error: unknown): number | null {
   const status = Number.parseInt(match[1], 10);
   return Number.isFinite(status) ? status : null;
 }
+
+/**
+ * Retira los puntos que su fuente dejó de publicar.
+ *
+ * Sin esto el mapa solo crece. Medido el 17/08: **648 puntos —el 17 % del mapa— que su fuente ya no
+ * publicaba**, y en `contemos` era el 54 % de lo suyo. Un centro de acopio que cerró seguía
+ * apareciendo abierto, que es peor que no tenerlo: manda gente con cosas a una puerta cerrada.
+ *
+ * No se borra nada. Pasan a `superseded`, que es el vocabulario que ya existía para «esto ya no es
+ * el estado actual»: salen de las vistas públicas, se quedan en la base con su historial, y si la
+ * fuente vuelve a publicarlos el upsert los devuelve a la vida solo.
+ *
+ * **Las 24 horas de gracia son el punto entero.** Una corrida que falla a medias, o un feed que
+ * parpadea, no puede vaciar el mapa. Un punto tiene que llevar un día sin aparecer para retirarse,
+ * así que hacen falta muchas corridas malas seguidas —no una— para hacer daño. Y en una emergencia
+ * de una semana, un dato de hace más de un día ya no es el estado de nada.
+ */
+export async function retireUnseenPoints(
+  sql: Sql,
+  sourceId: string,
+  gracePeriod = "24 hours",
+): Promise<number> {
+  const rows = await sql<{ id: string }[]>`
+    UPDATE community_reports SET status = 'superseded', updated_at = now()
+    WHERE external_source_id = ${sourceId}
+      AND status NOT IN ('rejected', 'superseded')
+      AND updated_at < now() - ${gracePeriod}::interval
+    RETURNING id
+  `;
+  return rows.length;
+}

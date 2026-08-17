@@ -14,6 +14,7 @@ import {
   lastEtagForSource,
   outcomeFromResult,
   recordsSeenFromResult,
+  retireUnseenPoints,
   startIngestionRun,
 } from "./ingestion-run-log.js";
 import { MAPADELTERREMOTO_SOURCE, runMapaDelTerremotoIngestion } from "./mapadelterremoto.js";
@@ -229,6 +230,20 @@ export async function runIngestionSourceWithLog(source: IngestionSourceConfig): 
     const runId = await startIngestionRun(sql, definition);
     try {
       const result = await source.run({ runId, previousEtag });
+
+      // Solo se retira tras una corrida que **de verdad** trajo datos. Una que devolvió 304 no vio
+      // nada, así que no puede afirmar que un punto dejó de publicarse.
+      const retired =
+        outcomeFromResult(result) === "succeeded" && recordsSeenFromResult(result) > 0
+          ? await retireUnseenPoints(sql, definition.id)
+          : 0;
+      if (retired > 0) {
+        console.info("Puntos retirados por dejar de publicarse", {
+          source: source.name,
+          retired,
+        });
+      }
+
       await completeIngestionRun(sql, runId, {
         status: outcomeFromResult(result),
         recordsSeen: recordsSeenFromResult(result),

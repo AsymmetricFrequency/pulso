@@ -276,13 +276,13 @@ export class PostgresAdminRepository {
           count(*)::int AS total
         FROM community_reports c
         JOIN incidents i ON i.id = c.incident_id
-        WHERE i.code = ${incidentCode} AND c.status <> 'rejected'
+        WHERE i.code = ${incidentCode} AND c.status NOT IN ('rejected', 'superseded')
       `,
       this.sql<Record<string, unknown>[]>`
         SELECT c.report_type AS type, count(*)::int AS count
         FROM community_reports c
         JOIN incidents i ON i.id = c.incident_id
-        WHERE i.code = ${incidentCode} AND c.status <> 'rejected'
+        WHERE i.code = ${incidentCode} AND c.status NOT IN ('rejected', 'superseded')
         GROUP BY c.report_type
       `,
       this.sql<Record<string, unknown>[]>`

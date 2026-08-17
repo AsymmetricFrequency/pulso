@@ -158,7 +158,7 @@ export class MemoryCommunityReportRepository implements CommunityReportRepositor
     await this.#requireIncident(incidentId);
     const box = query.boundingBox;
     const scoped = [...this.#reports.values()].filter((report) => {
-      if (report.incidentId !== incidentId || report.status === "rejected") return false;
+      if (report.incidentId !== incidentId || report.status === "rejected" || report.status === "superseded") return false;
       if (!box) return true;
       const [lng, lat] = report.location.coordinates;
       return lng >= box[0] && lng <= box[2] && lat >= box[1] && lat <= box[3];
@@ -186,7 +186,7 @@ export class MemoryCommunityReportRepository implements CommunityReportRepositor
   ): Promise<PublicCommunityReportDto | null> {
     await this.#requireIncident(incidentId);
     const report = this.#reports.get(reportId);
-    if (!report || report.incidentId !== incidentId || report.status === "rejected") return null;
+    if (!report || report.incidentId !== incidentId || report.status === "rejected" || report.status === "superseded") return null;
     return toPublic(report);
   }
 

@@ -3,6 +3,7 @@ import {
   httpStatusFromError,
   outcomeFromResult,
   recordsSeenFromResult,
+  retireUnseenPoints,
 } from "./ingestion-run-log.js";
 
 describe("recordsSeenFromResult", () => {
@@ -52,5 +53,26 @@ describe("httpStatusFromError", () => {
     expect(httpStatusFromError(new Error("Gravitas feed has no 'features' array"))).toBeNull();
     expect(httpStatusFromError(new Error("HTTP 40"))).toBeNull();
     expect(httpStatusFromError("timeout")).toBeNull();
+  });
+});
+
+describe("retireUnseenPoints", () => {
+  // El periodo de gracia es la pieza que hace segura toda la retirada: sin él, una corrida que
+  // falla a medias vacía el mapa. Con 24 horas hacen falta muchas corridas malas seguidas.
+  it("asks for points older than the grace period, and never touches a judged one", async () => {
+    const consultas: string[] = [];
+    const sql = ((strings: TemplateStringsArray) => {
+      consultas.push(strings.join("?"));
+      return Promise.resolve([{ id: "a" }, { id: "b" }]);
+    }) as unknown as Parameters<typeof retireUnseenPoints>[0];
+
+    expect(await retireUnseenPoints(sql, "contemos-mapa-situacion")).toBe(2);
+
+    const sql_ = consultas.join(" ");
+    expect(sql_).toContain("status = 'superseded'");
+    expect(sql_).toContain("NOT IN ('rejected', 'superseded')");
+    expect(sql_).toContain("interval");
+    // No se borra nada: el punto se queda en la base con su historial.
+    expect(sql_).not.toContain("DELETE");
   });
 });

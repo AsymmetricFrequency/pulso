@@ -177,7 +177,7 @@ export class PostgresCommunityReportRepository implements CommunityReportReposit
       this.sql<DbRow[]>`
         SELECT ${columns}, ST_AsGeoJSON(location)::json AS location
         FROM community_reports
-        WHERE incident_id = ${incidentId} AND status <> 'rejected' ${scope}
+        WHERE incident_id = ${incidentId} AND status NOT IN ('rejected', 'superseded') ${scope}
         ORDER BY
           -- Un rescate va primero, sin excepción y por encima del estado de revisión. Con 2.288
           -- reportes en la tabla, un tope de 800 en la vista de país y orden por validación, un
@@ -195,7 +195,7 @@ export class PostgresCommunityReportRepository implements CommunityReportReposit
       this.sql<{ total: string }[]>`
         SELECT count(*)::text AS total
         FROM community_reports
-        WHERE incident_id = ${incidentId} AND status <> 'rejected' ${scope}
+        WHERE incident_id = ${incidentId} AND status NOT IN ('rejected', 'superseded') ${scope}
       `,
     ]);
 
@@ -217,7 +217,7 @@ export class PostgresCommunityReportRepository implements CommunityReportReposit
     const [row] = await this.sql<DbRow[]>`
       SELECT *, ST_AsGeoJSON(location)::json AS location
       FROM community_reports
-      WHERE incident_id = ${incidentId} AND id = ${reportId} AND status <> 'rejected'
+      WHERE incident_id = ${incidentId} AND id = ${reportId} AND status NOT IN ('rejected', 'superseded')
       LIMIT 1
     `;
     return row ? toPublic(reportFromRow(row)) : null;
