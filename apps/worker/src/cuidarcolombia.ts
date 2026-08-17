@@ -104,7 +104,12 @@ export function buildBloodPoint(
   if (!isWithinColombia(located.latitude, located.longitude)) return undefined;
   const entidad = text(row.record.entidad);
   const donde = text(row.record.donde);
-  const title = `Donación de sangre — ${entidad ?? row.city}`.slice(0, 140);
+  // La ciudad va en el título, no solo en los metadatos. Sin ella hay tres puntos llamados
+  // «Donación de sangre — Cruz Roja — Banco Regional permanente» en tres ciudades distintas, y en
+  // una lista son el mismo punto repetido.
+  const title = (
+    entidad ? `Donación de sangre — ${entidad} · ${row.city}` : `Donación de sangre — ${row.city}`
+  ).slice(0, 140);
 
   const description = [
     donde,

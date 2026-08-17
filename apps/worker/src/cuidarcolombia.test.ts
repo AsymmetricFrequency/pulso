@@ -28,9 +28,24 @@ const payload = {
       },
     ],
     sangre: [
-      { ciudad: "Bogotá", entidad: "IDCBIS", donde: "Carrera 32 #12-81", estado_operacion: "recibiendo" },
-      { ciudad: "Cali", entidad: "Jornada del parque", donde: "Calle 5", estado_operacion: "finalizado" },
-      { ciudad: "Armenia", entidad: "Cruz Roja", donde: "Avenida Bolívar #23", estado_operacion: null },
+      {
+        ciudad: "Bogotá",
+        entidad: "IDCBIS",
+        donde: "Carrera 32 #12-81",
+        estado_operacion: "recibiendo",
+      },
+      {
+        ciudad: "Cali",
+        entidad: "Jornada del parque",
+        donde: "Calle 5",
+        estado_operacion: "finalizado",
+      },
+      {
+        ciudad: "Armenia",
+        entidad: "Cruz Roja",
+        donde: "Avenida Bolívar #23",
+        estado_operacion: null,
+      },
     ],
   },
 };
@@ -82,9 +97,11 @@ describe("buildAcopio", () => {
 });
 
 describe("buildBloodPoint", () => {
-  it("titles the point by what it is and who runs it", () => {
+  // Tres bancos se llamaban igual en tres ciudades distintas: «Cruz Roja — Banco Regional
+  // permanente». En una lista eran el mismo punto repetido.
+  it("titles the point by what it is, who runs it and where", () => {
     const point = buildBloodPoint(extractBloodPoints(payload)[0]!, located);
-    expect(point?.title).toBe("Donación de sangre — IDCBIS");
+    expect(point?.title).toBe("Donación de sangre — IDCBIS · Bogotá");
     expect(point?.metadata.sourceStatus).toBe("recibiendo");
     expect(point?.description).toContain("Ubicación aproximada");
   });
