@@ -26,6 +26,7 @@ import {
 } from "./redcaliayuda-acopio.js";
 import { runSecopIngestion, SECOP_SOURCE } from "./secop.js";
 import { runSgcEarthquakeIngestion, SGC_EARTHQUAKE_SOURCE } from "./sgc-earthquakes.js";
+import { detectHealthChange, healthChangeMessage, sendAlert } from "./source-health.js";
 import { runTerremotoColombiaIngestion, TERREMOTOCOLOMBIA_SOURCE } from "./terremotocolombia.js";
 import { runUsgsShakingIngestion, USGS_SHAKEMAP_SOURCE } from "./usgs.js";
 
@@ -203,6 +204,28 @@ export const INGESTION_SOURCES: IngestionSourceConfig[] = [
 ];
 
 /**
+ * Avisa si esta corrida cambió el estado de salud de la fuente.
+ *
+ * Va aparte y se traga sus errores: un fallo al avisar no puede impedir que la corrida se registre
+ * ni que el error original se propague a BullMQ.
+ */
+async function announceHealthChange(
+  sql: postgres.Sql,
+  sourceId: string,
+  runId: string,
+  displayName: string,
+): Promise<void> {
+  try {
+    const change = await detectHealthChange(sql, sourceId, runId);
+    if (!change) return;
+    console.info("Cambio de salud de una fuente", { source: sourceId, kind: change.kind });
+    await sendAlert(healthChangeMessage(change, displayName));
+  } catch {
+    // Silencio deliberado.
+  }
+}
+
+/**
  * Ejecuta una fuente dejando constancia de la corrida —incluido el fallo— en
  * `source_ingestion_runs`.
  *
@@ -252,6 +275,8 @@ export async function runIngestionSourceWithLog(source: IngestionSourceConfig): 
         // siguiente a descargarlo todo otra vez.
         etag: etagFromResult(result) ?? previousEtag,
       });
+
+      await announceHealthChange(sql, definition.id, runId, definition.name);
       return result;
     } catch (error) {
       await completeIngestionRun(sql, runId, {
@@ -259,6 +284,7 @@ export async function runIngestionSourceWithLog(source: IngestionSourceConfig): 
         httpStatus: httpStatusFromError(error),
         errorMessage: (error instanceof Error ? error.message : String(error)).slice(0, 2_000),
       });
+      await announceHealthChange(sql, definition.id, runId, definition.name);
       throw error;
     }
   } finally {
