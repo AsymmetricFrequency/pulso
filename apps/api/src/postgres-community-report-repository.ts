@@ -161,10 +161,16 @@ export class PostgresCommunityReportRepository implements CommunityReportReposit
 
     // La proyección ligera no pide description ni metadata a Postgres: no es solo ahorro de red,
     // también evita traer 350 KB de jsonb que nadie va a leer.
+    //
+    // **Esta lista se escribe a mano y por eso se queda atrás.** Ya pasó: `public_location_precision`
+    // se añadió al esquema y al mapeo de filas, y como no se añadió aquí, todos los puntos del mapa
+    // llegaban como `approximate` y los geocodificados se dibujaban igual que los reportados desde
+    // el sitio. Si añades un campo a `mapCommunityReportSchema`, añádelo también aquí: lo que
+    // decide el dibujo del marcador tiene que salir de Postgres.
     const columns = mapView
       ? this.sql`id, incident_id, report_type, category, title, status, created_at, updated_at,
                  people_reported, signs_of_life, responders_on_site, route_status,
-                 damage_severity`
+                 damage_severity, public_location_precision`
       : this.sql`*`;
 
     const [rows, [totalRow]] = await Promise.all([
