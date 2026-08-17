@@ -117,6 +117,15 @@ mapa, glifo propio y entrada en la leyenda. Ver [`37-fuentes.md`](37-fuentes.md)
 metido el aeropuerto de Buenaventura al mapa como Puesto de Mando Unificado. Un dato mal etiquetado
 cuesta más que un dato ausente.
 
+### ~~`P0-9` · Pedir los datos de mapadelterremoto~~ · **Reformulado el 16/08**
+
+Sus datos ya están en el mapa: publican `/datos/registro-ligero.json` como fichero estático con CORS
+abierto, y su propio mapa pide el mismo. **1.089 puntos de daño ingeridos.**
+
+Lo que queda pendiente es distinto y sigue importando: **no tienen licencia declarada** y el endpoint
+no está documentado, así que puede moverse sin aviso. La petición ahora es «pónganle una licencia y
+manténganlo estable», no «dennos los datos». Ver [`37-fuentes.md`](37-fuentes.md).
+
 ### `P0-5` · Que el triaje de contratos corra · **S** · AI + DevOps
 
 Está desplegado y quieto: falta `ANTHROPIC_API_KEY` en `/opt/pulso/.env`. Son ~3 USD por los 357

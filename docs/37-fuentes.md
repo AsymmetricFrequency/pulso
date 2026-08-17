@@ -3,7 +3,7 @@
 Estado verificado el 16 de agosto de 2026 corriendo las once ingestas y consultando la base. No es
 una lista de intenciones: cada cifra salió de `source_ingestion_runs`.
 
-**Once fuentes conectadas. Diez funcionan. Una está bloqueada en origen.**
+**Doce fuentes conectadas. Once funcionan. Una está bloqueada en origen.**
 
 En el panel administrativo, `admin.pulso.my` → Operación, esta misma tabla se ve en vivo con la
 última corrida de cada una.
@@ -45,6 +45,7 @@ institucional; nunca registros de personas.
 | `terremotocolombia-co` | Acopio y puntos de la emergencia | 220 | Funciona |
 | `gravitas-mapa-ciudadano` | Edificios, acopios, logística, voluntariado | 200 | Funciona |
 | `redcaliayuda-acopio` | Centros de acopio de Cali | 127 | Funciona |
+| `mapadelterremoto-registro` | Registro nacional de daños: colapsos, escuelas, hospitales, vías | 1.089 | Funciona |
 
 ### Lo que no se importa nunca
 
@@ -84,16 +85,85 @@ que cada autor se acuerde no es una invariante. Va en la base.
 
 ---
 
-## Candidatas: rastreadas el 16 de agosto, ninguna conectada todavía
+## mapadelterremoto: cómo se conectó y qué se decidió
 
-Cinco plataformas más están publicando sobre este sismo. Ninguna se ingiere aún, y la razón importa:
-**solo una tiene datos abiertos con licencia de reutilización.** Las otras exigirían deducir su API
-interna, que es exactamente lo mismo que rodear el 403 de Cali — y eso ya está decidido que no se
-hace.
+**1.089 puntos de daño en el mapa** — colapsos, escuelas, hospitales, patrimonio, vías— desde el
+registro nacional de [mapadelterremoto.com](https://www.mapadelterremoto.com/), operado por Naboo
+Intelligence. Es la primera fuente que nos da daño estructural fuera de Cali.
+
+### De dónde salen los datos
+
+De `/datos/registro-ligero.json`: un fichero estático, bajo una ruta llamada literalmente «datos»,
+servido con `access-control-allow-origin: *` —publicado para que lo consuman otros— y con
+`robots.txt` en `Allow: /`. **Su propio mapa pide ese mismo fichero.** No es una API interna deducida
+leyendo su JavaScript, que es lo que decidimos no hacer.
+
+No tiene licencia declarada. Dicen que tras el 30/11/2026 los datos quedan «publicados de forma
+permanente en formato abierto». Hasta entonces: atribución visible en cada punto y enlace a su
+ficha. `P0-9` sigue en pie, pero la petición cambia: ya no es «dennos los datos», es **pónganle una
+licencia y mantengan estable el endpoint**.
+
+### Las descargas son condicionales
+
+El fichero pesa 4 MB. Sondearlo cada media hora sin condicional serían ~200 MB al día servidos por
+quien nos está dando los datos gratis. Con `If-None-Match` la mayoría de las corridas devuelve **304
+y cero bytes**.
+
+`source_ingestion_runs` tenía columnas `etag` y un estado `unchanged` desde la migración `012` y
+ningún importador los había usado nunca. La primera fuente que los necesitó fue esta.
+
+### Cuatro decisiones
+
+**Solo entran los puntos con coordenada real: 1.146 de 3.110.** La fuente es escrupulosa —cuando
+solo conoce el municipio deja `lat`/`lon` en null en vez de poner el centroide— y sostenemos la
+misma línea. Clavar un edificio en el centro del pueblo manda a un equipo al sitio equivocado.
+
+**Las personas atrapadas viajan como contexto, nunca como `rescate`.** El registro reporta 92
+atrapados. Son cifras de prensa del 10 y el 11 de agosto, sin confirmar en ocho de cada nueve casos.
+Ponerlas por encima de un reporte ciudadano de hace diez minutos rompería lo único que la cola de
+rescate tiene que garantizar: que lo de arriba vale la pena atender.
+
+**`NOTICIA`, `SAQUEO`, `ROBO` e `INCENDIO` se quedan fuera.** Una nota de prensa no es un punto del
+territorio, y saqueo y robo son denuncias sobre gente concreta en un barrio concreto: publicarlas
+georreferenciadas señala vecindarios sin que nadie pueda responder por el dato.
+
+**`DESCARTADO` no se importa.** La propia fuente evaluó esos 137 puntos y concluyó que no eran
+ciertos. Importarlos como cualquier otra cosa sería republicar algo que su autor ya desmintió.
+
+### El fallo de privacidad, y por qué es distinto del anterior
+
+**El mapa llegó a publicar «Barrio Grisales · vivienda de Olmedo Zapata».** Nueve registros, en
+producción, durante unos minutos.
+
+Di por segura la dirección porque son edificios e instituciones —y 1.091 de 1.100 veces lo es—. Pero
+cuando la casa que cayó es de una familia, la fuente la identifica **por su dueño**. Publicar ese
+nombre junto a «su casa colapsó» dice dónde vive, que lo perdió todo y que esta noche no está ahí.
+
+Esos puntos conservan coordenada, severidad y fuente, y pierden el hogar: el título pasa a «Vivienda
+afectada — Quimbaya», y se caen la dirección, el barrio y la descripción —que en esos registros es
+esa misma familia hablando de su casa—.
+
+**La lección es más estrecha que «revisa el texto libre».** Revisé el campo que parecía prosa y
+confié en el que parecía dato. Que un campo lleve el nombre de una persona no depende de lo
+estructurado que sea.
+
+El disparador de redacción sí hizo su trabajo en paralelo: **30 descripciones importadas traían
+teléfono y las tapó en la base**, sin que el importador tuviera que acordarse. Comprobado: cero
+móviles en las 1.089 filas.
+
+---
+
+## Candidatas: rastreadas el 16 de agosto
+
+De las cinco rastreadas, **mapadelterremoto ya está conectada** (arriba) y Bogotá resultó no tener
+los datos. Quedan tres, y ninguna publica un fichero como el suyo.
+
+**El criterio no es «tiene API o no».** Es si el acceso está abierto o bloqueado: un `robots.txt`
+permisivo y un fichero servido con CORS abierto es una publicación; un 403 es una negativa. Lo
+primero se lee, lo segundo no se rodea.
 
 | Candidata | Qué tiene | Cómo se accede | Qué hacer |
 | --- | --- | --- | --- |
-| [mapadelterremoto.com](https://www.mapadelterremoto.com/) | **3.110 puntos en 363 municipios**: 66 edificios colapsados, 2.838 escuelas, 285 centros de salud, 407 vías | Next.js, sin API pública. `robots.txt` permite rastreo | **Escribirles.** Dicen que publicarán en formato abierto tras el 30/11/2026 |
 | [Datos Abiertos Bogotá](https://datosabiertos.bogota.gov.co/) | ~~Acopios oficiales~~ **No existen** | API CKAN abierta, pero sin datos de esta emergencia | **Descartada.** Ver abajo |
 | [cuidarcolombia.vercel.app](https://cuidarcolombia.vercel.app/) | 219 registros verificados de 111 fuentes, 13 municipios | Sin API | **Escribirles.** Ya no publican datos personales: misma postura que nosotros |
 | [Un Ladrillo por Colombia](https://unladrilloporcolombia.com) | Contadores de ladrillos y casas completadas | Sin API. Publica nombres de donantes | Enlazar. Es reconstrucción (P2), no emergencia |
@@ -122,15 +192,7 @@ y Pereira no hay acopios oficiales publicados, y no van a aparecer solos. Por es
 
 ### Lo que este rastreo dejó claro
 
-**Los 66 edificios colapsados de `mapadelterremoto.com` son P0 puro** —es donde puede haber gente
-debajo— y cubren 363 municipios frente a nuestro foco en Cali. Es el dato que más nos falta.
-
-Y no se saca con un scraper. La postura correcta es la misma de siempre: **pedirlo.** Ellos tienen
-3.110 puntos y nosotros tenemos procedencia por dato, una regla de privacidad que cumplimos incluso
-cuando nos cuesta, y código abierto bajo Apache-2.0. Un intercambio sirve a los dos y sobrevive a
-que cambien su frontend; un scraper se rompe el martes y quema la relación.
-
-Ver [`35-alianzas.md`](35-alianzas.md) para cómo se abre esa conversación.
+Ver [`35-alianzas.md`](35-alianzas.md) para cómo se abre una conversación con una plataforma.
 
 ## Auditoría de rendimiento — 16 de agosto
 
