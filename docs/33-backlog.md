@@ -268,4 +268,4 @@ No son tickets todavía. Están aquí para que nadie los redescubra y crea que e
 | Sin límite de tasa en las rutas públicas de lectura | El día que nos enlacen desde un medio grande, se cae | DevOps |
 | Copernicus sin decidir | Puede que estemos por duplicar el trabajo de otro equipo | Data |
 | ~~677 necesidades con una dirección por título~~ | Corregido el 16/08: el título sale de lo que se pidió y la dirección va a `metadata.address`. Quedan 33, que son personas que escribieron su dirección en el campo de qué necesitan | Hecho |
-| 84 centros de Ayudas Pereira sin coordenada | No se pintan en el mapa. Tienen dirección en texto, pero geocodificar mal manda un equipo al sitio equivocado | Data |
+| 28 centros de Ayudas Pereira sin coordenada (arrastran 56 necesidades) | No se pintan. **No se pueden geocodificar**: sus centros no traen campo de municipio, y sin municipio declarado no hay polígono contra el que validar. Hay que pedirles el campo | Data |

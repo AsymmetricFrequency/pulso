@@ -46,7 +46,7 @@ institucional; nunca registros de personas.
 | `gravitas-mapa-ciudadano` | Edificios, acopios, logística, voluntariado | 200 | Funciona |
 | `redcaliayuda-acopio` | Centros de acopio de Cali | 127 | Funciona |
 | `mapadelterremoto-registro` | Registro nacional de daños: colapsos, escuelas, hospitales, vías | 1.089 | Funciona |
-| `cuidarcolombia-acopios` | Acopios verificados fuera de Cali y Pereira, con horario | geocodificados | Funciona |
+| `cuidarcolombia-acopios` | Acopios y bancos de sangre fuera de Cali y Pereira, con horario | 72 | Funciona |
 
 ### Lo que no se importa nunca
 
@@ -204,10 +204,13 @@ equipo que va a sacar a alguien de debajo de unos escombros necesita la esquina,
 
 ### Qué tasa de acierto tiene, de verdad
 
-| Fuente | Muestra | Aciertos | Por qué |
+| Fuente | Intentados | Resueltos | Por qué |
 | --- | --- | --- | --- |
-| `cuidarcolombia` | 22 | **20 (91 %)** | Direcciones de calle reales, en ciudades grandes, que nadie había geocodificado |
-| Sobras de `mapadelterremoto` | 25 | **4 (16 %)** | Nominatim ya falló con ellas una vez |
+| `cuidarcolombia` (pase completo) | 93 | **72 (77 %)** | Direcciones de calle reales, en ciudades grandes, que nadie había geocodificado |
+| Sobras de `mapadelterremoto` (muestra) | 25 | **4 (16 %)** | Nominatim ya falló con ellas una vez |
+
+Del pase real de cuidarcolombia: 72 resueltos, 14 sin resultado, **7 rechazados por caer fuera del
+polígono de su municipio** —el guardarraíl trabajando— y 25 puntos que no traían dirección.
 
 **La segunda fila es la que ahorra trabajo.** Parecía que había ~2.060 puntos sin coordenada
 esperando; son ~177. Los 1.891 de mapadelterremoto ya pasaron por Nominatim —su propio campo
@@ -366,9 +369,19 @@ Dos fallos distintos, dos arreglos:
 `titulo` tal como lo escribió quien reportó allá. Reescribirlo sería editar el registro de otro. Lo
 correcto es `PL-13` —acordar un formato— no un parche en nuestro importador.
 
-**84 centros de Ayudas Pereira no tienen coordenada** y por eso no se pintan. Tienen dirección en
-texto. Geocodificarlos es trabajo real —y una dirección mal geocodificada manda a un equipo al lugar
-equivocado, que es peor que no mostrarla.
+**28 centros de Ayudas Pereira no tienen coordenada**, y cada uno se lleva por delante sus
+necesidades: 28 centros + 56 necesidades = los 84 registros que se pierden. (Antes aquí decía «84
+centros sin coordenada». Estaba mal atribuido: se midió la pérdida total y se le puso la causa
+equivocada.)
+
+**No se pueden geocodificar con el guardarraíl que tenemos.** Sus centros no traen campo de
+municipio —solo `nombre` y `direccion`— y sin municipio declarado no hay polígono contra el que
+validar, que es toda la seguridad del proceso. Varios además no tienen dirección aprovechable:
+«Minuto», «Universidad libre Belmonte», «Acopio móvil · vamos por las donaciones a dónde necesiten»,
+y un «centro de prueba» que la fuente dejó dentro.
+
+Deducir el municipio del texto libre sería adivinar, y adivinar mal pone un acopio en otra ciudad.
+El camino correcto es pedirles el campo, no inventarlo.
 
 ---
 

@@ -66,6 +66,75 @@ const STATUS_BY_LEVEL: Record<string, "reported" | "corroborated"> = {
   fuente_secundaria: "reported",
 };
 
+type Sangre = {
+  ciudad?: unknown;
+  entidad?: unknown;
+  donde?: unknown;
+  estado_operacion?: unknown;
+  tipos_urgentes?: unknown;
+  fuente_titulo?: unknown;
+  nivel_fuente?: unknown;
+  fecha_revision?: unknown;
+};
+
+/**
+ * Bancos de sangre, **solo los que están recibiendo**.
+ *
+ * La fuente marca `estado_operacion`: de los once, siete reciben y tres están `finalizado`. Un
+ * banco cerrado no es un sitio a donde mandar a alguien que quiere donar; publicarlo con el mismo
+ * marcador que uno abierto le cuesta a esa persona el viaje. Los cerrados no entran.
+ */
+export function extractBloodPoints(payload: unknown): { city: string; record: Sangre }[] {
+  const root = payload as { ayuda?: { sangre?: unknown } };
+  const items = Array.isArray(root?.ayuda?.sangre) ? (root.ayuda.sangre as Sangre[]) : [];
+  const rows: { city: string; record: Sangre }[] = [];
+  for (const record of items) {
+    const city = text(record.ciudad);
+    if (!city) continue;
+    if (text(record.estado_operacion) === "finalizado") continue;
+    rows.push({ city, record });
+  }
+  return rows;
+}
+
+export function buildBloodPoint(
+  row: { city: string; record: Sangre },
+  located: { latitude: number; longitude: number; precision: "calle" | "barrio" },
+): MappedAcopio | undefined {
+  if (!isWithinColombia(located.latitude, located.longitude)) return undefined;
+  const entidad = text(row.record.entidad);
+  const donde = text(row.record.donde);
+  const title = `Donación de sangre — ${entidad ?? row.city}`.slice(0, 140);
+
+  const description = [
+    donde,
+    "Ubicación aproximada a partir de la dirección escrita: confírmala antes de ir.",
+  ]
+    .filter((part): part is string => Boolean(part))
+    .join(" — ")
+    .slice(0, 2_000);
+
+  return {
+    externalKey: `sangre:${row.city}:${entidad ?? "sin-entidad"}`.slice(0, 200),
+    title,
+    description,
+    latitude: located.latitude,
+    longitude: located.longitude,
+    precision: located.precision,
+    status: STATUS_BY_LEVEL[text(row.record.nivel_fuente) ?? ""] ?? "reported",
+    metadata: {
+      address: donde,
+      city: row.city,
+      organization: entidad,
+      sourceStatus: text(row.record.estado_operacion),
+      needs: list(row.record.tipos_urgentes).slice(0, 40) || undefined,
+      reportedAt: text(row.record.fecha_revision),
+      subSource: text(row.record.fuente_titulo),
+      confidence: located.precision,
+    },
+  };
+}
+
 export function extractAcopioPoints(payload: unknown): {
   city: string;
   entity: string | undefined;
@@ -163,12 +232,28 @@ export async function fetchCuidarColombiaSnapshot(previousEtag?: string | null) 
   };
 }
 
-async function upsert(sql: Sql, incidentCode: string, points: MappedAcopio[]) {
+/**
+ * Cada cuántos puntos se escribe.
+ *
+ * La primera versión acumulaba los 118 y escribía al final. Un pase dura ~25 minutos porque el
+ * geocodificador va a 4 peticiones por minuto, y **cualquier despliegue reinicia el worker y lo
+ * mata**: tres pases seguidos murieron a media corrida y el mapa se quedó en cero mientras la caché
+ * ya tenía 44 direcciones resueltas. El trabajo contra Nominatim no se perdía; el resultado sí.
+ *
+ * Diez es suficientemente pequeño para que una interrupción cueste minutos y no media hora, y
+ * suficientemente grande para no escribir en la base cada quince segundos.
+ */
+const BATCH_SIZE = 10;
+
+async function resolveIncident(sql: Sql, incidentCode: string): Promise<string> {
   const [incident] = await sql<
     { id: string }[]
   >`SELECT id FROM incidents WHERE code = ${incidentCode} AND deleted_at IS NULL LIMIT 1`;
   if (!incident) throw new Error(`Incident ${incidentCode} does not exist`);
+  return incident.id;
+}
 
+async function registerSource(sql: Sql) {
   await sql`
     INSERT INTO external_sources (
       id, display_name, source_url, authority, data_classification,
@@ -182,7 +267,9 @@ async function upsert(sql: Sql, incidentCode: string, points: MappedAcopio[]) {
       display_name = EXCLUDED.display_name, source_url = EXCLUDED.source_url,
       active = true, updated_at = now()
   `;
+}
 
+async function upsertBatch(sql: Sql, incidentId: string, points: MappedAcopio[]) {
   let upserted = 0;
   for (const point of points) {
     await sql`
@@ -191,7 +278,7 @@ async function upsert(sql: Sql, incidentCode: string, points: MappedAcopio[]) {
         public_location_precision, status, external_source_id, external_key,
         client_mutation_id, metadata
       ) VALUES (
-        ${randomUUID()}, ${incident.id}, 'pmu', null, ${point.title}, ${point.description},
+        ${randomUUID()}, ${incidentId}, 'pmu', null, ${point.title}, ${point.description},
         ST_SetSRID(ST_MakePoint(${point.longitude}, ${point.latitude}), 4326),
         'geocoded', ${point.status}, ${CUIDARCOLOMBIA_SOURCE.id}, ${point.externalKey},
         ${randomUUID()}, ${sql.json(point.metadata)}
@@ -251,17 +338,53 @@ export async function runCuidarColombiaIngestion(options: {
     }
     held = true;
 
-    const geocoder = new Geocoder(sql);
-    const points: MappedAcopio[] = [];
-    const skipped = { sinDireccion: 0, sinResultado: 0, otroMunicipio: 0 };
+    const incidentId = await resolveIncident(sql, options.incidentCode);
+    await registerSource(sql);
 
-    for (const row of rows) {
-      const direccion = text(row.point.direccion);
-      if (!direccion) {
+    const geocoder = new Geocoder(sql);
+    const skipped = { sinDireccion: 0, sinResultado: 0, otroMunicipio: 0 };
+    let batch: MappedAcopio[] = [];
+    let mapped = 0;
+    let upserted = 0;
+
+    const flush = async () => {
+      if (batch.length === 0) return;
+      upserted += await upsertBatch(sql, incidentId, batch);
+      batch = [];
+    };
+
+    // Acopios y bancos de sangre comparten todo el camino: misma geocodificación, mismo
+    // guardarraíl, misma escritura por lotes. Solo cambia cómo se arma la ficha, así que se
+    // recorren juntos y el geocodificador no distingue entre unos y otros.
+    const tasks: {
+      address: string | undefined;
+      city: string;
+      make: (located: {
+        latitude: number;
+        longitude: number;
+        precision: "calle" | "barrio";
+      }) => MappedAcopio | undefined;
+    }[] = [
+      ...rows.map((row) => ({
+        address: text(row.point.direccion),
+        city: row.city,
+        make: (located: { latitude: number; longitude: number; precision: "calle" | "barrio" }) =>
+          buildAcopio(row, located),
+      })),
+      ...extractBloodPoints(snapshot.payload).map((row) => ({
+        address: text(row.record.donde),
+        city: row.city,
+        make: (located: { latitude: number; longitude: number; precision: "calle" | "barrio" }) =>
+          buildBloodPoint(row, located),
+      })),
+    ];
+
+    for (const task of tasks) {
+      if (!task.address) {
         skipped.sinDireccion += 1;
         continue;
       }
-      const located = await geocoder.locate({ address: direccion, municipality: row.city });
+      const located = await geocoder.locate({ address: task.address, municipality: task.city });
       if (!located.found) {
         // Se cuenta por motivo, no se traga: un punto que desaparece en silencio es peor que uno
         // que falta a la vista, y estos números son los que dicen si el geocodificador sirve.
@@ -269,15 +392,18 @@ export async function runCuidarColombiaIngestion(options: {
         else skipped.sinResultado += 1;
         continue;
       }
-      const mapped = buildAcopio(row, located);
-      if (mapped) points.push(mapped);
+      const point = task.make(located);
+      if (!point) continue;
+      mapped += 1;
+      batch.push(point);
+      if (batch.length >= BATCH_SIZE) await flush();
     }
+    await flush();
 
-    const upserted = await upsert(sql, options.incidentCode, points);
     return {
       status: "stored" as const,
-      seen: rows.length,
-      mapped: points.length,
+      seen: tasks.length,
+      mapped,
       upserted,
       skipped,
       httpStatus: snapshot.httpStatus,
