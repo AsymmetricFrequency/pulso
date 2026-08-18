@@ -78,6 +78,7 @@ const app = await buildApp({
         seismicShakingRepository: postgresRepositories.seismicShaking,
         censusCoverageRepository: postgresRepositories.censusCoverage,
         aidTraceabilityRepository: postgresRepositories.aidTraceability,
+        householdRegistryRepository: postgresRepositories.householdRegistry,
         publicReportRepository: postgresRepositories.publicReports,
         caliPublicSourceRepository: postgresRepositories.caliPublicSource,
         reconstructionProgressRepository: postgresRepositories.reconstructionProgress,

@@ -4,6 +4,7 @@ export * from "./assessment.js";
 export * from "./census-coverage.js";
 export * from "./community-report.js";
 export * from "./evidence.js";
+export * from "./household-registry.js";
 export * from "./identity.js";
 export * from "./incident.js";
 export * from "./material-supplier.js";

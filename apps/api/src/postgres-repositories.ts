@@ -45,6 +45,7 @@ import { PostgresOperationsAccessRepository } from "./operations-access-reposito
 import { PostgresAidTraceabilityRepository } from "./postgres-aid-traceability-repository.js";
 import { PostgresCensusCoverageRepository } from "./postgres-census-coverage-repository.js";
 import { PostgresCommunityReportRepository } from "./postgres-community-report-repository.js";
+import { PostgresHouseholdRegistryRepository } from "./postgres-household-registry-repository.js";
 import { PostgresIdentityTrustRepository } from "./postgres-identity-trust-repository.js";
 import { PostgresMaterialSupplierRepository } from "./postgres-material-supplier-repository.js";
 import { PostgresPublicFundsRepository } from "./postgres-public-funds-repository.js";
@@ -786,6 +787,13 @@ export function createPostgresRepositories(
     seismicShaking: new PostgresSeismicShakingRepository(sql),
     censusCoverage: new PostgresCensusCoverageRepository(sql),
     aidTraceability: new PostgresAidTraceabilityRepository(sql),
+    householdRegistry: new PostgresHouseholdRegistryRepository(sql, {
+      // El cifrado de campo y la huella de identidad se derivan de secretos **distintos**: si
+      // fueran el mismo, quien obtuviera uno podría tanto descifrar un nombre como reconstruir
+      // qué documento produjo qué huella.
+      fieldSecret: missionInvitationSecret,
+      fingerprintSecret: identityFingerprintSecret,
+    }),
     reconstructionProgress: new PostgresReconstructionProgressRepository(sql),
     sgcPublicSource: new PostgresSgcPublicSourceRepository(sql),
     territories: new PostgresTerritoryRepository(sql),

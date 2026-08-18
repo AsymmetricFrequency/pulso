@@ -18,6 +18,7 @@ import {
   type EvidenceRepository,
   FieldVisitConflictError,
   FieldVisitNotFoundError,
+  type HouseholdRegistryRepository,
   IdentityTrustConflictError,
   IdentityTrustNotFoundError,
   type IdentityTrustRepository,
@@ -62,6 +63,7 @@ import {
   createFieldAssignmentSchema,
   createFieldEvidenceSchema,
   createFieldVisitSchema,
+  createHouseholdRegistrationSchema,
   createIdentityClaimSchema,
   createIncidentSchema,
   createMaterialSupplierSchema,
@@ -79,6 +81,8 @@ import {
   fieldEvidenceSchema,
   fieldSessionSchema,
   fieldVisitSchema,
+  householdRegistrationReceiptSchema,
+  householdRegistryStatsSchema,
   identityClaimSchema,
   identityVerificationSchema,
   incidentListSchema,
@@ -149,6 +153,7 @@ import { MemoryOperationsAccessRepository } from "./operations-access-repositori
 import type { PostgresAdminRepository } from "./postgres-admin-repository.js";
 import { EmptyAidTraceabilityRepository } from "./postgres-aid-traceability-repository.js";
 import { EmptyCensusCoverageRepository } from "./postgres-census-coverage-repository.js";
+import { EmptyHouseholdRegistryRepository } from "./postgres-household-registry-repository.js";
 import { EmptySeismicShakingRepository } from "./postgres-seismic-shaking-repository.js";
 import { PublicReadCache } from "./public-read-cache.js";
 import { rescueAlertMessage } from "./rescue-alert.js";
@@ -186,6 +191,7 @@ export type BuildAppOptions = {
   seismicShakingRepository?: SeismicShakingRepository;
   censusCoverageRepository?: CensusCoverageRepository;
   aidTraceabilityRepository?: AidTraceabilityRepository;
+  householdRegistryRepository?: HouseholdRegistryRepository;
   publicReportRepository?: PublicReportRepository;
   caliPublicSourceRepository?: CaliPublicSourceRepository;
   sgcPublicSourceRepository?: SgcPublicSourceRepository;
@@ -252,6 +258,8 @@ export async function buildApp(options: BuildAppOptions = {}) {
   const seismicShaking = options.seismicShakingRepository ?? new EmptySeismicShakingRepository();
   const censusCoverage = options.censusCoverageRepository ?? new EmptyCensusCoverageRepository();
   const aidTraceability = options.aidTraceabilityRepository ?? new EmptyAidTraceabilityRepository();
+  const householdRegistry =
+    options.householdRegistryRepository ?? new EmptyHouseholdRegistryRepository();
   const publicReports = options.publicReportRepository ?? new MemoryPublicReportRepository();
   const caliPublicSource =
     options.caliPublicSourceRepository ?? new EmptyCaliPublicSourceRepository();
@@ -990,6 +998,91 @@ export async function buildApp(options: BuildAppOptions = {}) {
         .send(
           aidTraceabilitySchema.parse(
             await aidTraceability.summaryByIncident(incident.id, request.params.incidentCode),
+          ),
+        );
+    },
+  );
+
+  // ===========================================================================
+  // Censo comunitario
+  // ===========================================================================
+  //
+  // **Esto no es el Registro Único de Damnificados y no da derecho a ninguna ayuda.** El censo
+  // oficial lo diligencia personal autorizado casa a casa. Lo que este registro permite es que un
+  // hogar diga «aquí estamos y no ha venido nadie», para entregarle esa lista a su alcaldía.
+  //
+  // Tres reglas que se cumplen en el código y no solo en el texto de la página:
+  // · el consentimiento viaja con la versión del texto que se mostró, y sin él no se inserta nada;
+  // · nombre, teléfono y documento se guardan cifrados y **no salen por ninguna ruta pública**;
+  // · quien se registra recibe un código con el que puede borrar lo suyo sin pedirle permiso a nadie.
+  app.post<{ Params: { incidentCode: string } }>(
+    "/v1/public/incidents/:incidentCode/household-registry",
+    {
+      // Cinco por hora y por IP. Más bajo que el de reportes a propósito: un hogar se registra una
+      // vez, no cada diez minutos, y este formulario guarda datos personales — un abuso aquí cuesta
+      // más que un reporte de más en el mapa. Un albergue entero compartiendo una conexión sigue
+      // cabiendo: cinco hogares por hora desde el mismo punto es un ritmo realista de digitación.
+      config: { rateLimit: { max: 5, timeWindow: "1 hour" } },
+    },
+    async (request, reply) => {
+      const incident = await incidents.findByCode(request.params.incidentCode);
+      if (!incident) {
+        return reply
+          .status(404)
+          .send({ error: "incident_not_found", message: "La emergencia no existe." });
+      }
+      const input = createHouseholdRegistrationSchema.parse(request.body);
+      const sourceIpHash = request.ip
+        ? createHash("sha256").update(`household-registry:${request.ip}`).digest("hex")
+        : null;
+      const receipt = await householdRegistry.register(incident.id, input, { sourceIpHash });
+      return reply.status(201).send(householdRegistrationReceiptSchema.parse(receipt));
+    },
+  );
+
+  // El borrado no pide sesión ni identidad: el código **es** la credencial, y exigir una cuenta
+  // para ejercer un derecho sobre los datos propios sería ponerle un peaje a ese derecho.
+  app.delete<{ Params: { incidentCode: string; code: string } }>(
+    "/v1/public/incidents/:incidentCode/household-registry/:code",
+    async (request, reply) => {
+      const incident = await incidents.findByCode(request.params.incidentCode);
+      if (!incident) {
+        return reply
+          .status(404)
+          .send({ error: "incident_not_found", message: "La emergencia no existe." });
+      }
+      const removed = await householdRegistry.redact(
+        incident.id,
+        request.params.code.trim().toUpperCase(),
+      );
+      if (!removed) {
+        return reply.status(404).send({
+          error: "registration_not_found",
+          message: "No encontramos ese código, o sus datos ya fueron borrados.",
+        });
+      }
+      return reply.status(200).send({
+        removed: true,
+        message:
+          "Tus datos personales fueron borrados. El conteo de tu municipio se mantiene sin ellos.",
+      });
+    },
+  );
+
+  app.get<{ Params: { incidentCode: string } }>(
+    "/v1/public/incidents/:incidentCode/household-registry/stats",
+    async (request, reply) => {
+      const incident = await incidents.findByCode(request.params.incidentCode);
+      if (!incident) {
+        return reply
+          .status(404)
+          .send({ error: "incident_not_found", message: "La emergencia no existe." });
+      }
+      return reply
+        .header("Cache-Control", "public, max-age=60, s-maxage=120, stale-while-revalidate=600")
+        .send(
+          householdRegistryStatsSchema.parse(
+            await householdRegistry.stats(incident.id, request.params.incidentCode),
           ),
         );
     },
