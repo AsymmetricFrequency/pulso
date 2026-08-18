@@ -116,6 +116,18 @@ export const householdRegistryStatsSchema = z.object({
   peopleInUncensused: z.number().int().min(0),
   sleepingRough: z.number().int().min(0),
   withPriorityCondition: z.number().int().min(0),
+  /**
+   * El estado del cruce automático. Se publica porque **es la única cifra honesta sobre la calidad
+   * del registro**: decir «tenemos N hogares» sin decir cuántos se pudieron contrastar es afirmar
+   * una solidez que no se tiene. `uncontrasted` no es sospecha — es el caso normal en un municipio
+   * del que no hay dato, que es donde más falta hace registrarse.
+   */
+  validation: z.object({
+    coherent: z.number().int().min(0),
+    uncontrasted: z.number().int().min(0),
+    toReview: z.number().int().min(0),
+    humanReviewed: z.number().int().min(0),
+  }),
   byTerritory: z
     .object({
       territoryCode: z.string().nullable(),

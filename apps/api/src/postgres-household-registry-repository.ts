@@ -68,7 +68,7 @@ export class PostgresHouseholdRegistryRepository implements HouseholdRegistryRep
         )[0]?.id ?? null)
       : null;
 
-    const [row] = await this.sql<{ public_code: string; created_at: Date }[]>`
+    const [row] = await this.sql<{ id: string; public_code: string; created_at: Date }[]>`
       INSERT INTO household_self_registrations (
         id, incident_id, public_code, territory_id, neighborhood, location,
         people_count, children_count, older_adults_count,
@@ -94,8 +94,18 @@ export class PostgresHouseholdRegistryRepository implements HouseholdRegistryRep
         ${consent.id}, now(), ${context.sourceIpHash}, ${input.clientMutationId}
       )
       ON CONFLICT (incident_id, client_mutation_id) DO UPDATE SET updated_at = now()
-      RETURNING public_code, created_at
+      RETURNING id, public_code, created_at
     `;
+
+    // La validación se calcula **al guardar**, no en un trabajo nocturno.
+    //
+    // Una señal que llega horas después no sirve para nada de lo que existe: quien coordina mira la
+    // lista de un municipio cuando va a mandar una brigada, no cuando el cron termine. Y va después
+    // del INSERT y sin bloquear la respuesta — un fallo al calcular la señal no puede impedir que
+    // el registro de una familia quede guardado, que sería el peor intercambio posible.
+    if (row?.id) {
+      void this.sql`SELECT pulso_validate_registration(${row.id}::uuid)`.catch(() => undefined);
+    }
 
     return {
       publicCode: String(row?.public_code ?? code),
@@ -132,14 +142,24 @@ export class PostgresHouseholdRegistryRepository implements HouseholdRegistryRep
     const [totals] = await this.sql<Record<string, unknown>[]>`
       SELECT
         count(*) AS households,
-        coalesce(sum(people_count), 0) AS people,
-        count(*) FILTER (WHERE officially_censused = 'no') AS uncensused_households,
-        coalesce(sum(people_count) FILTER (WHERE officially_censused = 'no'), 0) AS people_uncensused,
-        count(*) FILTER (WHERE sheltering_at = 'calle_o_carpa') AS sleeping_rough,
-        count(*) FILTER (WHERE has_disability OR has_pregnancy OR has_chronic_illness)
-          AS priority_condition
-      FROM household_self_registrations
-      WHERE incident_id = ${incidentId} AND status <> 'retirado'
+        coalesce(sum(r.people_count), 0) AS people,
+        count(*) FILTER (WHERE r.officially_censused = 'no') AS uncensused_households,
+        coalesce(sum(r.people_count) FILTER (WHERE r.officially_censused = 'no'), 0)
+          AS people_uncensused,
+        count(*) FILTER (WHERE r.sheltering_at = 'calle_o_carpa') AS sleeping_rough,
+        count(*) FILTER (WHERE r.has_disability OR r.has_pregnancy OR r.has_chronic_illness)
+          AS priority_condition,
+        count(*) FILTER (WHERE v.signal = 'coherente') AS coherent,
+        count(*) FILTER (WHERE v.signal = 'sin_contraste') AS uncontrasted,
+        count(*) FILTER (WHERE v.signal = 'revisar') AS to_review,
+        count(*) FILTER (WHERE rv.id IS NOT NULL) AS human_reviewed
+      FROM household_self_registrations r
+      LEFT JOIN registration_validations v ON v.registration_id = r.id
+      LEFT JOIN LATERAL (
+        SELECT id FROM registration_reviews rr
+        WHERE rr.registration_id = r.id ORDER BY rr.created_at DESC LIMIT 1
+      ) rv ON true
+      WHERE r.incident_id = ${incidentId} AND r.status <> 'retirado'
     `;
 
     const byTerritory = await this.sql<Record<string, unknown>[]>`
@@ -168,6 +188,12 @@ export class PostgresHouseholdRegistryRepository implements HouseholdRegistryRep
       peopleInUncensused: asNumber(totals?.people_uncensused),
       sleepingRough: asNumber(totals?.sleeping_rough),
       withPriorityCondition: asNumber(totals?.priority_condition),
+      validation: {
+        coherent: asNumber(totals?.coherent),
+        uncontrasted: asNumber(totals?.uncontrasted),
+        toReview: asNumber(totals?.to_review),
+        humanReviewed: asNumber(totals?.human_reviewed),
+      },
       byTerritory: byTerritory.map((row) => ({
         territoryCode: (row.external_code as string | null) ?? null,
         territoryName: (row.name as string | null) ?? null,
@@ -197,6 +223,7 @@ export class EmptyHouseholdRegistryRepository implements HouseholdRegistryReposi
       peopleInUncensused: 0,
       sleepingRough: 0,
       withPriorityCondition: 0,
+      validation: { coherent: 0, uncontrasted: 0, toReview: 0, humanReviewed: 0 },
       byTerritory: [],
       generatedAt: new Date(0).toISOString(),
     };

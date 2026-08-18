@@ -132,8 +132,10 @@ export function WhereAreYou() {
                   <strong>
                     En {encontrado.municipality} no tenemos registro de que haya ido nadie a censar.
                   </strong>{" "}
+                  {/* «de grado severo» y no «fue severo»: la etiqueta viene en masculino del USGS
+                      y concordarla con «la sacudida» daba «la sacudida fue severo». */}
                   {encontrado.mmiLabel
-                    ? `La sacudida ahí fue ${encontrado.mmiLabel.toLowerCase()}, y `
+                    ? `Ahí la sacudida fue de grado ${encontrado.mmiLabel.toLowerCase()}, y `
                     : ""}
                   ninguna autoridad reporta censo en curso.
                 </p>
