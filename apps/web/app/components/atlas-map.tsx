@@ -1174,10 +1174,12 @@ export function AtlasMap({
             <i className="statusDot pmu" />{" "}
             {/* Decir "2.186 reportes" mientras se dibujan 800 es afirmar algo que la pantalla no
                 sostiene. Cuando el listado va recortado se nombra el recorte y qué hacer con él. */}
-            {reportsTotal > allReports.length
-              ? `${allReports.length} de ${reportsTotal.toLocaleString("es-CO")} reportes · entra a un departamento para verlos todos`
-              : hiddenFamilies.size > 0
-                ? `${visibleReports.length.toLocaleString("es-CO")} de ${allReports.length.toLocaleString("es-CO")} reportes · hay tipos ocultos`
+            {/* Apagar un tipo va primero: es lo último que hizo quien mira, y si el recorte del
+                listado se lleva la línea, el mapa medio vacío no tiene explicación en pantalla. */}
+            {hiddenFamilies.size > 0
+              ? `${visibleReports.length.toLocaleString("es-CO")} de ${allReports.length.toLocaleString("es-CO")} reportes en pantalla · hay tipos ocultos`
+              : reportsTotal > allReports.length
+                ? `${allReports.length} de ${reportsTotal.toLocaleString("es-CO")} reportes · entra a un departamento para verlos todos`
                 : `${allReports.length.toLocaleString("es-CO")} reportes ciudadanos y de fuentes públicas`}
           </li>
         ) : null}
