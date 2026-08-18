@@ -52,6 +52,7 @@ import {
   aidTraceabilitySchema,
   assessmentSummarySchema,
   beginPasskeyAuthenticationSchema,
+  censusCoverageRowSchema,
   censusCoverageSummarySchema,
   communityReportSchema,
   completeFieldVisitSchema,
@@ -956,27 +957,38 @@ export async function buildApp(options: BuildAppOptions = {}) {
   //
   // Va por ruta pública y no detrás de sesión a propósito. Un ente de control que quiera verificar
   // esta cifra tiene que poder hacerlo sin pedirnos una cuenta.
-  app.get<{ Params: { incidentCode: string }; Querystring: { limit?: string } }>(
-    "/v1/public/incidents/:incidentCode/census-coverage",
-    async (request, reply) => {
-      const incident = await incidents.findByCode(request.params.incidentCode);
-      if (!incident) {
-        return reply
-          .status(404)
-          .send({ error: "incident_not_found", message: "La emergencia no existe." });
-      }
-      const limit = Number.parseInt(request.query.limit ?? "", 10);
+  app.get<{
+    Params: { incidentCode: string };
+    Querystring: { limit?: string; municipality?: string };
+  }>("/v1/public/incidents/:incidentCode/census-coverage", async (request, reply) => {
+    const incident = await incidents.findByCode(request.params.incidentCode);
+    if (!incident) {
       return reply
-        .header("Cache-Control", "public, max-age=300, s-maxage=600, stale-while-revalidate=1800")
-        .send(
-          censusCoverageSummarySchema.parse(
-            await censusCoverage.summaryByIncident(incident.id, request.params.incidentCode, {
-              ...(Number.isFinite(limit) ? { limit } : {}),
-            }),
-          ),
-        );
-    },
-  );
+        .status(404)
+        .send({ error: "incident_not_found", message: "La emergencia no existe." });
+    }
+
+    // Consulta por municipio. La respuesta a «¿qué hago para que me censen?» depende de en cuál
+    // estés: en uno con brigadas, esperar sirve; en uno de los que llevan ocho días sin que vaya
+    // nadie, ese mismo consejo es decirle a una familia que espere indefinidamente.
+    if (request.query.municipality) {
+      const found = await censusCoverage.findMunicipality(incident.id, request.query.municipality);
+      return reply
+        .header("Cache-Control", "public, max-age=300, s-maxage=600")
+        .send({ municipality: found ? censusCoverageRowSchema.parse(found) : null });
+    }
+
+    const limit = Number.parseInt(request.query.limit ?? "", 10);
+    return reply
+      .header("Cache-Control", "public, max-age=300, s-maxage=600, stale-while-revalidate=1800")
+      .send(
+        censusCoverageSummarySchema.parse(
+          await censusCoverage.summaryByIncident(incident.id, request.params.incidentCode, {
+            ...(Number.isFinite(limit) ? { limit } : {}),
+          }),
+        ),
+      );
+  });
 
   // Trazabilidad de la ayuda, para quien tenga que auditarla.
   //

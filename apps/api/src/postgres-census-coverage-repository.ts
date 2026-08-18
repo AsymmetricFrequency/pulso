@@ -15,6 +15,37 @@ const EMPTY_COUNTS: CensusCoverageSummary["counts"] = {
 export class PostgresCensusCoverageRepository implements CensusCoverageRepository {
   constructor(private readonly sql: Sql) {}
 
+  /**
+   * Busca un municipio por su nombre, como lo escribiría una persona.
+   *
+   * Existe porque la respuesta correcta a «¿qué hago para que me censen?» **depende de dónde
+   * estés**. En un municipio donde hay brigadas, esperar a que pasen es un consejo útil. En uno de
+   * los que llevan ocho días sin que vaya nadie, ese mismo consejo es decirle a alguien que espere
+   * indefinidamente. Sin esta consulta la página solo puede dar una respuesta, y a la mitad de la
+   * gente a la que se la da es falsa.
+   */
+  async findMunicipality(incidentId: string, search: string): Promise<CensusCoverageRow | null> {
+    const term = search.trim();
+    if (term.length < 3) return null;
+
+    const [row] = await this.sql<Record<string, unknown>[]>`
+      SELECT divipola, municipality, department, mmi_max, mmi_label, report_count,
+             coverage_state, reported_people, registered_people, census_observed_at
+      FROM territory_census_coverage
+      WHERE incident_id = ${incidentId}
+        AND (
+          divipola = ${term}
+          OR pulso_normalize_place(municipality) = pulso_normalize_place(${term})
+          OR pulso_normalize_place(municipality) LIKE pulso_normalize_place(${term}) || '%'
+        )
+      -- La coincidencia exacta primero: escribir «Bello» no puede devolver «Bello Horizonte».
+      ORDER BY (pulso_normalize_place(municipality) = pulso_normalize_place(${term})) DESC,
+               length(municipality)
+      LIMIT 1
+    `;
+    return row ? mapRow(row) : null;
+  }
+
   async summaryByIncident(
     incidentId: string,
     incidentCode: string,
@@ -96,6 +127,10 @@ function mapRow(row: Record<string, unknown>): CensusCoverageRow {
  * un «silencio: 44» inventado en una demo se cita después como si fuera real.
  */
 export class EmptyCensusCoverageRepository implements CensusCoverageRepository {
+  async findMunicipality(): Promise<CensusCoverageRow | null> {
+    return null;
+  }
+
   async summaryByIncident(
     _incidentId: string,
     incidentCode: string,

@@ -1,4 +1,4 @@
-import type { CensusCoverageSummary } from "@pulso/schemas";
+import type { CensusCoverageRow, CensusCoverageSummary } from "@pulso/schemas";
 
 /**
  * Dónde falta censar.
@@ -8,6 +8,8 @@ import type { CensusCoverageSummary } from "@pulso/schemas";
  * devolver otra cosa — la vista que hay detrás no toca ninguna tabla con datos personales.
  */
 export interface CensusCoverageRepository {
+  /** Un municipio por nombre o DIVIPOLA. La respuesta a «qué hago» depende de en cuál estés. */
+  findMunicipality(incidentId: string, search: string): Promise<CensusCoverageRow | null>;
   summaryByIncident(
     incidentId: string,
     incidentCode: string,
