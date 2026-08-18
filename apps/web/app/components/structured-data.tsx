@@ -116,6 +116,18 @@ const graph = [
         contentUrl: `${SITE}/v1/public/incidents/colombia-2026/report`,
         name: "Informe público de situación (JSON)",
       },
+      {
+        "@type": "DataDownload",
+        encodingFormat: "application/json",
+        contentUrl: `${SITE}/v1/public/incidents/colombia-2026/census-coverage`,
+        name: "Cobertura del censo por municipio (JSON)",
+      },
+      {
+        "@type": "DataDownload",
+        encodingFormat: "application/json",
+        contentUrl: `${SITE}/v1/public/incidents/colombia-2026/aid-traceability`,
+        name: "Trazabilidad de la ayuda (JSON)",
+      },
     ],
   },
 ];

@@ -3,7 +3,9 @@
 :root {
   color-scheme: light;
   --ink: #12241d;
-  --muted: #5d6f66;
+  /* Sube de #5d6f66 (4,3:1 sobre el papel hundido, por debajo del mínimo) a 5,9:1. Mantiene el
+     sesgo verde hacia el primario: un gris neutro puro se lee como gris de plantilla. */
+  --muted: #4a5a52;
   /* Crema cálido de base y una segunda crema más profunda para los degradados del fondo: con un
      solo tono el papel se ve plano y con dos aparece la sensación de luz que da el papel real. */
   --paper: #f3efe2;
@@ -15,6 +17,12 @@
   --primary-dark: #023a2c;
   --primary-soft: rgba(4, 98, 74, 0.09);
   --signal: #d94b38;
+  /* El mismo rojo, pero para cuando es **texto** y no relleno.
+     `--signal` sobre `--paper-deep` da 3,4:1 y el mínimo para texto es 4,5:1, así que un mensaje de
+     error de 12px en ese rojo era ilegible justo cuando más falta hace leerlo. Es la misma razón por
+     la que ya existen los `--status-*-ink`: el color de un estado y el color del texto de ese estado
+     no son el mismo color. Este da 4,8:1 sobre el papel hundido y 5,9:1 sobre la superficie. */
+  --signal-ink: #b8331c;
   --amber: #c8811d;
   --blue: #35708f;
   --green: #257350;
@@ -447,7 +455,7 @@ h2 {
 .mapKicker,
 .mapSelection > span:first-child {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -671,7 +679,7 @@ h2 {
 }
 
 .priorityNumber {
-  color: var(--signal);
+  color: var(--signal-ink);
   font-family: var(--font-display);
   font-size: 18px;
 }
@@ -914,7 +922,7 @@ h2 {
 .selectedLayerCallout span,
 .selectedLayerCallout p {
   color: var(--on-inverse-tertiary);
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .selectedLayerCallout strong {
@@ -962,7 +970,7 @@ h2 {
 
 .recordType {
   color: var(--primary);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1055,7 +1063,7 @@ h2 {
   display: block;
   margin-top: 16px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.5;
 }
 
@@ -1089,7 +1097,7 @@ h2 {
 }
 
 .methodSection li > strong {
-  color: var(--signal);
+  color: var(--signal-ink);
   font-family: var(--font-display);
   font-size: 18px;
 }
@@ -1565,7 +1573,7 @@ footer a {
 
 .mapCluster text {
   fill: white;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   pointer-events: none;
 }
@@ -1930,8 +1938,9 @@ footer a {
 
 .communityReportFormError {
   margin: 0;
-  color: var(--signal);
-  font-size: 12px;
+  color: var(--signal-ink);
+  /* 13px y no 12px: es el texto que dice por qué no se pudo enviar un reporte, y se lee con prisa. */
+  font-size: 13px;
   font-weight: 600;
 }
 
@@ -2063,7 +2072,7 @@ footer a {
 
 .reportDetailNeeds > span {
   color: var(--on-inverse-tertiary);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -2604,7 +2613,7 @@ footer a {
 
 .mapReportBar .mapReportHint.error {
   flex-basis: 100%;
-  color: var(--signal);
+  color: var(--signal-ink);
 }
 
 /* Mira de puntería en modo reporte: colocar un punto en un mapa táctil sin ninguna
@@ -2864,6 +2873,9 @@ button:active:not(:disabled),
 }
 
 .traceZeroNote {
+  /* 74ch. Por encima de ~80 caracteres el ojo pierde el renglón al volver, y este párrafo es el que
+     no puede perderse: es el que explica que un cero no significa que no llegó ayuda. */
+  max-width: 74ch;
   margin: 16px 0 0;
   border-left: 4px solid var(--amber);
   border-radius: var(--radius-sm);
@@ -2936,4 +2948,221 @@ button:active:not(:disabled),
   color: var(--text-secondary);
   font-size: 13px;
   line-height: 1.5;
+}
+
+/* =============================================================================
+   Necesito ayuda
+   ===========================================================================
+   La página de alguien que acaba de perder la casa. Se lee de pie, en un
+   teléfono, con prisa y probablemente con poca batería, así que: un solo
+   camino vertical, pasos numerados porque **aquí el orden sí es información**
+   (el paso 1 decide si recibe ayuda oficial), y nada que competir con el texto. */
+
+.helpMain {
+  display: grid;
+  gap: 0;
+}
+
+.helpHero {
+  display: grid;
+  gap: 14px;
+  width: min(760px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 56px 0 8px;
+}
+
+.helpHero h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(30px, 5.4vw, 46px);
+  font-weight: 400;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+.helpLede {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.helpStep {
+  display: grid;
+  gap: 14px;
+  width: min(760px, calc(100% - 40px));
+  margin: 0 auto;
+  border-top: 1px solid var(--line);
+  padding: 40px 0;
+  scroll-margin-top: 90px;
+}
+
+.helpStepNum {
+  margin: 0;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.helpStep h2 {
+  max-width: 30ch;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(22px, 3.4vw, 30px);
+  font-weight: 400;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.helpStep p {
+  max-width: 68ch;
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.65;
+}
+
+/* El aviso del paso 1 es el más fuerte de la página, y por eso es el único con
+   fondo pleno: alguien puede creer que registrarse en un sitio web lo mete en el
+   censo, esperar, y perder el día en que pasó la brigada por su calle. */
+.helpWarning {
+  display: grid;
+  gap: 12px;
+  border-left: 5px solid var(--signal);
+  border-radius: var(--radius-sm);
+  background: #fdeee9;
+  padding: 18px 20px;
+}
+
+.helpWarning p {
+  font-size: 16px;
+}
+
+.helpWarning.subtle {
+  border-left-color: var(--amber);
+  background: var(--paper-deep);
+}
+
+.helpStep .helpAside {
+  border-left: 3px solid var(--line-strong);
+  padding-left: 16px;
+  color: var(--text-secondary);
+  font-size: 15px;
+}
+
+.helpActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.helpPrimary {
+  min-height: 48px;
+  padding: 0 22px;
+  font-size: 16px;
+  border: 0;
+  cursor: pointer;
+}
+
+.helpPrimary:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+.helpSecondary {
+  color: var(--primary);
+  font-size: 15px;
+  font-weight: 600;
+  text-underline-offset: 3px;
+}
+
+/* La especificidad se sube con el ancestro, no con !important: `.helpStep p` fija 17px y estos dos
+   párrafos son secundarios. Un !important aquí gana hoy y deja una trampa para el próximo cambio. */
+.helpStep .helpError {
+  border-left: 3px solid var(--amber);
+  padding-left: 14px;
+  color: var(--text-secondary);
+  font-size: 15px;
+}
+
+.helpNearby {
+  display: grid;
+  gap: 10px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.helpNearby li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  padding: 14px 16px;
+}
+
+.helpNearby li > div {
+  display: grid;
+  gap: 3px;
+}
+
+.helpNearbyType {
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.helpNearby strong {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.helpNearby small {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+/* 48px de alto: es un enlace que se toca con el pulgar, de pie, con una mano. */
+.helpNearby a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-sm);
+  padding: 0 18px;
+  color: var(--primary);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.helpNearby a:hover {
+  background: var(--primary-soft);
+}
+
+/* La nota al pie se declara antes que la regla de medida, no después: las dos alcanzan el mismo
+   elemento y declarar la menos específica al final invierte el orden natural de la cascada. */
+.sectionFootnote {
+  margin: 16px 0 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+/* Medida de lectura por defecto para los párrafos de las secciones nuevas.
+   Sin esto, en una pantalla de 1512px una nota al pie llegaba a ~197 caracteres por línea y el ojo
+   pierde el renglón al volver. 74ch es el techo, no el ancho fijo: en móvil manda el contenedor. */
+.censusSection > p,
+.censusSection > .sectionFootnote,
+.traceSection > p {
+  max-width: 74ch;
 }

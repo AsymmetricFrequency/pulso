@@ -73,7 +73,6 @@ export function ShakingSection() {
       <section className="shakingSection" id="intensidad" aria-labelledby="shaking-title">
         <div className="sectionHeading">
           <div>
-            <p className="psEyebrow">Intensidad sísmica</p>
             <h2 id="shaking-title">Dónde sacudió más fuerte</h2>
           </div>
         </div>
@@ -104,7 +103,6 @@ export function ShakingSection() {
     <section className="shakingSection" id="intensidad" aria-labelledby="shaking-title">
       <div className="sectionHeading">
         <div>
-          <p className="psEyebrow">Intensidad sísmica</p>
           <h2 id="shaking-title">Dónde sacudió más fuerte</h2>
         </div>
         <span className="sectionNote">

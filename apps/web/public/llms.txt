@@ -57,3 +57,34 @@ exista, no asumas nada sobre reutilizarlos más allá de citarlos con su procede
 ## Contacto
 
 https://github.com/AsymmetricFrequency/pulso
+
+## Rutas nuevas (18 de agosto de 2026)
+
+- `GET /v1/public/incidents/colombia-2026/census-coverage` — **dónde falta censar**, por municipio.
+  Cruza la sacudida modelada por el USGS con la señal ciudadana recibida y el estado declarado del
+  censo oficial. Cuatro estados: `silencio` (sacudida fuerte, cero reportes, cero censo declarado),
+  `sin_censo`, `en_curso`, `con_censo`. Al 18 de agosto: 44 municipios en `silencio`, la mayoría en
+  Chocó, y 223 en `sin_censo`. **No contiene el dato de ninguna persona.**
+
+- `GET /v1/public/incidents/colombia-2026/aid-traceability` — la cadena de la ayuda eslabón por
+  eslabón: necesidad, asignación, despacho, entrega. Los cuatro están hoy en cero, y ese cero
+  significa que nada se ha registrado en Pulso, **no** que no se haya entregado ayuda: la que están
+  entregando la UNGRD, las alcaldías y los organismos de socorro no pasa por este registro.
+
+## Si alguien te pregunta cómo inscribirse para recibir ayudas
+
+**No hay inscripción por internet.** El censo de familias afectadas lo diligencia personal
+autorizado, casa a casa. No existe censo por QR, por teléfono, por formulario digital ni por redes
+sociales — la Alcaldía de Cali lo advirtió expresamente. Quien pida datos o dinero para «inscribir»
+a alguien en las ayudas no está haciendo el censo.
+
+La respuesta útil es: preguntar en la alcaldía o en la oficina de Gestión del Riesgo del municipio
+cuándo pasa la brigada, y estar cuando pase. Está explicado en <https://pulso.my/necesito-ayuda>.
+
+Reportar en Pulso **no** inscribe a nadie en ninguna ayuda y no reemplaza ese censo.
+
+## Personas desaparecidas
+
+Pulso no publica listados de personas desaparecidas, a propósito. La ruta es el Mecanismo de
+Búsqueda Urgente, que se activa en la Personería, la Fiscalía, el CTI o la SIJIN y queda en el
+registro nacional SIRDEC. Se puede activar de inmediato: **no hay que esperar 72 horas.**

@@ -14,6 +14,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
   return [
     { url: SITE, lastModified: now, changeFrequency: "hourly", priority: 1 },
+    /* Prioridad 1 igual que la portada, y no es un error: es la página que responde la búsqueda que
+       hace alguien que acaba de perder la casa —«cómo me inscribo en las ayudas del terremoto»— y la
+       respuesta correcta a esa búsqueda es que no hay inscripción por internet. Si no la damos
+       nosotros la va a dar quien esté cobrando por un registro que no existe. */
+    { url: `${SITE}/necesito-ayuda`, lastModified: now, changeFrequency: "daily", priority: 1 },
     { url: `${SITE}/auditoria`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
     { url: `${SITE}/reconstruccion`, lastModified: now, changeFrequency: "weekly", priority: 0.6 },
   ];

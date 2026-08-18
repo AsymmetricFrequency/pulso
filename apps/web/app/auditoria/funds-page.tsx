@@ -119,7 +119,6 @@ export function PublicFundsPage() {
     <>
       <section className="hero publicHero">
         <div>
-          <p className="psEyebrow">Auditoría de recursos públicos</p>
           <h1>Con qué dinero se está atendiendo la emergencia.</h1>
           <p className="subtitle">
             Cada contrato que aparece aquí viene de SECOP II con su referencia original, su enlace a
@@ -140,7 +139,6 @@ export function PublicFundsPage() {
       {reviewed ? (
         <section className="fundsGrid" aria-label="Estado de la revisión">
           <div className="psCard fundsReviewCard">
-            <p className="psEyebrow">Estado de la revisión</p>
             <div className="fundsDonutRow">
               <DonutChart
                 title="Contratos por estado de revisión"
@@ -180,7 +178,6 @@ export function PublicFundsPage() {
           </div>
 
           <div className="psCard fundsStagesCard">
-            <p className="psEyebrow">Recorrido del dinero confirmado</p>
             {stageData.length > 0 ? (
               <BarChart
                 data={stageData}
@@ -204,7 +201,6 @@ export function PublicFundsPage() {
       <section className="fundsContracts" aria-labelledby="contracts-title">
         <div className="sectionHeading">
           <div>
-            <p className="psEyebrow">Contratación</p>
             <h2 id="contracts-title">Contratos ingeridos</h2>
           </div>
           <span className="sectionNote">

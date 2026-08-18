@@ -83,7 +83,6 @@ export function TraceabilitySection() {
     <section className="traceSection" id="trazabilidad" aria-labelledby="trace-title">
       <div className="sectionHeading">
         <div>
-          <p className="psEyebrow">Trazabilidad de la ayuda</p>
           <h2 id="trace-title">De la necesidad a la entrega</h2>
         </div>
         <span className="sectionNote">Corte: {formatDate(data.generatedAt)}</span>

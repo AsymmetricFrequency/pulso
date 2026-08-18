@@ -485,9 +485,10 @@
   margin: 0 auto;
 }
 
-.psNavSections {
+/* Los cuatro caminos. Se reparten el espacio y no se aprietan: si no caben, se van al panel. */
+.psNavPaths {
   display: flex;
-  gap: var(--space-6);
+  gap: var(--space-5);
 }
 
 .psNavActions {
@@ -521,25 +522,233 @@
   transform: scale(0.97);
 }
 
-/* Debajo de 900px las seis secciones no caben: se desplazan en horizontal
-   dentro de su propia franja en vez de romper la barra en dos líneas. */
-@media (max-width: 900px) {
-  .psNavInner {
-    flex-wrap: wrap;
-    padding: var(--space-3) 0;
-  }
+/* =============================================================================
+   Navegación de sección: la franja de esta página
+   ===========================================================================
+   Va debajo de la barra y solo en la portada. Es navegación **dentro** de un
+   documento, no destinos del sitio, y mezclar las dos cosas era lo que hacía
+   que once enlaces se leyeran como una lista plana sin jerarquía. */
 
-  .psNavSections {
-    order: 3;
-    width: 100%;
-    overflow-x: auto;
-    gap: var(--space-4);
-    padding-bottom: var(--space-1);
-    -webkit-overflow-scrolling: touch;
-  }
+.psNavSections {
+  border-top: 1px solid var(--border-subtle);
+  background: rgba(233, 227, 210, 0.6);
+}
 
-  .psNavSections .psNavLink {
-    white-space: nowrap;
+.psNavSectionsTrack {
+  display: flex;
+  gap: var(--space-5);
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  /* Aquí sí se desplaza en horizontal, y aquí sí está bien: son siete destinos
+     del mismo tipo dentro de un documento largo, no la única puerta a una
+     página entera. Nada queda escondido detrás de este gesto. */
+  overflow-x: auto;
+  padding: var(--space-2) 0;
+  scrollbar-width: none;
+}
+
+.psNavSectionsTrack::-webkit-scrollbar {
+  display: none;
+}
+
+.psNavSectionLink {
+  position: relative;
+  flex: none;
+  padding: var(--space-1) 0;
+  color: var(--text-secondary);
+  /* 13px y no 11px: es texto funcional y por debajo de 12 se pierde en una
+     pantalla de alta densidad al sol, que es donde se va a usar esto. */
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.psNavSectionLink:hover,
+.psNavSectionLink[aria-current="true"] {
+  color: var(--primary-dark);
+}
+
+.psNavSectionLink[aria-current="true"]::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  border-radius: var(--r-full);
+  background: var(--primary);
+}
+
+/* =============================================================================
+   Menú de la barra
+   ===========================================================================
+   El botón existe en todos los tamaños, no solo en móvil: las vistas de equipo
+   nunca cupieron en la barra sin apretarla, y esconderlas tras un menú con
+   nombre es más honesto que ponerlas en letra diminuta al borde. */
+
+.psNavMenuToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* 44x44 real, no 44 visual con relleno prestado: es el mínimo táctil y esta
+     barra se toca con el pulgar. */
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+
+.psNavMenuToggle:hover {
+  border-color: var(--line-strong);
+  background: var(--white);
+}
+
+/* Tres líneas que se convierten en una X. La transformación dice que el mismo
+   botón hace y deshace, que es lo que un icono estático no comunica. */
+.psNavBurger,
+.psNavBurger::before,
+.psNavBurger::after {
+  display: block;
+  width: 18px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  transition:
+    transform var(--dur) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out);
+}
+
+.psNavBurger::before,
+.psNavBurger::after {
+  content: "";
+  position: absolute;
+}
+
+.psNavBurger {
+  position: relative;
+}
+
+.psNavBurger::before {
+  transform: translateY(-6px);
+}
+
+.psNavBurger::after {
+  transform: translateY(6px);
+}
+
+.psNavBurger[data-open="true"] {
+  opacity: 0;
+}
+
+.psNavBurger[data-open="true"]::before {
+  transform: rotate(45deg);
+  opacity: 1;
+}
+
+.psNavBurger[data-open="true"]::after {
+  transform: rotate(-45deg);
+  opacity: 1;
+}
+
+.psNavPanel {
+  position: sticky;
+  top: 64px;
+  z-index: 39;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--white);
+  box-shadow: var(--elev-2);
+}
+
+.psNavPanelInner {
+  display: grid;
+  gap: var(--space-2);
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: var(--space-5) 0 var(--space-6);
+}
+
+.psNavPanelLabel {
+  margin: var(--space-3) 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.psNavPanelInner ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.psNavPanelInner a {
+  display: grid;
+  gap: 2px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-sm);
+  padding: var(--space-3) var(--space-4);
+  color: var(--ink);
+  text-decoration: none;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out);
+}
+
+.psNavPanelInner a:hover {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.psNavPanelInner strong {
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.psNavPanelInner small {
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.psNavPanelInner ul.crew a {
+  background: var(--surface-sunken);
+}
+
+/* Debajo de 860px los cuatro caminos no caben junto a la marca y el botón: se
+   van al panel, que es donde se ven completos y con su explicación. El botón de
+   reportar se queda en la barra, siempre. */
+@media (max-width: 860px) {
+  .psNavPaths {
+    display: none;
+  }
+}
+
+@media (min-width: 861px) {
+  .psNavPanel {
+    top: 65px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .psNavBurger,
+  .psNavBurger::before,
+  .psNavBurger::after,
+  .psNavMenuToggle,
+  .psNavPanelInner a,
+  .psNavSectionLink {
+    transition: none;
   }
 }
 

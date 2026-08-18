@@ -83,7 +83,6 @@ export function CensusCoverageSection() {
       <section className="censusSection" id="censo" aria-labelledby="census-title">
         <div className="sectionHeading">
           <div>
-            <p className="psEyebrow">Censo de personas afectadas</p>
             <h2 id="census-title">Dónde no ha llegado nadie a censar</h2>
           </div>
         </div>
@@ -108,7 +107,6 @@ export function CensusCoverageSection() {
     <section className="censusSection" id="censo" aria-labelledby="census-title">
       <div className="sectionHeading">
         <div>
-          <p className="psEyebrow">Censo de personas afectadas</p>
           <h2 id="census-title">Dónde no ha llegado nadie a censar</h2>
         </div>
         <span className="sectionNote">

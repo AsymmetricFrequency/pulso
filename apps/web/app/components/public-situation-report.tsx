@@ -315,7 +315,6 @@ export function PublicSituationReport() {
       <section className="publicReport" id="informe" aria-labelledby="public-report-title">
         <div className="reportIntro">
           <div>
-            <p className="eyebrow">Informe público de situación</p>
             <h2 id="public-report-title">Respuesta Colombia 2026</h2>
           </div>
           <div className="publicationState">
@@ -361,8 +360,7 @@ export function PublicSituationReport() {
       <section className="situationSection" id="situacion" aria-labelledby="situation-title">
         <div className="sectionHeading">
           <div>
-            <p className="eyebrow">Actualizaciones verificables</p>
-            <h2 id="situation-title">Qué está pasando ahora</h2>
+            <h2 id="situation-title">Qué está pasando ahora, y quién lo dice</h2>
           </div>
           <span className="sectionNote">La identidad personal está protegida</span>
         </div>
@@ -405,7 +403,6 @@ export function PublicSituationReport() {
       <section className="mapSection" id="mapa" aria-labelledby="map-section-title">
         <div className="sectionHeading">
           <div>
-            <p className="eyebrow">Mapa territorial</p>
             <h2 id="map-section-title">Dónde está pasando</h2>
           </div>
           <span className="sectionNote">Entra a un departamento para ver cada reporte</span>
@@ -480,8 +477,7 @@ export function PublicSituationReport() {
               />
             ) : (
               <>
-                <p className="eyebrow">Resumen territorial</p>
-                <h3>{departmentName}</h3>
+                <h3>Resumen de {departmentName}</h3>
                 <p className="territoryPath">
                   {municipality.name} · {locality}
                 </p>
@@ -525,7 +521,6 @@ export function PublicSituationReport() {
       <section className="aidSection" id="ayuda" aria-labelledby="aid-title">
         <div className="sectionHeading">
           <div>
-            <p className="eyebrow">Trazabilidad de ayuda</p>
             <h2 id="aid-title">Qué se necesita y qué ya llegó</h2>
           </div>
           <p className="sectionNote">Cantidades normalizadas y entregas con evidencia</p>
@@ -583,8 +578,7 @@ export function PublicSituationReport() {
 
       <section className="methodSection" id="metodologia" aria-labelledby="method-title">
         <div>
-          <p className="eyebrow">Confianza sin exponer personas</p>
-          <h2 id="method-title">Cómo se construye este informe</h2>
+          <h2 id="method-title">Cómo se construye este informe sin exponer a nadie</h2>
           <p>
             El mapa público muestra agregados territoriales. Los expedientes, documentos, teléfonos,
             ubicaciones precisas de hogares y fotografías sensibles permanecen protegidos.
