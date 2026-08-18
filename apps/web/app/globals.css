@@ -2807,3 +2807,133 @@ button:active:not(:disabled),
 .censusTallyItem.severe {
   border-left-color: var(--status-severe);
 }
+
+/* Trazabilidad de la ayuda. La cadena se dibuja como cadena —cuatro eslabones en fila— porque el
+   orden es la mitad del mensaje: cada uno solo puede existir si existe el anterior. */
+.traceSection {
+  display: grid;
+  gap: 4px;
+  padding: 48px 0;
+}
+
+.traceChain {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: trace;
+}
+
+.traceChain li {
+  display: grid;
+  gap: 4px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--primary);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  padding: 14px 16px;
+}
+
+/* Un eslabón en cero se ve apagado pero **no se oculta**: es el dato, no su ausencia. */
+.traceChain li.empty {
+  border-left-color: var(--line-strong);
+  background: var(--paper-deep);
+}
+
+.traceChain li strong {
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.traceChain li.empty strong {
+  color: var(--text-secondary);
+}
+
+.traceChain li span {
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.traceChain li small {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.traceZeroNote {
+  margin: 16px 0 0;
+  border-left: 4px solid var(--amber);
+  border-radius: var(--radius-sm);
+  background: var(--paper-deep);
+  padding: 14px 16px;
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.traceGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+  margin-top: 22px;
+}
+
+.traceGrid article {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  padding: 18px 20px;
+}
+
+.traceGrid h3 {
+  margin: 0 0 12px;
+  font-size: 15px;
+}
+
+.traceGrid dl {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+
+.traceGrid dl > div {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 1px solid var(--line);
+  padding: 8px 0;
+}
+
+.traceGrid dl > div:last-of-type {
+  border-bottom: 0;
+}
+
+.traceGrid dt {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.traceGrid dd {
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* Un cero que importa se marca. No en rojo de alarma —no es un fallo— sino apagado, para que se lea
+   como «esto todavía no existe» y no como «esto está mal». */
+.traceGrid dd.zero {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.traceGrid article > p {
+  margin: 14px 0 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}

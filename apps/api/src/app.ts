@@ -4,6 +4,7 @@ import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import rateLimit from "@fastify/rate-limit";
 import {
+  type AidTraceabilityRepository,
   AssessmentNotFoundError,
   type AssessmentRepository,
   type CensusCoverageRepository,
@@ -47,6 +48,7 @@ import {
   actorEndorsementSchema,
   actorSchema,
   actorTrustProfileSchema,
+  aidTraceabilitySchema,
   assessmentSummarySchema,
   beginPasskeyAuthenticationSchema,
   censusCoverageSummarySchema,
@@ -145,6 +147,7 @@ import { MemoryWorkforceProfileRepository } from "./memory-workforce-profile-rep
 import { MemoryMissionAccessRepository } from "./mission-access-repositories.js";
 import { MemoryOperationsAccessRepository } from "./operations-access-repositories.js";
 import type { PostgresAdminRepository } from "./postgres-admin-repository.js";
+import { EmptyAidTraceabilityRepository } from "./postgres-aid-traceability-repository.js";
 import { EmptyCensusCoverageRepository } from "./postgres-census-coverage-repository.js";
 import { EmptySeismicShakingRepository } from "./postgres-seismic-shaking-repository.js";
 import { PublicReadCache } from "./public-read-cache.js";
@@ -182,6 +185,7 @@ export type BuildAppOptions = {
   publicFundsRepository?: PublicFundsRepository;
   seismicShakingRepository?: SeismicShakingRepository;
   censusCoverageRepository?: CensusCoverageRepository;
+  aidTraceabilityRepository?: AidTraceabilityRepository;
   publicReportRepository?: PublicReportRepository;
   caliPublicSourceRepository?: CaliPublicSourceRepository;
   sgcPublicSourceRepository?: SgcPublicSourceRepository;
@@ -247,6 +251,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
   const publicFunds = options.publicFundsRepository ?? new EmptyPublicFundsRepository();
   const seismicShaking = options.seismicShakingRepository ?? new EmptySeismicShakingRepository();
   const censusCoverage = options.censusCoverageRepository ?? new EmptyCensusCoverageRepository();
+  const aidTraceability = options.aidTraceabilityRepository ?? new EmptyAidTraceabilityRepository();
   const publicReports = options.publicReportRepository ?? new MemoryPublicReportRepository();
   const caliPublicSource =
     options.caliPublicSourceRepository ?? new EmptyCaliPublicSourceRepository();
@@ -956,6 +961,35 @@ export async function buildApp(options: BuildAppOptions = {}) {
             await censusCoverage.summaryByIncident(incident.id, request.params.incidentCode, {
               ...(Number.isFinite(limit) ? { limit } : {}),
             }),
+          ),
+        );
+    },
+  );
+
+  // Trazabilidad de la ayuda, para quien tenga que auditarla.
+  //
+  // Contraloría, Procuraduría y Defensoría coinciden en pedir la misma palabra: trazabilidad. Esta
+  // ruta la responde eslabón por eslabón —necesidad, asignación, despacho, entrega— y **muestra los
+  // eslabones que están en cero**, porque un ente de control necesita poder distinguir «no se
+  // entregó ayuda» de «se entregó y no quedó registrada aquí». Un cero escondido convierte la
+  // segunda cosa en la primera.
+  //
+  // Pública y sin sesión, igual que la cobertura del censo: quien audita no debería tener que
+  // pedirnos una cuenta para verificar una cifra nuestra.
+  app.get<{ Params: { incidentCode: string } }>(
+    "/v1/public/incidents/:incidentCode/aid-traceability",
+    async (request, reply) => {
+      const incident = await incidents.findByCode(request.params.incidentCode);
+      if (!incident) {
+        return reply
+          .status(404)
+          .send({ error: "incident_not_found", message: "La emergencia no existe." });
+      }
+      return reply
+        .header("Cache-Control", "public, max-age=120, s-maxage=300, stale-while-revalidate=900")
+        .send(
+          aidTraceabilitySchema.parse(
+            await aidTraceability.summaryByIncident(incident.id, request.params.incidentCode),
           ),
         );
     },

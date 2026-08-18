@@ -42,6 +42,7 @@ import { PostgresCaliPublicSourceRepository } from "./cali-public-source-reposit
 import { PostgresEvidenceRepository } from "./evidence-repositories.js";
 import { PostgresMissionAccessRepository } from "./mission-access-repositories.js";
 import { PostgresOperationsAccessRepository } from "./operations-access-repositories.js";
+import { PostgresAidTraceabilityRepository } from "./postgres-aid-traceability-repository.js";
 import { PostgresCensusCoverageRepository } from "./postgres-census-coverage-repository.js";
 import { PostgresCommunityReportRepository } from "./postgres-community-report-repository.js";
 import { PostgresIdentityTrustRepository } from "./postgres-identity-trust-repository.js";
@@ -784,6 +785,7 @@ export function createPostgresRepositories(
     publicFunds: new PostgresPublicFundsRepository(sql),
     seismicShaking: new PostgresSeismicShakingRepository(sql),
     censusCoverage: new PostgresCensusCoverageRepository(sql),
+    aidTraceability: new PostgresAidTraceabilityRepository(sql),
     reconstructionProgress: new PostgresReconstructionProgressRepository(sql),
     sgcPublicSource: new PostgresSgcPublicSourceRepository(sql),
     territories: new PostgresTerritoryRepository(sql),

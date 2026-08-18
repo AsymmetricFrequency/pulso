@@ -1,4 +1,5 @@
 export * from "./access.js";
+export * from "./aid-traceability.js";
 export * from "./assessment.js";
 export * from "./census-coverage.js";
 export * from "./community-report.js";
