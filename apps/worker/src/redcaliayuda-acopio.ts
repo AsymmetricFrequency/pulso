@@ -86,7 +86,7 @@ export function parseAcopioShareText(decoded: string): ParsedAcopioPoint | undef
 
 export type MappedAcopioPoint = {
   externalKey: string;
-  reportType: "pmu";
+  reportType: "acopio";
   category: null;
   title: string;
   description: string | null;
@@ -126,7 +126,7 @@ export function mapAcopioArticle(
 
   return {
     externalKey: `acopio:${key}`,
-    reportType: "pmu",
+    reportType: "acopio",
     category: null,
     title,
     description: null,

@@ -175,7 +175,7 @@ type RegistryPoint = {
 
 export type MappedRegistryPoint = {
   externalKey: string;
-  reportType: "dano" | "via" | "pmu";
+  reportType: "dano" | "via" | "acopio" | "albergue";
   category: string | null;
   title: string;
   description: string | null;
@@ -215,6 +215,9 @@ export function mapRegistryPoint(point: RegistryPoint): MappedRegistryPoint | un
   const isDamage = DAMAGE_TYPES.has(tipo);
   const isRoute = ROUTE_TYPES.has(tipo);
   const isAid = AID_TYPES.has(tipo);
+  // La fuente sí distingue albergue de punto de ayuda, y hasta hoy los guardábamos iguales. Buscar
+  // «albergue» en el título después acertaba 36 de 279: el dato estaba, lo estábamos tirando.
+  const isShelter = tipo === "ALBERGUE";
   if (!isDamage && !isRoute && !isAid) return undefined;
 
   const severity = SEVERITY_MAP[text(point.severidad) ?? ""] ?? "sin_evaluar";
@@ -285,7 +288,7 @@ export function mapRegistryPoint(point: RegistryPoint): MappedRegistryPoint | un
 
   return {
     externalKey: codigo,
-    reportType: isDamage ? "dano" : isRoute ? "via" : "pmu",
+    reportType: isDamage ? "dano" : isRoute ? "via" : isShelter ? "albergue" : "acopio",
     category: null,
     title,
     description: description || null,

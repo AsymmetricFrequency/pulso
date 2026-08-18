@@ -56,7 +56,7 @@ type AcopioRecord = {
 
 export type MappedTerremotoColombiaPoint = {
   externalKey: string;
-  reportType: "pmu";
+  reportType: "acopio";
   category: null;
   title: string;
   description: string | null;
@@ -97,7 +97,7 @@ export function mapAcopioRecord(record: AcopioRecord): MappedTerremotoColombiaPo
 
   return {
     externalKey: `acopio:${record.id}`,
-    reportType: "pmu",
+    reportType: "acopio",
     category: null,
     title,
     description,

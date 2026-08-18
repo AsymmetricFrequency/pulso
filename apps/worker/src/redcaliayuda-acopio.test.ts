@@ -59,7 +59,7 @@ describe("mapAcopioArticle", () => {
   it("maps a real article into a PMU-type community report", () => {
     const mapped = mapAcopioArticle("cmsukp4s8009604jomjllvrhh", shareHref(REAL_SHARE_TEXT));
     expect(mapped).toBeDefined();
-    expect(mapped?.reportType).toBe("pmu");
+    expect(mapped?.reportType).toBe("acopio");
     expect(mapped?.title).toBe("Casa de acopio para buenaventura");
     expect(mapped?.location.coordinates).toEqual([-76.5197981, 3.4210944]);
     expect(mapped?.externalKey).toBe("acopio:cmsukp4s8009604jomjllvrhh");

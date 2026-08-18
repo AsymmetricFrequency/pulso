@@ -37,6 +37,8 @@ const toPublic = (report: CommunityReportDto): PublicCommunityReportDto => ({
   respondersOnSite: report.respondersOnSite,
   routeStatus: report.routeStatus,
   damageSeverity: report.damageSeverity,
+  shelterCapacity: report.shelterCapacity,
+  shelterOccupancy: report.shelterOccupancy,
   locationPrecision: report.locationPrecision,
   createdAt: report.createdAt,
 });
@@ -102,6 +104,8 @@ export class MemoryCommunityReportRepository implements CommunityReportRepositor
       respondersOnSite: input.respondersOnSite,
       routeStatus: input.routeStatus,
       damageSeverity: input.damageSeverity,
+      shelterCapacity: input.shelterCapacity,
+      shelterOccupancy: input.shelterOccupancy,
       locationPrecision: "approximate" as const,
       externalKey: null,
       reviewedByActorId: null,
@@ -168,6 +172,8 @@ export class MemoryCommunityReportRepository implements CommunityReportRepositor
       // importado que trae este campo.
       routeStatus: input.routeStatus,
       damageSeverity: input.damageSeverity,
+      shelterCapacity: input.shelterCapacity,
+      shelterOccupancy: input.shelterOccupancy,
       locationPrecision: "approximate" as const,
       externalSourceId: input.externalSourceId,
       externalKey: input.externalKey,

@@ -283,7 +283,7 @@ async function upsertBatch(sql: Sql, incidentId: string, points: MappedAcopio[])
         public_location_precision, status, external_source_id, external_key,
         client_mutation_id, metadata
       ) VALUES (
-        ${randomUUID()}, ${incidentId}, 'pmu', null, ${point.title}, ${point.description},
+        ${randomUUID()}, ${incidentId}, 'acopio', null, ${point.title}, ${point.description},
         ST_SetSRID(ST_MakePoint(${point.longitude}, ${point.latitude}), 4326),
         'geocoded', ${point.status}, ${CUIDARCOLOMBIA_SOURCE.id}, ${point.externalKey},
         ${randomUUID()}, ${sql.json(point.metadata)}

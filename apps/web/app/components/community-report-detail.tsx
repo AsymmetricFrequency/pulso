@@ -24,6 +24,8 @@ import {
 export const REPORT_TYPE_LABEL: Record<PublicCommunityReport["reportType"], string> = {
   rescate: "Personas atrapadas",
   pmu: "Puesto de mando",
+  acopio: "Punto de acopio",
+  albergue: "Albergue",
   necesidad: "Necesidad",
   via: "Estado de la vía",
   dano: "Daño estructural",

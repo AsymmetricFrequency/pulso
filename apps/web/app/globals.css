@@ -28,6 +28,12 @@
      y no compite con la escala de revisión. */
   --damage: #9a5b3d;
   --damage-collapse: #a8321c;
+  /* Ayuda. Los dos salen también de la escala de revisión: un acopio abierto lo está aunque nadie
+     de Operaciones lo haya mirado. Se separan entre sí porque responden a preguntas distintas —el
+     azul es «dónde dejo o recojo cosas», el violeta «dónde duermo esta noche»—, y la diferencia
+     está además en el glifo (caja contra techo con cama) para quien no separa los dos colores. */
+  --aid-supply: #35708f;
+  --aid-shelter: #6b5aa6;
   --shadow: var(--elev-2);
   --shadow-lift: 0 22px 50px rgba(16, 35, 28, 0.14);
   --radius-sm: 8px;
@@ -1408,6 +1414,21 @@ footer a {
   background: var(--route-open);
 }
 
+/* Marcador de acopio y de albergue. Del mismo tamaño que los demás puntos de ayuda: no compiten
+   con el rescate ni con el colapso, que son los que deciden a dónde se va primero. */
+.pulsoMarkerAid {
+  width: 26px;
+  height: 26px;
+  background: var(--aid-supply);
+  border: 2px solid rgba(255, 253, 247, 0.98);
+  color: white;
+  box-shadow: 0 2px 8px rgba(20, 40, 52, 0.32);
+}
+
+.pulsoMarkerShelter {
+  background: var(--aid-shelter);
+}
+
 .pulsoMarkerDamage {
   width: 26px;
   height: 26px;
@@ -1609,6 +1630,75 @@ footer a {
 .statusDot.geocoded {
   background: transparent;
   border: 1px dashed #8a7f66;
+}
+
+/* El filtro vive pegado al mapa, no en una barra lateral: lo que se apaga y se enciende tiene que
+   verse cambiar sin mover los ojos de los puntos. */
+.mapFilters {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  z-index: 4;
+  top: 14px;
+  left: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: calc(100% - 28px);
+}
+
+.mapFilterChip {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  padding: 5px 10px;
+  min-height: 32px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: rgba(255, 253, 247, 0.94);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    opacity 160ms ease-out,
+    background 160ms ease-out;
+}
+
+.mapFilterChip:hover {
+  background: white;
+}
+
+/* Apagado se lee tachado y desvanecido, no solo más claro: la diferencia entre «no hay acopios» y
+   «apagaste los acopios» tiene que sobrevivir a una pantalla al sol. */
+.mapFilterChip.off {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+.mapFilterCount {
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.mapFilterChip.reset {
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mapFilterChip {
+    transition: none;
+  }
+}
+
+.statusDot.acopio {
+  background: var(--aid-supply);
+}
+
+.statusDot.albergue {
+  background: var(--aid-shelter);
 }
 
 .statusDot.damage {

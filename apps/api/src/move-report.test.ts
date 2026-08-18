@@ -36,6 +36,8 @@ function moveFixture() {
     respondersOnSite: null,
     routeStatus: null,
     damageSeverity: null,
+    shelterCapacity: null,
+    shelterOccupancy: null,
   };
 }
 

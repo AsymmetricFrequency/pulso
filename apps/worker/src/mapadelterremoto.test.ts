@@ -41,7 +41,10 @@ describe("mapRegistryPoint", () => {
   it("derives the report type from the source vocabulary", () => {
     expect(mapRegistryPoint({ ...base, tipo: "VIA" })?.reportType).toBe("via");
     expect(mapRegistryPoint({ ...base, tipo: "DESLIZAMIENTO" })?.routeStatus).toBe("bloqueada");
-    expect(mapRegistryPoint({ ...base, tipo: "PUNTO_AYUDA" })?.reportType).toBe("pmu");
+    expect(mapRegistryPoint({ ...base, tipo: "PUNTO_AYUDA" })?.reportType).toBe("acopio");
+    // La distinción que la fuente ya hacía y nosotros aplanábamos: dónde se recogen cosas y dónde
+    // duerme alguien esta noche son dos preguntas distintas.
+    expect(mapRegistryPoint({ ...base, tipo: "ALBERGUE" })?.reportType).toBe("albergue");
     expect(mapRegistryPoint({ ...base, tipo: "ALBERGUE" })?.damageSeverity).toBeNull();
   });
 

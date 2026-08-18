@@ -9,7 +9,18 @@ import { redactContacts } from "./redact-contacts.js";
 // pide que le manden nada, informa de que no se puede pasar— ni un `pmu`, porque marcar el
 // aeropuerto de Buenaventura como Puesto de Mando Unificado diría que ahí hay mando. Y es lo
 // primero que necesita saber quien va en camino a un rescate.
-export const communityReportTypeSchema = z.enum(["rescate", "pmu", "necesidad", "via", "dano"]);
+// `acopio` y `albergue` salen de partir `pmu`, que se había vuelto un cajón de sastre: 1.121 puntos
+// etiquetados «Puesto de mando» y solo 5 lo eran. Un acopio recibe y despacha cosas; un albergue es
+// donde alguien duerme esta noche. Mezclarlos impedía preguntarle al mapa dónde queda espacio.
+export const communityReportTypeSchema = z.enum([
+  "rescate",
+  "pmu",
+  "necesidad",
+  "via",
+  "dano",
+  "acopio",
+  "albergue",
+]);
 
 /**
  * Señales de vida en un punto de rescate.
@@ -126,6 +137,9 @@ export const createCommunityReportSchema = z
     respondersOnSite: z.boolean().nullable().default(null),
     routeStatus: routeStatusSchema.nullable().default(null),
     damageSeverity: damageSeveritySchema.nullable().default(null),
+    // Aproximadas y opcionales: quien reporta una carpa a las once de la noche no cuenta camas.
+    shelterCapacity: z.number().int().min(1).max(20_000).nullable().default(null),
+    shelterOccupancy: z.number().int().min(0).max(20_000).nullable().default(null),
   })
   .refine((input) => input.reportType !== "necesidad" || input.category !== null, {
     message: "category is required when reportType is 'necesidad'",
@@ -150,6 +164,15 @@ export const createCommunityReportSchema = z
     message: "damageSeverity is only valid when reportType is 'dano'",
     path: ["damageSeverity"],
   })
+  .refine(
+    (input) =>
+      input.reportType === "albergue" ||
+      (input.shelterCapacity === null && input.shelterOccupancy === null),
+    {
+      message: "shelter fields are only valid when reportType is 'albergue'",
+      path: ["shelterCapacity"],
+    },
+  )
   .refine(
     (input) =>
       input.reportType === "rescate" ||
@@ -180,6 +203,8 @@ export const publicCommunityReportSchema = z.object({
   respondersOnSite: z.boolean().nullable(),
   routeStatus: routeStatusSchema.nullable(),
   damageSeverity: damageSeveritySchema.nullable(),
+  shelterCapacity: z.number().int().nullable(),
+  shelterOccupancy: z.number().int().nullable(),
   locationPrecision: locationPrecisionSchema,
   createdAt: z.iso.datetime({ offset: true }),
 });
@@ -223,6 +248,10 @@ export const mapCommunityReportSchema = publicCommunityReportSchema.pick({
   // Un edificio colapsado no puede dibujarse igual que una fachada agrietada, y con ~200 colapsos
   // entre miles de daños leves esa diferencia es la mitad del valor del mapa.
   damageSeverity: true,
+  // Un albergue lleno y uno con sitio se buscan por razones opuestas, así que el mapa tiene que
+  // poder distinguirlos sin pedir el detalle de cada punto.
+  shelterCapacity: true,
+  shelterOccupancy: true,
   // Decide el dibujo del marcador: un punto deducido de un texto no puede parecerse a uno que
   // alguien puso estando allí.
   locationPrecision: true,
@@ -265,6 +294,8 @@ export const upsertExternalCommunityReportSchema = z.object({
   metadata: communityReportMetadataSchema.nullable().default(null),
   routeStatus: routeStatusSchema.nullable().default(null),
   damageSeverity: damageSeveritySchema.nullable().default(null),
+  shelterCapacity: z.number().int().min(1).max(20_000).nullable().default(null),
+  shelterOccupancy: z.number().int().min(0).max(20_000).nullable().default(null),
 });
 
 export type CommunityReportType = z.infer<typeof communityReportTypeSchema>;

@@ -15,6 +15,26 @@ const LeafletMap = dynamic(() => import("./leaflet-map").then((mod) => mod.Leafl
   loading: () => <div className="leafletMapContainer mapLoading">Cargando mapa…</div>,
 });
 
+/**
+ * Las familias en que se puede partir el mapa.
+ *
+ * No es la lista de `reportType`: es la lista de **preguntas distintas** que se le hacen al mapa.
+ * Por eso el orden no es alfabético ni por volumen — arriba va lo que decide a dónde ir primero
+ * (gente atrapada, edificios caídos, si el camino existe) y abajo la ayuda, que se busca con otra
+ * intención y en otro momento.
+ */
+const REPORT_FAMILIES = [
+  { key: "rescate", label: "Rescates", token: "rescue" },
+  { key: "dano", label: "Daños", token: "damage" },
+  { key: "via", label: "Vías", token: "route blocked" },
+  { key: "acopio", label: "Acopios", token: "acopio" },
+  { key: "albergue", label: "Albergues", token: "albergue" },
+  { key: "necesidad", label: "Necesidades", token: "pmu" },
+  { key: "pmu", label: "Puestos de mando", token: "pmu" },
+] as const;
+
+type ReportFamily = (typeof REPORT_FAMILIES)[number]["key"];
+
 type DepartmentProperties = {
   dpto_ccdgo: string;
   dpto_cnmbre: string;
@@ -279,6 +299,9 @@ export function AtlasMap({
   const [pendingPoint, setPendingPoint] = useState<[number, number] | null>(null);
   const [optimisticReports, setOptimisticReports] = useState<PublicCommunityReport[]>([]);
   const [activeReport, setActiveReport] = useState<PublicCommunityReport | null>(null);
+  // Qué familias están apagadas, no cuáles están encendidas: así, cuando entre un tipo nuevo de
+  // reporte, aparece en el mapa en vez de quedarse invisible hasta que alguien toque este código.
+  const [hiddenFamilies, setHiddenFamilies] = useState<ReadonlySet<ReportFamily>>(new Set());
   // Centro actual de la vista Leaflet: es lo que permite decir en qué municipio está parado
   // quien mira el mapa, en vez de solo repetir el departamento que eligió.
   const [mapCenter, setMapCenter] = useState<[number, number] | null>(null);
@@ -504,6 +527,32 @@ export function AtlasMap({
     [reports, optimisticReports],
   );
 
+  /** Cuántos hay de cada familia, **antes** de filtrar: un filtro que no dice cuánto esconde
+      convierte el mapa vacío en «no hay nada» cuando lo que pasa es que está apagado. */
+  const familyCounts = useMemo(() => {
+    const counts = new Map<ReportFamily, number>();
+    for (const report of allReports) {
+      const family = report.reportType as ReportFamily;
+      counts.set(family, (counts.get(family) ?? 0) + 1);
+    }
+    return counts;
+  }, [allReports]);
+
+  const visibleReports = useMemo(
+    () =>
+      hiddenFamilies.size === 0
+        ? allReports
+        : allReports.filter((report) => !hiddenFamilies.has(report.reportType as ReportFamily)),
+    [allReports, hiddenFamilies],
+  );
+
+  const toggleFamily = (family: ReportFamily) =>
+    setHiddenFamilies((current) => {
+      const next = new Set(current);
+      if (!next.delete(family)) next.add(family);
+      return next;
+    });
+
   const rescueCount = useMemo(
     () => allReports.filter((report) => report.reportType === "rescate").length,
     [allReports],
@@ -548,11 +597,11 @@ export function AtlasMap({
 
   const projectedReports = useMemo(() => {
     if (!projection) return [];
-    return allReports.flatMap((report) => {
+    return visibleReports.flatMap((report) => {
       const point = projection(report.location.coordinates);
       return point ? [{ report, x: point[0], y: point[1] }] : [];
     });
-  }, [projection, allReports]);
+  }, [projection, visibleReports]);
 
   const zoomTransform = useMemo(() => {
     const identity = { scale: 1, x: 0, y: 0 };
@@ -821,7 +870,7 @@ export function AtlasMap({
               departmentFeature={departmentFeature}
               municipalities={municipalitiesByDept[zoomedCode] ?? null}
               sgcEvents={sgcEvents}
-              reports={allReports}
+              reports={visibleReports}
               reportMode={reportMode}
               pendingPoint={pendingPoint}
               onMapClickForReport={setPendingPoint}
@@ -1036,6 +1085,43 @@ export function AtlasMap({
         <span className={`coverageBadge ${selectedStatus.token}`}>{selectedStatus.label}</span>
       </div>
 
+      {/* El filtro. Solo se dibujan las familias que existen ahora mismo en el mapa: un botón
+          «Albergues (0)» ocuparía sitio para decir que no hay nada que ver. */}
+      {familyCounts.size > 1 ? (
+        <fieldset className="mapFilters">
+          <legend className="srOnly">Filtrar tipos de reporte</legend>
+          {REPORT_FAMILIES.filter((family) => (familyCounts.get(family.key) ?? 0) > 0).map(
+            (family) => {
+              const hidden = hiddenFamilies.has(family.key);
+              return (
+                <button
+                  key={family.key}
+                  type="button"
+                  className={`mapFilterChip${hidden ? " off" : ""}`}
+                  aria-pressed={!hidden}
+                  onClick={() => toggleFamily(family.key)}
+                >
+                  <i className={`statusDot ${family.token}`} />
+                  {family.label}
+                  <span className="mapFilterCount">
+                    {(familyCounts.get(family.key) ?? 0).toLocaleString("es-CO")}
+                  </span>
+                </button>
+              );
+            },
+          )}
+          {hiddenFamilies.size > 0 ? (
+            <button
+              type="button"
+              className="mapFilterChip reset"
+              onClick={() => setHiddenFamilies(new Set())}
+            >
+              Ver todo
+            </button>
+          ) : null}
+        </fieldset>
+      ) : null}
+
       <ul className="mapLegend embedded" aria-label={`Leyenda: ${definition.title}`}>
         {definition.legend.map((item) => (
           <li key={`${layer}-${item.token}`}>
@@ -1089,8 +1175,10 @@ export function AtlasMap({
             {/* Decir "2.186 reportes" mientras se dibujan 800 es afirmar algo que la pantalla no
                 sostiene. Cuando el listado va recortado se nombra el recorte y qué hacer con él. */}
             {reportsTotal > allReports.length
-              ? `${allReports.length} de ${reportsTotal.toLocaleString("es-CO")} reportes ciudadanos · entra a un departamento para verlos todos`
-              : `${allReports.length} reportes ciudadanos (PMU / necesidades)`}
+              ? `${allReports.length} de ${reportsTotal.toLocaleString("es-CO")} reportes · entra a un departamento para verlos todos`
+              : hiddenFamilies.size > 0
+                ? `${visibleReports.length.toLocaleString("es-CO")} de ${allReports.length.toLocaleString("es-CO")} reportes · hay tipos ocultos`
+                : `${allReports.length.toLocaleString("es-CO")} reportes ciudadanos y de fuentes públicas`}
           </li>
         ) : null}
       </ul>

@@ -73,7 +73,7 @@ type GravitasFeature = {
 
 export type MappedGravitasPoint = {
   externalKey: string;
-  reportType: "pmu" | "via";
+  reportType: "acopio" | "via";
   category: string | null;
   routeStatus: "bloqueada" | "habilitada" | null;
   title: string;
@@ -176,7 +176,7 @@ export function mapGravitasFeature(feature: GravitasFeature): MappedGravitasPoin
 
   return {
     externalKey: properties.id,
-    reportType: isRoute ? "via" : "pmu",
+    reportType: isRoute ? "via" : "acopio",
     // Una vía no lleva categoría: la categoría dice qué falta, y aquí lo que falta es poder pasar.
     category: isRoute ? null : mappedCategory,
     routeStatus,

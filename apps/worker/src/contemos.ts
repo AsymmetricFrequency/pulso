@@ -61,7 +61,7 @@ type ContemosRecord = {
 
 export type MappedContemosPoint = {
   externalKey: string;
-  reportType: "necesidad" | "pmu";
+  reportType: "necesidad" | "acopio";
   category: string | null;
   title: string;
   description: string | null;
@@ -87,7 +87,7 @@ export function mapContemosRecord(record: ContemosRecord): MappedContemosPoint |
   if (!isFiniteCoord(record.lat) || !isFiniteCoord(record.lng)) return undefined;
   if (!isWithinColombia(record.lat, record.lng)) return undefined;
 
-  const reportType = record.clase === "necesidad" ? "necesidad" : "pmu";
+  const reportType = record.clase === "necesidad" ? "necesidad" : "acopio";
   const category = firstCategory(record.categoria);
   if (reportType === "necesidad" && !category) return undefined;
 

@@ -55,7 +55,7 @@ type Necesidad = {
 
 export type MappedAyudasPereiraPoint = {
   externalKey: string;
-  reportType: "pmu" | "necesidad";
+  reportType: "acopio" | "necesidad";
   category: string | null;
   title: string;
   description: string | null;
@@ -113,7 +113,7 @@ export function mapAyudasPereiraSnapshot(
     if (title.length < 3) continue;
     points.push({
       externalKey: `centro:${centro.id}`,
-      reportType: "pmu",
+      reportType: "acopio",
       category: null,
       title,
       description: centro.direccion?.trim() || null,

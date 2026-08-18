@@ -75,6 +75,20 @@ function reportDivIcon(report: PublicCommunityReport) {
       iconAnchor: collapse ? [15, 15] : [13, 13],
     });
   }
+  // Acopios y albergues tampoco. Un acopio abierto y uno cerrado se distinguen por su estado en la
+  // fuente, no por si Operaciones alcanzó a revisarlo; y un albergue es la respuesta a «dónde
+  // duermo esta noche», que no puede quedar del mismo color ámbar que una necesidad sin verificar.
+  if (report.reportType === "acopio" || report.reportType === "albergue") {
+    const shelter = report.reportType === "albergue";
+    return L.divIcon({
+      className: "pulsoMarker",
+      html:
+        `<span class="pulsoMarkerDot pulsoMarkerAid${shelter ? " pulsoMarkerShelter" : ""}">` +
+        `${reportMarkerSvg(reportMarkerKey(report), 15)}</span>`,
+      iconSize: [26, 26],
+      iconAnchor: [13, 13],
+    });
+  }
   const color = statusColor(report.status);
   // Punteado significa **una** cosa: «sin verificar». Antes también marcaba las coordenadas
   // deducidas, y eso lo volvía ilegible: quien mira no podía separar «nadie ha confirmado esto» de

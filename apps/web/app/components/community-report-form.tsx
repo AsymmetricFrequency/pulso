@@ -21,7 +21,14 @@ import {
 /** Cualquiera del set de `icons.tsx`: comparten firma, así que se pasan como dato. */
 type IconComponent = typeof IconDot;
 
-export type CommunityReportType = "rescate" | "pmu" | "necesidad" | "via" | "dano";
+export type CommunityReportType =
+  | "rescate"
+  | "pmu"
+  | "necesidad"
+  | "via"
+  | "dano"
+  | "acopio"
+  | "albergue";
 export type RescueSignsOfLife = "yes" | "no" | "unknown";
 export type RouteStatus = "bloqueada" | "habilitada";
 export type DamageSeverity = "colapso" | "grave" | "moderado" | "leve" | "sin_evaluar";
@@ -78,6 +85,8 @@ export type PublicCommunityReport = {
   respondersOnSite: boolean | null;
   routeStatus: RouteStatus | null;
   damageSeverity: DamageSeverity | null;
+  shelterCapacity: number | null;
+  shelterOccupancy: number | null;
   locationPrecision: LocationPrecision;
   createdAt: string;
 };

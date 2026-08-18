@@ -67,6 +67,8 @@ describe("community report schemas", () => {
       respondersOnSite: null,
       routeStatus: null,
       damageSeverity: null,
+      shelterCapacity: null,
+      shelterOccupancy: null,
       locationPrecision: "approximate",
       createdAt: "2026-08-14T12:00:00Z",
       updatedAt: "2026-08-14T12:00:00Z",
@@ -159,6 +161,8 @@ describe("community report schemas", () => {
       respondersOnSite: null,
       routeStatus: "bloqueada",
       damageSeverity: null,
+      shelterCapacity: null,
+      shelterOccupancy: null,
       locationPrecision: "approximate",
       createdAt: "2026-08-14T12:00:00Z",
     });
@@ -192,6 +196,8 @@ describe("community report schemas", () => {
       respondersOnSite: null,
       routeStatus: null,
       damageSeverity: "colapso",
+      shelterCapacity: null,
+      shelterOccupancy: null,
       locationPrecision: "approximate",
       createdAt: "2026-08-14T12:00:00Z",
     });
@@ -209,6 +215,35 @@ describe("community report schemas", () => {
         damageSeverity: "colapso",
       }).success,
     ).toBe(false);
+  });
+
+  // La capacidad de un albergue solo significa algo en un albergue. Un acopio con «capacidad 200»
+  // se leería como que caben 200 personas ahí, que es justo la confusión que este ticket parte.
+  it("keeps the shelter fields inside shelter reports", () => {
+    const base = {
+      clientMutationId: "5f0f3f2a-6d4b-4b3a-9f0e-2a2b3c4d5e6f",
+      title: "Coliseo del barrio",
+      location: point,
+    };
+    expect(
+      createCommunityReportSchema.safeParse({
+        ...base,
+        reportType: "acopio",
+        shelterCapacity: 200,
+      }).success,
+    ).toBe(false);
+
+    const shelter = createCommunityReportSchema.parse({
+      ...base,
+      reportType: "albergue",
+      shelterCapacity: 200,
+      shelterOccupancy: 140,
+    });
+    expect(shelter.shelterCapacity).toBe(200);
+    // Y son opcionales: quien reporta una carpa a las once de la noche no cuenta camas, y exigir
+    // el número convertiría el dato que sí tenemos —que existe y dónde está— en uno que nadie envía.
+    const sinCifras = createCommunityReportSchema.parse({ ...base, reportType: "albergue" });
+    expect(sinCifras.shelterCapacity).toBeNull();
   });
 
   it("does not allow reviewing a report back into 'reported'", () => {

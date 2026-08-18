@@ -301,6 +301,8 @@ export const IconStore = (props: IconProps) => (
 export type ReportMarkerKey =
   | "rescate"
   | "pmu"
+  | "acopio"
+  | "albergue"
   | "necesidad"
   | "via-bloqueada"
   | "via-habilitada"
@@ -328,8 +330,15 @@ export const REPORT_MARKER_PATH: Record<ReportMarkerKey, string> = {
   // justo lo que este tipo de reporte existe para evitar.
   rescate:
     "M12 3.6a1.9 1.9 0 1 0 0 3.8 1.9 1.9 0 1 0 0-3.8M12 8.4v5.4M8.4 6.6 12 10l3.6-3.4M9 19l3-5.2 3 5.2",
-  // Bandera: puesto de mando.
+  // Bandera: puesto de mando. Y **solo** puesto de mando: hasta hoy esta bandera dibujaba también
+  // los 1.116 acopios y albergues importados, que no son un puesto de mando ni se buscan por lo
+  // mismo.
   pmu: "M6 21V3M6 3h11l-2 3.5L17 10H6",
+  // Caja abierta: acopio. Lo que se busca aquí es dónde entregar o recoger cosas.
+  acopio: "M3 8.5 12 4l9 4.5-9 4.5-9-4.5M3 8.5V16l9 4.5 9-4.5V8.5M12 13v7.5",
+  // Techo con una cama debajo: albergue. La diferencia con el acopio tiene que estar en la forma y
+  // no en el color — es la diferencia entre dónde dejar una caja y dónde dormir esta noche.
+  albergue: "M3 11 12 4l9 7M6 12.5V20h12v-7.5M9 17.5h6M9 17.5v-2.5h6v2.5",
   // Triángulo de alerta: necesidad.
   necesidad:
     "M10.3 3.9 1.9 18a2 2 0 0 0 1.7 3h16.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0ZM12 9v4M12 17h.01",

@@ -16,6 +16,8 @@ const base = {
   respondersOnSite: null,
   routeStatus: null,
   damageSeverity: null,
+  shelterCapacity: null,
+  shelterOccupancy: null,
   locationPrecision: "approximate" as const,
   createdAt: "2026-08-17T12:00:00Z",
 };
