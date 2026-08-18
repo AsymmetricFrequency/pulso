@@ -10,6 +10,7 @@ import {
 import type {
   CommunityReportDto,
   CreateCommunityReportInput,
+  MoveCommunityReportInput,
   PublicCommunityReportDto,
   ReviewCommunityReportInput,
   UpsertExternalCommunityReportInput,
@@ -54,6 +55,15 @@ const queueRank = (report: CommunityReportDto): [number, number, number] => [
 ];
 
 export class MemoryCommunityReportRepository implements CommunityReportRepository {
+  /** Visible para las pruebas: es el equivalente de `community_report_location_changes`. */
+  readonly moves: {
+    reportId: string;
+    movedByActorId: string;
+    reason: string;
+    from: unknown;
+    to: unknown;
+  }[] = [];
+
   readonly #reports = new Map<string, StoredCommunityReport>();
   readonly #rateLimits = new Map<string, { attempts: number; resetAt: number }>();
 
@@ -103,6 +113,27 @@ export class MemoryCommunityReportRepository implements CommunityReportRepositor
     };
     this.#reports.set(report.id, report);
     return toPublic(report);
+  }
+
+  /** Igual que en Postgres: mover deja rastro. En memoria el rastro vive en un array. */
+  async move(
+    reportId: string,
+    movedByActorId: string,
+    input: MoveCommunityReportInput,
+  ): Promise<CommunityReportDto> {
+    const report = this.#reports.get(reportId);
+    if (!report) throw new CommunityReportNotFoundError(reportId);
+    this.moves.push({
+      reportId,
+      movedByActorId,
+      reason: input.reason,
+      from: report.location,
+      to: input.location,
+    });
+    report.location = input.location;
+    report.locationPrecision = "approximate";
+    report.updatedAt = new Date().toISOString();
+    return report;
   }
 
   async upsertFromExternalSource(

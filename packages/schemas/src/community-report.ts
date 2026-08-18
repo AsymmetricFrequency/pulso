@@ -228,6 +228,17 @@ export const mapCommunityReportSchema = publicCommunityReportSchema.pick({
   locationPrecision: true,
 });
 
+/**
+ * Corregir dónde está un punto.
+ *
+ * El motivo es obligatorio. Un historial que responde «quién lo movió» y no «por qué» deja sin
+ * contestar justo la pregunta que se hace cuando algo salió mal.
+ */
+export const moveCommunityReportSchema = z.object({
+  location: pointGeometrySchema,
+  reason: z.string().trim().min(3).max(500),
+});
+
 export const reviewCommunityReportSchema = z.object({
   status: communityReportStatusSchema.exclude(["reported"]),
   notes: z.string().trim().max(2_000).nullable().default(null),
@@ -269,6 +280,7 @@ export type PublicCommunityReportDto = z.infer<typeof publicCommunityReportSchem
 export type CommunityReportDto = z.infer<typeof communityReportSchema>;
 export type MapCommunityReportDto = z.infer<typeof mapCommunityReportSchema>;
 export type ReviewCommunityReportInput = z.infer<typeof reviewCommunityReportSchema>;
+export type MoveCommunityReportInput = z.infer<typeof moveCommunityReportSchema>;
 export type UpsertExternalCommunityReportInput = z.infer<
   typeof upsertExternalCommunityReportSchema
 >;

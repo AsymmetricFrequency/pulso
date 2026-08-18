@@ -1,6 +1,7 @@
 import type {
   CommunityReportDto,
   CreateCommunityReportInput,
+  MoveCommunityReportInput,
   PublicCommunityReportDto,
   ReviewCommunityReportInput,
   UpsertExternalCommunityReportInput,
@@ -46,6 +47,18 @@ export interface CommunityReportRepository {
     reportId: string,
     reviewerActorId: string,
     input: ReviewCommunityReportInput,
+  ): Promise<CommunityReportDto>;
+  /**
+   * Corrige la ubicación dejando constancia de la anterior.
+   *
+   * No es un `update` de `location`: la coordenada original —la que dijo la fuente o la que puso
+   * quien reportó— tiene que sobrevivir al cambio, o después nadie puede responder si un punto
+   * está donde está porque lo dijeron o porque lo movimos nosotros.
+   */
+  move(
+    reportId: string,
+    movedByActorId: string,
+    input: MoveCommunityReportInput,
   ): Promise<CommunityReportDto>;
   /** Upserts a point ingested from a third-party public feed, keyed by (externalSourceId, externalKey). */
   upsertFromExternalSource(

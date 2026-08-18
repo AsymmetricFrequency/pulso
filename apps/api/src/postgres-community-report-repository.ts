@@ -9,6 +9,7 @@ import {
 import type {
   CommunityReportDto,
   CreateCommunityReportInput,
+  MoveCommunityReportInput,
   PublicCommunityReportDto,
   ReviewCommunityReportInput,
   UpsertExternalCommunityReportInput,
@@ -255,6 +256,60 @@ export class PostgresCommunityReportRepository implements CommunityReportReposit
     `;
     if (!row) throw new CommunityReportNotFoundError(reportId);
     return reportFromRow(row);
+  }
+
+  /**
+   * Mueve el punto y guarda de dónde venía, en una sola transacción.
+   *
+   * **La escritura del historial no es opcional ni "mejor esfuerzo".** Si la corrección se guardara
+   * y el historial fallara, quedaría un punto movido sin rastro de su origen — que es exactamente
+   * el estado que este ticket existe para impedir. O las dos cosas, o ninguna.
+   *
+   * Un punto corregido a mano deja de ser aproximado: quien lo movió estuvo mirando, así que su
+   * precisión pasa a `approximate` aunque viniera de una geocodificación.
+   */
+  async move(
+    reportId: string,
+    movedByActorId: string,
+    input: MoveCommunityReportInput,
+  ): Promise<CommunityReportDto> {
+    const [lon, lat] = input.location.coordinates;
+    return this.sql.begin(async (tx) => {
+      const [current] = await tx<DbRow[]>`
+        SELECT id, public_location_precision, ST_AsGeoJSON(location)::json AS location
+        FROM community_reports WHERE id = ${reportId} FOR UPDATE
+      `;
+      if (!current) throw new CommunityReportNotFoundError(reportId);
+
+      const [row] = await tx<DbRow[]>`
+        UPDATE community_reports
+        SET location = ST_SetSRID(ST_MakePoint(${lon}, ${lat}), 4326),
+            public_location_precision = 'approximate',
+            updated_at = now()
+        WHERE id = ${reportId}
+        RETURNING *, ST_AsGeoJSON(location)::json AS location
+      `;
+      if (!row) throw new CommunityReportNotFoundError(reportId);
+
+      await tx`
+        INSERT INTO community_report_location_changes (
+          id, report_id, previous_location, new_location,
+          previous_precision, new_precision, moved_by_actor_id, reason, distance_meters
+        )
+        SELECT
+          ${uuidv7()}, ${reportId},
+          ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(current.location)}), 4326),
+          ST_SetSRID(ST_MakePoint(${lon}, ${lat}), 4326),
+          ${String(current.public_location_precision)}, 'approximate',
+          ${movedByActorId}, ${input.reason},
+          ST_Distance(
+            ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(current.location)}), 4326)::geography,
+            ST_SetSRID(ST_MakePoint(${lon}, ${lat}), 4326)::geography
+          )
+      `;
+
+      return reportFromRow(row);
+    });
   }
 
   async upsertFromExternalSource(

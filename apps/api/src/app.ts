@@ -81,6 +81,7 @@ import {
   issuedMissionInvitationSchema,
   issuedOperationsInvitationSchema,
   mapCommunityReportSchema,
+  moveCommunityReportSchema,
   operationalZoneSchema,
   operationsContractSchema,
   operationsSessionSchema,
@@ -1355,6 +1356,35 @@ export async function buildApp(options: BuildAppOptions = {}) {
       const input = reviewCommunityReportSchema.parse(request.body);
       return communityReportSchema.parse(
         await communityReports.review(request.params.reportId, session.actorId, input),
+      );
+    },
+  );
+
+  /**
+   * Corregir dónde está un punto. Cierra la mitad durable de `PL-2`.
+   *
+   * Hasta ahora esto exigía un `psql` en producción, así que solo podía hacerlo quien tuviera acceso
+   * al servidor. Con 3.249 puntos venidos de terceros —79 con la coordenada deducida de una
+   * dirección escrita— corregir no es un caso raro, es rutina.
+   *
+   * **Mismo rol que revisar.** Mover un punto cambia a dónde va un equipo; es una decisión del mismo
+   * peso que corroborar un reporte, y no tiene por qué poder hacerla cualquiera con sesión.
+   */
+  app.patch<{ Params: { incidentId: string; reportId: string } }>(
+    "/v1/operations/incidents/:incidentId/community-reports/:reportId/location",
+    async (request) => {
+      const session = await operationsAccess.resolveSession(
+        bearerToken(request.headers.authorization),
+      );
+      if (session.incidentId !== request.params.incidentId) {
+        throw new MissionAccessDeniedError("La sesión pertenece a otra emergencia.");
+      }
+      if (!["coordinator", "incident_admin"].includes(session.role)) {
+        throw new MissionAccessDeniedError("Este rol no puede corregir la ubicación de un punto.");
+      }
+      const input = moveCommunityReportSchema.parse(request.body);
+      return communityReportSchema.parse(
+        await communityReports.move(request.params.reportId, session.actorId, input),
       );
     },
   );
