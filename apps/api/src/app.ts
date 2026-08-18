@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
+import rateLimit from "@fastify/rate-limit";
 import {
   AssessmentNotFoundError,
   type AssessmentRepository,
@@ -141,6 +142,7 @@ import { MemoryMissionAccessRepository } from "./mission-access-repositories.js"
 import { MemoryOperationsAccessRepository } from "./operations-access-repositories.js";
 import type { PostgresAdminRepository } from "./postgres-admin-repository.js";
 import { EmptySeismicShakingRepository } from "./postgres-seismic-shaking-repository.js";
+import { PublicReadCache } from "./public-read-cache.js";
 import { rescueAlertMessage } from "./rescue-alert.js";
 import {
   EmptySgcPublicSourceRepository,
@@ -352,6 +354,71 @@ export async function buildApp(options: BuildAppOptions = {}) {
   });
   await app.register(cookie);
 
+  /**
+   * **Va antes de registrar el plugin, y el orden no es cosmético.** `@fastify/rate-limit` instala
+   * su propio gancho `onRoute` al registrarse, y los ganchos corren en orden de registro: si este
+   * se añade después, el plugin lee la configuración de la ruta antes de que exista y no aplica
+   * nada. El síntoma es peor que un error — la API responde igual, sin límite y sin decirlo.
+   */
+  /**
+   * Aplica el límite a **toda** ruta pública de lectura, presente y futura.
+   *
+   * Ponerlo ruta por ruta se ve más explícito y es peor: hay una docena de rutas públicas, y la
+   * siguiente que alguien añada se quedaría fuera sin que nadie lo note. El gancho no se olvida.
+   *
+   * Solo `GET`. La creación de reportes tiene su propio límite y sumarle otro por encima podría
+   * dejar sin avisar a alguien que está de pie al lado de un derrumbe.
+   */
+  app.addHook("onRoute", (routeOptions) => {
+    const methods = Array.isArray(routeOptions.method)
+      ? routeOptions.method
+      : [routeOptions.method];
+    if (!routeOptions.url.startsWith("/v1/public/")) return;
+    if (!methods.every((method) => method === "GET" || method === "HEAD")) return;
+    routeOptions.config = {
+      ...(routeOptions.config ?? {}),
+      rateLimit: { max: 240, timeWindow: "1 minute" },
+    };
+  });
+
+  /**
+   * Límite de tasa en las rutas públicas de **lectura**. Cierra `PL-10`.
+   *
+   * **El número sale de medir, no de la intuición**, que es lo que pedía el ticket. Medido contra
+   * producción el 18/08: una visita completa hace unas 4 peticiones y se lleva ~2,4 MB. 240 por
+   * minuto deja unas 60 visitas por minuto desde una misma dirección — de sobra para un edificio,
+   * una universidad o un barrio entero detrás del mismo NAT, que es el riesgo real de apretar de
+   * más: dejar sin mapa a mucha gente por castigar a una.
+   *
+   * Frena lo que tiene que frenar —un raspador desde una IP— y no toca a nadie normal. Lo que de
+   * verdad sostiene un pico de tráfico es la caché de más abajo, no esto.
+   *
+   * **La creación de reportes queda fuera a propósito.** Ya tiene su propio límite (5 cada 10
+   * minutos, en `access_rate_limits`), y sumarle otro por encima significaría que alguien de pie al
+   * lado de un derrumbe, en un barrio entero detrás de un mismo NAT, no puede avisar. Ahí el riesgo
+   * de bloquear a una persona real supera al del abuso.
+   */
+  await app.register(rateLimit, {
+    global: false,
+    max: 240,
+    timeWindow: "1 minute",
+    // El mapa tiene que degradar con un mensaje, no quedarse en blanco.
+    errorResponseBuilder: (_request, context) => ({
+      error: "rate_limited",
+      message: `Demasiadas peticiones. Vuelve a intentarlo en ${Math.ceil(context.ttl / 1000)} segundos.`,
+      statusCode: 429,
+    }),
+  });
+
+  /**
+   * Caché de las lecturas públicas caras. Ver `public-read-cache.ts` para las mediciones.
+   *
+   * Quince segundos: bastante para colapsar un pico en una sola consulta, poco para que un rescate
+   * recién enviado tarde en aparecer. Las ingestas escriben cada diez minutos; quince segundos no
+   * cambian nada de lo que alguien vaya a ver.
+   */
+  const publicReads = new PublicReadCache(15_000);
+
   registerAdminRoutes(app, {
     admin: options.adminRepository ?? null,
     discord: options.discordClient ?? null,
@@ -454,6 +521,21 @@ export async function buildApp(options: BuildAppOptions = {}) {
         .header("Retry-After", String(error.retryAfterSeconds))
         .status(429)
         .send({ error: "workforce_profile_rate_limited", message: error.message });
+    }
+
+    // Un error que ya trae su propio código no es un fallo nuestro: es una respuesta que Fastify o
+    // un plugin ya decidió. Convertirla en 500 la enmascara — se descubrió porque el 429 del límite
+    // de tasa salía como «internal_error», y con él salía igual cualquier 400 o 404 del framework.
+    const framework = error as { statusCode?: number; message?: string };
+    if (
+      typeof framework.statusCode === "number" &&
+      framework.statusCode >= 400 &&
+      framework.statusCode < 500
+    ) {
+      return reply.status(framework.statusCode).send({
+        error: framework.statusCode === 429 ? "rate_limited" : "request_error",
+        message: framework.message ?? "La solicitud no se pudo atender.",
+      });
     }
 
     app.log.error(error);
@@ -621,34 +703,42 @@ export async function buildApp(options: BuildAppOptions = {}) {
       // por recencia era lo que hacía desaparecer puntos del mapa cada vez que entraba una
       // ingesta; sin descripción ni metadata caben enteros.
       const mapView = request.query.view === "map";
-      const page = await communityReports.listPublicByIncident(incident.id, {
-        ...(boundingBox ? { boundingBox } : {}),
-        ...(mapView ? { view: "map" as const } : {}),
-      });
-      // Validar el lote con `.parse()` hacía que **una** fila mala dejara sin lista a las 2.300
-      // buenas: un importador guardó una necesidad con un texto más largo del que admite el
-      // esquema y la ruta entera pasó a devolver `validation_error`. En una emergencia, servir
-      // 2.299 puntos vale más que servir cero, así que cada fila se valida sola. Lo que no se
-      // hace es esconderlo: las descartadas se cuentan en `unavailable` y se registran con su
-      // identificador, porque un punto que desaparece en silencio es peor que uno que falta.
-      const schema = mapView ? mapCommunityReportSchema : publicCommunityReportSchema;
-      const reports: unknown[] = [];
-      let unavailable = 0;
-      for (const report of page.reports) {
-        const parsed = schema.safeParse(report);
-        if (parsed.success) {
-          reports.push(parsed.data);
-          continue;
+      // La clave incluye la vista y el recorte: son respuestas distintas y mezclarlas serviría el
+      // mapa entero a quien pidió un departamento, o al revés.
+      const cacheKey = `reports:${incident.id}:${mapView ? "map" : "full"}:${request.query.bbox ?? ""}`;
+      const body = await publicReads.get(cacheKey, async () => {
+        const page = await communityReports.listPublicByIncident(incident.id, {
+          ...(boundingBox ? { boundingBox } : {}),
+          ...(mapView ? { view: "map" as const } : {}),
+        });
+        // Validar el lote con `.parse()` hacía que **una** fila mala dejara sin lista a las 2.300
+        // buenas: un importador guardó una necesidad con un texto más largo del que admite el
+        // esquema y la ruta entera pasó a devolver `validation_error`. En una emergencia, servir
+        // 2.299 puntos vale más que servir cero, así que cada fila se valida sola. Lo que no se
+        // hace es esconderlo: las descartadas se cuentan en `unavailable` y se registran con su
+        // identificador, porque un punto que desaparece en silencio es peor que uno que falta.
+        const schema = mapView ? mapCommunityReportSchema : publicCommunityReportSchema;
+        const reports: unknown[] = [];
+        let unavailable = 0;
+        for (const report of page.reports) {
+          const parsed = schema.safeParse(report);
+          if (parsed.success) {
+            reports.push(parsed.data);
+            continue;
+          }
+          unavailable += 1;
+          request.log.error(
+            { reportId: (report as { id?: string }).id, issues: parsed.error.issues },
+            "Reporte descartado de la lista pública por no pasar su propio esquema",
+          );
         }
-        unavailable += 1;
-        request.log.error(
-          { reportId: (report as { id?: string }).id, issues: parsed.error.issues },
-          "Reporte descartado de la lista pública por no pasar su propio esquema",
-        );
-      }
+        return { reports, total: page.total, ...(unavailable > 0 ? { unavailable } : {}) };
+      });
+
       return reply
         .header("Cache-Control", "public, max-age=15, s-maxage=30, stale-while-revalidate=60")
-        .send({ reports, total: page.total, ...(unavailable > 0 ? { unavailable } : {}) });
+        .type("application/json")
+        .send(body);
     },
   );
 
