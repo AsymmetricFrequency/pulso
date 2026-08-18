@@ -419,6 +419,10 @@
 
 .psNavLink {
   position: relative;
+  /* Se ocultan por debajo de 860px, pero una tableta a 900px también se toca. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   padding: var(--space-2) 0;
   color: var(--text-secondary);
   font-size: var(--text-sm);
@@ -526,7 +530,10 @@
 .psNavCta {
   display: inline-flex;
   align-items: center;
-  min-height: 38px;
+  /* 44px, no 38. Medido en producción: era el único control siempre visible en móvil y el más
+     importante del sitio, y estaba seis píxeles por debajo del mínimo táctil. Se toca con el pulgar,
+     de pie, posiblemente con la pantalla rota. */
+  min-height: 44px;
   border: 1px solid var(--primary);
   border-radius: var(--r-sm);
   background: var(--primary);

@@ -14,6 +14,15 @@ export const metadata: Metadata = {
       "El censo es presencial y no se hace por internet. Aquí está la ruta real, los albergues y acopios cercanos, y la ruta oficial de búsqueda de personas.",
     url: "/necesito-ayuda",
     type: "article",
+    // Sin esto el enlace sale desnudo en WhatsApp, que es exactamente por donde se va a compartir
+    // esta página. Un enlace sin imagen en una cadena de mensajes se lee como sospechoso, y esta
+    // página existe justamente para desmentir a los que cobran por «inscribir» a alguien.
+    images: [{ url: "/og.jpg", width: 1200, height: 630, alt: "PULSO" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Si el sismo te afectó, esto es lo que sirve saber",
+    images: ["/og.jpg"],
   },
 };
 

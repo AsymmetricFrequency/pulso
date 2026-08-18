@@ -57,11 +57,11 @@ const plexMono = IBM_Plex_Mono({
  * quien busca «acopios terremoto Colombia» o «dónde donar sangre Cali» no encontraba nada. Un mapa
  * de emergencia que no aparece cuando se le necesita es un mapa que no existe.
  */
-const TITLE = "PULSO · Mapa del terremoto de Colombia 2026: acopios, daños y vías";
+const TITLE = "PULSO · Terremoto de Colombia 2026: damnificados, ayudas y reconstrucción";
 const DESCRIPTION =
-  "Mapa público del sismo de magnitud 7,4 del 10 de agosto de 2026. Centros de acopio, albergues, " +
-  "edificaciones dañadas y colapsadas, vías cerradas, dónde donar sangre y qué necesita cada " +
-  "municipio — con la fuente y la fecha de cada dato.";
+  "Ocho días después del sismo de magnitud 7,4 del 10 de agosto de 2026. Dónde falta censar a las " +
+  "familias afectadas, qué ayuda llegó y a dónde, acopios y albergues abiertos, edificaciones " +
+  "dañadas y vías cerradas — con la fuente y la fecha de cada dato.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
@@ -72,12 +72,25 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
   authors: [{ name: "ASY", url: "https://github.com/AsymmetricFrequency/pulso" }],
   publisher: "PULSO",
+  /**
+   * Las palabras cambian con la fase de la emergencia.
+   *
+   * Los primeros días la gente buscaba «dónde donar sangre» y «centros de acopio». Ocho días
+   * después busca otra cosa: cómo la censan, si le corresponde un subsidio, quién reconstruye.
+   * Dejar las de la primera semana sería seguir respondiendo una pregunta que ya nadie hace, y
+   * perder la que sí se está haciendo ahora.
+   */
   keywords: [
     "terremoto Colombia 2026",
     "sismo Colombia",
+    "damnificados terremoto Colombia",
+    "censo de damnificados",
+    "Registro Único de Damnificados",
+    "ayudas para damnificados",
+    "subsidio de arriendo damnificados",
+    "reconstrucción vivienda terremoto",
     "centros de acopio",
     "albergues",
-    "damnificados",
     "donar sangre",
     "vías cerradas",
     "edificaciones colapsadas",
@@ -107,9 +120,9 @@ export const metadata: Metadata = {
     locale: "es_CO",
     images: [
       {
-        url: "/og.png",
-        width: 1731,
-        height: 909,
+        url: "/og.jpg",
+        width: 1200,
+        height: 630,
         alt: "PULSO — Mapa del terremoto de Colombia 2026",
       },
     ],
@@ -118,7 +131,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: TITLE,
     description: DESCRIPTION,
-    images: ["/og.png"],
+    images: ["/og.jpg"],
   },
   other: {
     "geo.region": "CO",

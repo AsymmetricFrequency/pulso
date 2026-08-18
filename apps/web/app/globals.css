@@ -3066,6 +3066,10 @@ button:active:not(:disabled),
 }
 
 .helpSecondary {
+  display: inline-flex;
+  align-items: center;
+  /* Es un enlace secundario, pero se toca igual: medía 24px. */
+  min-height: 44px;
   color: var(--primary);
   font-size: 15px;
   font-weight: 600;

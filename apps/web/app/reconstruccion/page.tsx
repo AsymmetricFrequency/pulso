@@ -1,37 +1,39 @@
+import type { Metadata } from "next";
 import { Footer } from "../components/footer";
 import { ReconstructionPage } from "../components/reconstruction-page";
+import { SiteNav } from "../components/site-nav";
 
-export const metadata = {
-  title: "Reconstrucción y oficios",
+export const metadata: Metadata = {
+  title: "Reconstrucción: quién levanta lo que cayó",
   description:
-    "Quién puede levantar lo que cayó: ingeniería, arquitectura y oficios de obra para la " +
-    "reconstrucción tras el sismo de Colombia de 2026.",
+    "13.077 viviendas destruidas y 79.108 averiadas tras el sismo del 10 de agosto de 2026. " +
+    "Ingeniería, arquitectura, maestros de obra y proveedores de material para la reconstrucción, " +
+    "con la trazabilidad de cada contrato público.",
   alternates: { canonical: "/reconstruccion" },
+  openGraph: {
+    title: "Reconstrucción: quién levanta lo que cayó",
+    description:
+      "Ingeniería, arquitectura, oficios de obra y proveedores de material para reconstruir " +
+      "después del sismo de Colombia de 2026.",
+    url: "/reconstruccion",
+    type: "article",
+    images: [{ url: "/og.jpg", width: 1200, height: 630, alt: "PULSO" }],
+  },
 };
 
 export default function ReconstruccionRoute() {
   return (
-    <main>
-      <header className="topbar">
-        <a className="brand" href="/#top" aria-label="Inicio de PULSO">
-          <span className="brandMark" aria-hidden="true" />
-          <span>PULSO</span>
-        </a>
-        <nav className="publicNav" aria-label="Navegación principal">
-          <a href="/#informe">Informe público</a>
-          <a href="/#ayuda">Ayuda y donaciones</a>
-          <a href="/reconstruccion">Reconstrucción</a>
-        </nav>
-        <a className="textLink" href="/operations">
-          Acceso operaciones
-        </a>
-      </header>
+    <>
+      {/* Traía su propia barra con tres enlaces distintos a los del resto del sitio. Justo esta
+          página —la de la fase en la que estamos ahora— era la que se sentía de otro sitio. */}
+      <SiteNav />
+      <main>
+        <section className="publicReport">
+          <ReconstructionPage />
+        </section>
 
-      <section className="publicReport">
-        <ReconstructionPage />
-      </section>
-
-      <Footer />
-    </main>
+        <Footer />
+      </main>
+    </>
   );
 }
