@@ -3324,3 +3324,95 @@ button:active:not(:disabled),
   padding-top: 12px;
   color: var(--text-secondary);
 }
+
+/* --- Paso opcional del registro ------------------------------------------
+   Cerrado por omisión. Quien tenga un minuto más lo abre; quien no, envía con
+   tres respuestas y queda en la lista igual. La primera versión de este
+   formulario pedía las trece preguntas antes de dejar enviar nada. */
+
+.registryField.narrow input {
+  max-width: 140px;
+}
+
+.registryMore {
+  display: grid;
+  gap: 14px;
+}
+
+.registryMoreToggle {
+  display: grid;
+  gap: 3px;
+  justify-items: start;
+  width: 100%;
+  min-height: 56px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  padding: 12px 16px;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+}
+
+.registryMoreToggle:hover {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.registryMoreToggle span {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.registryMoreToggle small {
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.registryMoreBody {
+  display: grid;
+  gap: 18px;
+}
+
+.registryConsent details {
+  margin-top: 10px;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+
+.registryConsent summary {
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.registryConsent details p {
+  margin: 10px 0 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.registryLaw {
+  font-family: var(--font-data, ui-monospace, monospace);
+  font-size: 12px;
+}
+
+.registryCopy {
+  justify-self: start;
+  min-height: 44px;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  padding: 0 18px;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.registryCopy:hover {
+  background: var(--primary-soft);
+}
