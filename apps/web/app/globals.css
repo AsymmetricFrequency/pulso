@@ -143,6 +143,8 @@ main {
 .brand {
   display: inline-flex;
   align-items: center;
+  /* La marca es un enlace al inicio y se toca como cualquier otro. Medía 26px. */
+  min-height: 44px;
   gap: 10px;
   color: var(--ink);
   font-size: 15px;
