@@ -12,7 +12,6 @@ export default function PublicHome() {
       <main>
         <section className="hero publicHero">
           <div>
-            <p className="eyebrow">Información territorial para actuar</p>
             <h1>Lo que ocurre, lo que falta y dónde se está ayudando.</h1>
             <p className="subtitle">
               Un informe público sobre cobertura, daños, necesidades, donaciones y equipos de

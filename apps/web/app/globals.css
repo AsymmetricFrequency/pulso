@@ -90,50 +90,24 @@ html {
 body {
   margin: 0;
   background-color: var(--paper);
-  /* Curvas de nivel alrededor de unos "picos" descentrados — textura de carta topográfica, que es
-     el lenguaje visual propio de un producto territorial. Sobre ellas van dos lavados de luz: uno
-     cálido arriba a la izquierda y uno verde tenue abajo a la derecha, para que el papel tenga
-     profundidad en vez de ser un color plano. Los repeating-radial-gradient se repiten solos, así
-     que no hace falta ninguna imagen ni background-size. */
-  background-image:
-    radial-gradient(ellipse 120% 80% at 8% -10%, rgba(255, 255, 255, 0.85) 0, transparent 60%),
-    radial-gradient(ellipse 100% 70% at 100% 105%, var(--primary-soft) 0, transparent 65%),
-    repeating-radial-gradient(
-      circle at 12% 8%,
-      transparent 0,
-      transparent 34px,
-      rgba(4, 98, 74, 0.055) 35px,
-      transparent 36px
-    ),
-    repeating-radial-gradient(
-      circle at 88% 18%,
-      transparent 0,
-      transparent 46px,
-      rgba(4, 98, 74, 0.042) 47px,
-      transparent 48px
-    ),
-    repeating-radial-gradient(
-      circle at 25% 92%,
-      transparent 0,
-      transparent 40px,
-      rgba(18, 36, 29, 0.038) 41px,
-      transparent 42px
-    ),
-    repeating-radial-gradient(
-      circle at 95% 88%,
-      transparent 0,
-      transparent 52px,
-      rgba(4, 98, 74, 0.048) 53px,
-      transparent 54px
-    ),
-    linear-gradient(180deg, var(--paper) 0, var(--paper-deep) 100%);
-  background-attachment: fixed;
+  /* El papel del registrador: rayado horizontal finísimo, del ancho de línea del propio texto.
+     Antes había curvas de nivel de carta topográfica con dos lavados de luz verde, que es un
+     lenguaje bonito pero de otra identidad —la cartográfica— y era lo que mantenía la página en
+     tono crema. Esto es el rollo de un sismógrafo: se percibe sin llegar a verse, y desaparece
+     por completo detrás de cualquier contenido. */
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 27px,
+    rgba(18, 19, 15, 0.028) 27px,
+    rgba(18, 19, 15, 0.028) 28px
+  );
   color: var(--ink);
-  /* La pila del sistema en vez de Arial: cada plataforma rinde su propia
-     tipografía de interfaz —San Francisco, Segoe, Roboto— y el texto se ve
-     nativo sin descargar un solo byte de fuente. Arial era, además, la única
-     familia del sitio que no salía de un token. */
   font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 button,
