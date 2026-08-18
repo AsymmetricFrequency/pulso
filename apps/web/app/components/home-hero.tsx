@@ -15,9 +15,14 @@ type Coverage = {
 /**
  * Cuenta desde cero hasta el valor real.
  *
- * No es un adorno: la cifra del titular es el hallazgo entero de la portada, y verla subir hace que
- * el ojo se quede en ella el segundo que hace falta para leer la frase que la rodea. Dura poco y se
- * detiene — una animación que sigue moviéndose compite con el texto en vez de servirlo.
+ * **No se usa en el titular, y la razón importa.** Lo intenté ahí primero: durante los 900 ms de la
+ * animación la portada afirmaba «En 0 municipios todavía no ha ido nadie a contar a los afectados»
+ * —exactamente lo contrario de lo que el sitio existe para decir— y se quedaba así el tiempo que
+ * tarda alguien en leer una frase. Una animación que hace que una frase sea falsa mientras dura no
+ * es un adorno discutible: es una afirmación errónea en pantalla.
+ *
+ * Se usa donde el cero no invierte el sentido: en la cifra del panel, que es un número junto a su
+ * etiqueta y no una oración.
  *
  * Respeta `prefers-reduced-motion`: quien pidió que nada se mueva ve el número final directamente.
  */
@@ -71,7 +76,7 @@ export function HomeHero() {
   }, []);
 
   const silent = coverage?.counts.silencio ?? 0;
-  const shown = useCountUp(silent);
+  const counted = useCountUp(silent);
 
   return (
     <section className="homeHero">
@@ -79,7 +84,7 @@ export function HomeHero() {
         <h1>
           {silent > 0 ? (
             <>
-              En <strong>{shown}</strong> municipios todavía no ha ido nadie a contar a los
+              En <strong>{silent}</strong> municipios todavía no ha ido nadie a contar a los
               afectados.
             </>
           ) : (
@@ -141,7 +146,7 @@ export function HomeHero() {
           <dl className="homeHeroFigures">
             <div>
               <dt>Municipios sin que haya ido nadie</dt>
-              <dd className="alarm">{silent}</dd>
+              <dd className="alarm">{counted}</dd>
             </div>
             <div>
               <dt>Con señal de afectación y sin censo</dt>
