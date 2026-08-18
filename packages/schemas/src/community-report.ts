@@ -2,17 +2,32 @@ import { z } from "zod";
 
 export const communityReportTypeSchema = z.enum(["pmu", "necesidad"]);
 
+export const communityReportUrgencySchema = z.enum(["baja", "media", "alta", "critica"]);
+
+export const communityReportUrgencyLabel: Record<
+  z.infer<typeof communityReportUrgencySchema>,
+  string
+> = {
+  baja: "Baja",
+  media: "Media",
+  alta: "Alta",
+  critica: "Crítica",
+};
+
 export const communityReportCategorySchema = z.enum([
   "agua",
   "alimentos",
   "salud",
-  "refugio",
+  "albergues",
   "higiene",
   "herramienta",
   "escombros",
   "voluntariado",
   "animales",
   "logistica",
+  "catastros",
+  "puntos_ayuda",
+  "centros_acopio",
   "otro",
 ]);
 
@@ -62,6 +77,7 @@ export const createCommunityReportSchema = z
     clientMutationId: z.uuid(),
     reportType: communityReportTypeSchema,
     category: communityReportCategorySchema.nullable().default(null),
+    urgency: communityReportUrgencySchema.nullable().default(null),
     title: z.string().trim().min(3).max(140),
     description: z.string().trim().max(2_000).nullable().default(null),
     location: pointGeometrySchema,
@@ -134,6 +150,7 @@ export const upsertExternalCommunityReportSchema = z.object({
 });
 
 export type CommunityReportType = z.infer<typeof communityReportTypeSchema>;
+export type CommunityReportUrgency = z.infer<typeof communityReportUrgencySchema>;
 export type CommunityReportCategory = z.infer<typeof communityReportCategorySchema>;
 export type CommunityReportStatus = z.infer<typeof communityReportStatusSchema>;
 export type CommunityReportMetadata = z.infer<typeof communityReportMetadataSchema>;

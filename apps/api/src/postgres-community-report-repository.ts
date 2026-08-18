@@ -6,12 +6,13 @@ import {
   type PublicCommunityReportPage,
   type PublicCommunityReportQuery,
 } from "@pulso/domain";
-import type {
-  CommunityReportDto,
-  CreateCommunityReportInput,
-  PublicCommunityReportDto,
-  ReviewCommunityReportInput,
-  UpsertExternalCommunityReportInput,
+import {
+  type CommunityReportDto,
+  type CreateCommunityReportInput,
+  communityReportUrgencyLabel,
+  type PublicCommunityReportDto,
+  type ReviewCommunityReportInput,
+  type UpsertExternalCommunityReportInput,
 } from "@pulso/schemas";
 import type postgres from "postgres";
 import { v7 as uuidv7 } from "uuid";
@@ -67,15 +68,17 @@ export class PostgresCommunityReportRepository implements CommunityReportReposit
     // contact_encrypted is intentionally left NULL here: there is no shared encryption
     // helper yet for bytea contact columns (see affected_people.contact_encrypted).
     // Wire this once that mechanism exists instead of hand-rolling a second one.
+    const metadata = input.urgency ? { urgency: communityReportUrgencyLabel[input.urgency] } : null;
     const [row] = await this.sql<DbRow[]>`
       INSERT INTO community_reports (
         id, incident_id, report_type, category, title, description, location,
-        source_ip_hash, client_mutation_id
+        source_ip_hash, client_mutation_id, metadata
       ) VALUES (
         ${uuidv7()}, ${incidentId}, ${input.reportType}, ${input.category}, ${input.title},
         ${input.description},
         ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(input.location)}), 4326),
-        ${context.sourceIpHash}, ${input.clientMutationId}
+        ${context.sourceIpHash}, ${input.clientMutationId},
+        ${metadata ? this.sql.json(metadata) : null}
       )
       ON CONFLICT (incident_id, client_mutation_id) DO UPDATE SET incident_id = EXCLUDED.incident_id
       RETURNING *, ST_AsGeoJSON(location)::json AS location

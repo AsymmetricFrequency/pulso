@@ -22,7 +22,7 @@ const SUBTYPE_CATEGORY_MAP: Record<string, string> = {
   atencion_medica: "salud",
   alimentos: "alimentos",
   agua: "agua",
-  refugio: "refugio",
+  refugio: "albergues",
   higiene: "higiene",
 };
 

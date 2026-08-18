@@ -427,15 +427,7 @@ h2 {
   background: var(--status-strong-soft);
 }
 
-.mapToolbar > div,
-.mapToolbar label {
-  display: grid;
-  gap: 4px;
-}
-
-.mapToolbar label span,
-.mapKicker,
-.mapSelection > span:first-child {
+.mapKicker {
   color: var(--muted);
   font-size: 10px;
   font-weight: 700;
@@ -443,13 +435,13 @@ h2 {
   text-transform: uppercase;
 }
 
-.mapToolbar select {
-  max-width: 240px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-xs);
-  background: white;
-  padding: 7px 30px 7px 9px;
-  color: var(--ink);
+/* Botones de reportar/ubicarme: en fila, pegados uno a otro — sin esto heredaban el
+   display:grid pensado para .mapToolbarLayer y quedaban apilados con un hueco entre medio. */
+.contentreport {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
 }
 
 .department {
@@ -1296,18 +1288,10 @@ footer a {
   pointer-events: none;
 }
 
-.atlasMap svg.reportMode {
-  cursor: crosshair;
-}
-
 .leafletMapContainer {
   width: 100%;
   min-height: 480px;
   height: 480px;
-}
-
-.leafletMapContainer.reportMode {
-  cursor: crosshair;
 }
 
 .pulsoMarker {
@@ -1332,6 +1316,14 @@ footer a {
   height: 22px;
   background: var(--signal);
   border: 2px solid white;
+}
+
+/* Triángulo de alerta en el pin del mini mapa de reporte: en rojo señal y con el trazo en
+   blanco para que se lea de inmediato como "acá hay algo que atender", no como un marcador
+   genérico. */
+.pulsoMarkerDanger {
+  background: var(--signal);
+  color: white;
 }
 
 .pulsoClusterIcon {
@@ -1414,21 +1406,32 @@ footer a {
   background: var(--green);
 }
 
+/* Fondo del modal de reporte: cubre toda la pantalla e intercepta el clic, así que ya no le
+   llega al mapa de abajo (Leaflet o el SVG de país). Por encima de los controles de Leaflet
+   (z-index hasta 1000 en leaflet.css) — antes el formulario, sin este fondo, quedaba tapado
+   por el mapa apenas se hacía zoom a un departamento: existía en el DOM pero no se veía. */
+.reportModalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(16, 35, 28, 0.55);
+}
+
 .communityReportForm {
-  position: absolute;
-  z-index: 5;
-  right: 18px;
-  bottom: 86px;
   display: grid;
   gap: 12px;
-  width: min(320px, calc(100% - 36px));
-  max-height: calc(100% - 40px);
+  width: min(360px, 100%);
+  max-height: min(640px, calc(100vh - 32px));
   overflow-y: auto;
   border: 1px solid var(--line);
   border-radius: var(--r-md);
   background: var(--surface);
   padding: 18px;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-lift);
 }
 
 .communityReportFormHeader {
@@ -1502,7 +1505,8 @@ footer a {
 }
 
 .communityReportForm input,
-.communityReportForm textarea {
+.communityReportForm textarea,
+.communityReportForm select {
   border: 1px solid var(--line);
   border-radius: var(--r-xs);
   padding: 8px 9px;
@@ -1510,11 +1514,43 @@ footer a {
   font: inherit;
 }
 
+.communityReportForm select {
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.communityReportForm select:hover {
+  border-color: var(--primary);
+}
+
 .communityReportFormError {
   margin: 0;
   color: var(--signal);
   font-size: 12px;
   font-weight: 600;
+}
+
+/* Mini mapa para elegir el punto del reporte: mucho más chico que el mapa de departamento,
+   basta para tocar/arrastrar el pin con precisión sin competir por espacio con el resto del
+   formulario. */
+.locationPickerSection {
+  display: grid;
+  gap: 8px;
+}
+
+.locationPickerMap {
+  height: 200px;
+  min-height: 200px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+
+.locationPickerActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
 }
 
 .communityReportFormActions {
@@ -1566,13 +1602,6 @@ footer a {
   color: var(--muted);
 }
 
-@media (max-width: 800px) {
-  .communityReportForm {
-    position: fixed;
-    inset: auto 12px 12px 12px;
-    width: auto;
-  }
-}
 
 .reportDetailCard {
   display: grid;
@@ -1990,8 +2019,14 @@ footer a {
   margin: 4px 0;
 }
 
-/* .communityReportForm defaults to floating over the map (position: absolute) — these forms
-   sit in normal page flow instead. */
+.locationPickerActions .communityReportFormLabel {
+  margin: 0;
+  flex: 1 1 160px;
+}
+
+/* .communityReportForm defaults to a centered modal panel (used inside .reportModalBackdrop
+   for map reports) — these forms sit in normal page flow instead, so the modal-sized
+   width/max-height need overriding here. */
 .reconstructionForm {
   position: static;
   width: 100%;
@@ -2069,11 +2104,33 @@ footer a {
   font-variant-numeric: tabular-nums;
 }
 
+.mapWhereTrail .coverageBadge {
+  margin-left: auto;
+  background: rgba(255, 253, 247, 0.94);
+}
+
+.mapTerritorySelects {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.mapTerritorySelects i {
+  color: rgba(238, 246, 241, 0.5);
+  font-style: normal;
+}
+
 .mapCrumbSelect {
   display: inline-flex;
+  min-width: 0;
 }
 
 .mapCrumbSelect select {
+  max-width: 160px;
+  overflow: hidden;
   border: 0;
   border-radius: var(--radius-sm);
   background: rgba(255, 255, 255, 0.14);
@@ -2082,6 +2139,8 @@ footer a {
   font-size: inherit;
   font-weight: inherit;
   font-family: inherit;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   cursor: pointer;
   transition: background var(--dur-fast) var(--ease-out);
 }
@@ -2092,11 +2151,6 @@ footer a {
 
 .mapCrumbSelect select option {
   color: var(--ink);
-}
-
-.mapWhereTrail .coverageBadge {
-  margin-left: auto;
-  background: rgba(255, 253, 247, 0.94);
 }
 
 .mapToolbarLayer {
@@ -2152,7 +2206,7 @@ footer a {
 }
 
 .mapReportHint {
-  flex: 1 1 220px;
+  flex: 1 1;
   margin: 0;
   border: 0;
   background: none;
@@ -2169,28 +2223,6 @@ footer a {
 
 .mapReportHint.muted strong {
   color: var(--amber);
-}
-
-.mapReportHint.error {
-  flex-basis: 100%;
-  color: var(--signal);
-}
-
-/* Mira de puntería en modo reporte: colocar un punto en un mapa táctil sin ninguna
-   referencia visual del centro es adivinar. */
-.leafletMapContainer.reportMode::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  z-index: 500;
-  width: 30px;
-  height: 30px;
-  margin: -15px 0 0 -15px;
-  border: 2px solid rgba(217, 75, 56, 0.85);
-  border-radius: 50%;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.75);
-  pointer-events: none;
 }
 
 .publicMapWorkspace .atlasMap {
@@ -2331,4 +2363,9 @@ button:active:not(:disabled),
 .feedToggle:hover {
   border-color: var(--primary);
   background: var(--primary-soft);
+}
+
+.contentreport {
+  display: flex;
+  gap: 10%;
 }
