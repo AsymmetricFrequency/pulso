@@ -1,5 +1,5 @@
 import { Footer } from "./components/footer";
-import { FieldEntryLink } from "./components/offline-visit-button";
+import { HomeHero } from "./components/home-hero";
 import { PublicSituationReport } from "./components/public-situation-report";
 import { SiteNav } from "./components/site-nav";
 
@@ -10,21 +10,7 @@ export default function PublicHome() {
     <>
       <SiteNav />
       <main>
-        <section className="hero publicHero">
-          <div>
-            <h1>Lo que ocurre, lo que falta y dónde se está ayudando.</h1>
-            <p className="subtitle">
-              Un informe público sobre cobertura, daños, necesidades, donaciones y equipos de
-              respuesta, organizado por territorio y respaldado por evidencia verificable.
-            </p>
-          </div>
-          <div className="actions">
-            <a href="#mapa" className="button secondary">
-              Explorar el mapa
-            </a>
-            <FieldEntryLink />
-          </div>
-        </section>
+        <HomeHero />
 
         <PublicSituationReport />
 

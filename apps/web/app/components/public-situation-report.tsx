@@ -285,6 +285,16 @@ export function PublicSituationReport() {
 
   const visibleMetrics: Array<{ id?: string; label: string; value: string; note: string }> =
     report?.metrics ?? headlineMetrics;
+
+  /**
+   * Una cifra va a «lo que falta» si vale cero, no por una lista fija.
+   *
+   * Es deliberado: el día que se registre la primera entrega verificada, esa tarjeta se mueve sola
+   * al grupo de arriba. Una lista escrita a mano seguiría diciendo que falta algo que ya llegó.
+   */
+  const isEmpty = (value: string) => /^\$?0$/.test(value.trim());
+  const knownMetrics = visibleMetrics.filter((metric) => !isEmpty(metric.value));
+  const missingMetrics = visibleMetrics.filter((metric) => isEmpty(metric.value));
   const visibleUpdates =
     report?.updates.map((update) => ({
       // Los títulos se repiten entre reportes ("Cda Los Bucaros" aparece muchas veces), así que
@@ -340,18 +350,42 @@ export function PublicSituationReport() {
           </div>
         </div>
 
-        <div className="headlineGrid">
-          {visibleMetrics.map((metric) => (
-            <article
-              className="headlineMetric"
-              key={metric.id ?? metric.label}
-              data-empty={/^\$?0$/.test(metric.value) ? "true" : undefined}
-            >
-              <span>{metric.label}</span>
-              <strong>{metric.value}</strong>
-              <small>{metric.note}</small>
-            </article>
-          ))}
+        {/* Las cifras se parten en dos grupos, y no es cosmético.
+            Antes eran seis tarjetas seguidas de las que **tres marcaban cero** —viviendas evaluadas,
+            donaciones, entregas verificadas— y quedaban al final, así que la fila se apagaba hacia
+            la derecha y se leía como que el proyecto no funciona. Los ceros son ciertos y tienen que
+            estar, pero significan otra cosa: son el hueco. Puestos bajo «lo que falta» dicen lo que
+            de verdad dicen. */}
+        <div className="figureSplit">
+          <section aria-labelledby="figures-known">
+            <h3 id="figures-known">Lo que se sabe</h3>
+            <div className="headlineGrid">
+              {knownMetrics.map((metric) => (
+                <article className="headlineMetric" key={metric.id ?? metric.label}>
+                  <span>{metric.label}</span>
+                  <strong>{metric.value}</strong>
+                  <small>{metric.note}</small>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section aria-labelledby="figures-missing">
+            <h3 id="figures-missing">Lo que falta</h3>
+            <div className="headlineGrid">
+              {missingMetrics.map((metric) => (
+                <article
+                  className="headlineMetric"
+                  key={metric.id ?? metric.label}
+                  data-empty={/^\$?0$/.test(metric.value) ? "true" : undefined}
+                >
+                  <span>{metric.label}</span>
+                  <strong>{metric.value}</strong>
+                  <small>{metric.note}</small>
+                </article>
+              ))}
+            </div>
+          </section>
         </div>
       </section>
 
