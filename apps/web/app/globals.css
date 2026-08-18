@@ -2,46 +2,70 @@
 
 :root {
   color-scheme: light;
-  --ink: #12241d;
-  /* Sube de #5d6f66 (4,3:1 sobre el papel hundido, por debajo del mínimo) a 5,9:1. Mantiene el
-     sesgo verde hacia el primario: un gris neutro puro se lee como gris de plantilla. */
-  --muted: #4a5a52;
-  /* Crema cálido de base y una segunda crema más profunda para los degradados del fondo: con un
-     solo tono el papel se ve plano y con dos aparece la sensación de luz que da el papel real. */
-  --paper: #f3efe2;
-  --paper-deep: #e9e3d2;
-  --surface: #fffdf6;
-  --line: #ded9c9;
-  --line-strong: #c8c2ac;
-  --primary: #04624a;
-  --primary-dark: #023a2c;
-  --primary-soft: rgba(4, 98, 74, 0.09);
-  --signal: #d94b38;
-  /* El mismo rojo, pero para cuando es **texto** y no relleno.
-     `--signal` sobre `--paper-deep` da 3,4:1 y el mínimo para texto es 4,5:1, así que un mensaje de
-     error de 12px en ese rojo era ilegible justo cuando más falta hace leerlo. Es la misma razón por
-     la que ya existen los `--status-*-ink`: el color de un estado y el color del texto de ese estado
-     no son el mismo color. Este da 4,8:1 sobre el papel hundido y 5,9:1 sobre la superficie. */
-  --signal-ink: #b8331c;
-  --amber: #c8811d;
-  --blue: #35708f;
-  --green: #257350;
-  /* Estado de la vía. Deliberadamente fuera de la escala de revisión (ámbar/verde/gris) y fuera del
-     rojo del rescate: una vía cerrada no compite con una persona bajo escombros, y su color no
-     depende de que Operaciones la haya mirado. El grafito lee como señalización de carretera. */
-  --route-blocked: #2f2a24;
-  --route-open: #257350;
-  /* Daño estructural. El colapso comparte el rojo del rescate porque es lo mismo un paso antes —es
-     donde puede haber gente debajo—; el resto usa un terracota apagado que se lee como estructura
-     y no compite con la escala de revisión. */
-  --damage: #9a5b3d;
-  --damage-collapse: #a8321c;
-  /* Ayuda. Los dos salen también de la escala de revisión: un acopio abierto lo está aunque nadie
-     de Operaciones lo haya mirado. Se separan entre sí porque responden a preguntas distintas —el
-     azul es «dónde dejo o recojo cosas», el violeta «dónde duermo esta noche»—, y la diferencia
-     está además en el glifo (caja contra techo con cama) para quien no separa los dos colores. */
-  --aid-supply: #35708f;
-  --aid-shelter: #6b5aa6;
+
+  /* =========================================================================
+     Sismógrafo
+     =========================================================================
+     La identidad sale del instrumento que está en el centro de esto. Lo que Pulso afirma no es un
+     sentimiento: es una **medición**, con su fuente, su fecha y su precisión. Por eso el papel es
+     frío y no crema, la tinta es casi negra y hay **un solo acento** —el rojo de la aguja— en vez
+     de una paleta que compite consigo misma.
+
+     Todos los valores de abajo pasan 4,5:1 como texto sobre los tres fondos, y el blanco pasa
+     4,5:1 sobre todos los rellenos. No es un extra: esto se lee en un teléfono barato, al sol. */
+
+  /* --- Tinta y papel ------------------------------------------------------ */
+  /* Casi negro con una sombra verde apenas perceptible. Un negro puro se lee como plantilla; este
+     hereda el verde del proyecto sin anunciarlo. 17,9:1 sobre el papel. */
+  --ink: #12130f;
+  --muted: #4d5450;
+  --text-tertiary-ink: #616966;
+
+  /* Papel frío, no crema. El crema cálido es el fondo por reflejo de cualquier interfaz «de buen
+     gusto»; este es el blanco del rollo de un registrador, con la profundidad justa para que un
+     bloque hundido se distinga sin dibujar una caja. */
+  --paper: #fbfaf7;
+  --paper-deep: #f1efe9;
+  --surface: #ffffff;
+  --line: #e2e0d8;
+  --line-strong: #b9b6ab;
+
+  /* --- El acento, uno solo ------------------------------------------------ */
+  /* El rojo de la aguja. Se reserva para lo que de verdad es una alarma: un rescate, un colapso, un
+     error que impide enviar algo. Si aparece en cualquier otro sitio deja de significar nada. */
+  --signal: #d6301a;
+  --signal-ink: #b5240f;
+  --alarm: #d6301a;
+
+  /* El verde deja de ser la marca y pasa a ser un estado: lo verificado, lo abierto, lo que
+     funciona. Es un cambio de significado, no de tono. */
+  --primary: #1f6b4a;
+  --primary-dark: #14523a;
+  --primary-soft: rgba(31, 107, 74, 0.08);
+
+  --amber: #b5820f;
+  --amber-ink: #7a5410;
+  --blue: #1f5f7a;
+  --green: #1f6b4a;
+
+  /* --- Colores semánticos ------------------------------------------------- */
+  /* Cada uno responde una pregunta distinta y por eso ninguno se parece a otro. La forma del
+     marcador ya los distingue para quien no separa dos colores; el color solo lo confirma. */
+
+  /* Estado de la vía. Grafito de señalización de carretera: una vía cerrada no compite con una
+     persona bajo escombros. */
+  --route-blocked: #2f3033;
+  --route-open: #1f6b4a;
+
+  /* Daño estructural. El colapso **es** el rojo de alarma, sin matices: es donde puede haber gente
+     debajo. El resto es terracota, que se lee como estructura y no como emergencia. */
+  --damage: #a2542f;
+  --damage-collapse: #d6301a;
+
+  /* Ayuda. Azul es «dónde dejo o recojo cosas», violeta es «dónde duermo esta noche». */
+  --aid-supply: #1f5f7a;
+  --aid-shelter: #5b4a87;
+
   --shadow: var(--elev-2);
   --shadow-lift: 0 22px 50px rgba(16, 35, 28, 0.14);
   --radius-sm: 8px;
@@ -2786,7 +2810,6 @@ button:active:not(:disabled),
   display: grid;
   gap: 4px;
   border-left: 4px solid var(--line-strong);
-  border-radius: var(--radius-sm);
   background: var(--surface);
   padding: 14px 16px;
 }
@@ -2840,7 +2863,6 @@ button:active:not(:disabled),
   gap: 4px;
   border: 1px solid var(--line);
   border-left: 4px solid var(--primary);
-  border-radius: var(--radius-sm);
   background: var(--surface);
   padding: 14px 16px;
 }
@@ -2878,7 +2900,6 @@ button:active:not(:disabled),
   max-width: 74ch;
   margin: 16px 0 0;
   border-left: 4px solid var(--amber);
-  border-radius: var(--radius-sm);
   background: var(--paper-deep);
   padding: 14px 16px;
   color: var(--text-primary);
@@ -3029,7 +3050,6 @@ button:active:not(:disabled),
   display: grid;
   gap: 12px;
   border-left: 5px solid var(--signal);
-  border-radius: var(--radius-sm);
   background: #fdeee9;
   padding: 18px 20px;
 }

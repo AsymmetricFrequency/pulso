@@ -36,11 +36,10 @@
   --r-full: 999px;
 
   /* --- Tipografía --------------------------------------------------------- */
-  --font-display: Georgia, "Times New Roman", serif;
-  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  /* Cifras tabulares para todo dato numérico: una columna de montos que baila
-     al cambiar de dígito es ilegible de un vistazo. */
-  --font-numeric: var(--font-body);
+  /* Las tres las inyecta `next/font` desde `layout.tsx` como `--font-display`, `--font-body` y
+     `--font-data`. Aquí solo se declara la caída por si el navegador no las tiene todavía.
+     Una superfamilia y tres cortes: serif para titular, sans para leer, mono para medir. */
+  --font-numeric: var(--font-data, ui-monospace, monospace);
 
   /* 12px y no 11px. El escalón más bajo se usa para etiquetas, celdas y metadatos —texto
      funcional que alguien lee de pie, al sol, en una pantalla de alta densidad— y por debajo de 12
@@ -58,12 +57,14 @@
      Cuatro planos, no infinitos: fondo, elevado, hundido y acento. Con más de
      cuatro nadie recuerda cuál va encima de cuál. */
   --surface-base: var(--paper);
-  --surface-raised: #fffdf7;
-  --surface-sunken: #ebe6d8;
-  --surface-accent: #e9f1ed;
-  --surface-inverse: #10231c;
+  --surface-raised: #ffffff;
+  --surface-sunken: var(--paper-deep);
+  --surface-accent: #eaf1ed;
+  /* El panel invertido pasa de verde profundo a la tinta del proyecto: en una identidad de un solo
+     acento, un segundo fondo de color compite con el rojo de la aguja y le quita fuerza. */
+  --surface-inverse: #12130f;
 
-  --border-subtle: #e2ddcd;
+  --border-subtle: #eae8e1;
   --border-default: var(--line);
   --border-strong: var(--line-strong);
 
@@ -72,61 +73,65 @@
   /* Sube de #8a978f (2,99:1, justo por debajo del mínimo de 3:1 incluso para texto grande) a
      4,6:1 sobre la superficie. Sigue leyéndose como terciario porque lo que lo separa del
      secundario es el peso y el tamaño, no solo lo pálido que sea. */
-  --text-tertiary: #6a786f;
-  --text-inverse: #eef6f1;
+  --text-tertiary: var(--text-tertiary-ink);
+  --text-inverse: #f4f3ef;
 
   /* --- Elevación ----------------------------------------------------------
      Dos capas por nivel (ambiental + directa) y teñidas con la tinta del
      proyecto, no con negro puro: una sombra gris sobre papel crema se ve
      sucia. */
-  --elev-1: 0 1px 2px rgba(18, 36, 29, 0.04), 0 2px 6px rgba(18, 36, 29, 0.05);
-  --elev-2: 0 2px 4px rgba(18, 36, 29, 0.05), 0 8px 20px rgba(18, 36, 29, 0.07);
-  --elev-3: 0 4px 8px rgba(18, 36, 29, 0.06), 0 16px 36px rgba(18, 36, 29, 0.1);
-  --elev-4: 0 8px 16px rgba(18, 36, 29, 0.08), 0 28px 60px rgba(18, 36, 29, 0.14);
+  /* Bajan mucho. En una identidad de instrumento la jerarquía la da la **regla**, no la sombra: un
+     borde fino y aire suficiente separan mejor que una nube difusa, y una sombra amplia sobre borde
+     de un píxel es uno de los tics que delatan una interfaz generada. Quedan para lo que de verdad
+     flota sobre el contenido —menú, ficha del mapa— y nada más. */
+  --elev-1: 0 1px 1px rgba(18, 19, 15, 0.04);
+  --elev-2: 0 1px 2px rgba(18, 19, 15, 0.06), 0 4px 10px rgba(18, 19, 15, 0.05);
+  --elev-3: 0 2px 4px rgba(18, 19, 15, 0.07), 0 10px 24px rgba(18, 19, 15, 0.08);
+  --elev-4: 0 4px 10px rgba(18, 19, 15, 0.09), 0 20px 44px rgba(18, 19, 15, 0.12);
 
   /* --- Estado: un color por significado, no por componente ---------------- */
-  --status-critical: #c2371f;
-  --status-critical-soft: #fbe9e4;
-  --status-severe: #d94b38;
-  --status-severe-soft: #fdeee9;
-  --status-strong: #c8811d;
-  --status-strong-soft: #fdf3e3;
-  --status-moderate: #35708f;
-  --status-moderate-soft: #e8f1f5;
-  --status-light: #257350;
-  --status-light-soft: #e6f2ec;
-  --status-none: #9aa39d;
-  --status-none-soft: #eeeee7;
+  --status-critical: #b5240f;
+  --status-critical-soft: #fbe8e4;
+  --status-severe: #d6301a;
+  --status-severe-soft: #fdece7;
+  --status-strong: #b5820f;
+  --status-strong-soft: #fbf1dd;
+  --status-moderate: #1f5f7a;
+  --status-moderate-soft: #e7eff3;
+  --status-light: #1f6b4a;
+  --status-light-soft: #e6f0ea;
+  --status-none: #8b918c;
+  --status-none-soft: #eeede8;
 
   /* Tinta legible sobre cada superficie suave de estado. Se declara aparte
      porque el color del texto sobre un fondo tenue no es el mismo color del
      estado: usar el tono pleno sobre su propio fondo suave no alcanza el 4.5:1
      que exige el texto. */
-  --status-critical-ink: #8a2c12;
-  --status-severe-ink: #a8331f;
-  --status-strong-ink: #765019;
-  --status-moderate-ink: #245d80;
-  --status-light-ink: #1b6341;
+  --status-critical-ink: #8f1c0b;
+  --status-severe-ink: #b5240f;
+  --status-strong-ink: #7a5410;
+  --status-moderate-ink: #1b5169;
+  --status-light-ink: #17573c;
 
   /* Acceso restringido: sexto estado, con familia propia porque no cabe en la
      escala de severidad — no es "más grave que crítico", es otra cosa. */
-  --status-restricted: #6b4d83;
-  --status-restricted-soft: #ece5f2;
-  --status-restricted-light: #8b739d;
+  --status-restricted: #5b4a87;
+  --status-restricted-soft: #ebe7f2;
+  --status-restricted-light: #7c6ba5;
 
   /* Evento sísmico: color propio para no confundir un sismo registrado por el
      SGC con un estado de afectación. */
-  --seismic: #d87246;
+  --seismic: #a2542f;
 
   /* --- Sobre superficie oscura ------------------------------------------
      Los paneles invertidos (resumen territorial, centro de reconstrucción)
      necesitan su propia escala de texto: el gris que funciona sobre crema es
      ilegible sobre verde profundo. */
-  --on-inverse-primary: #eef6f1;
-  --on-inverse-secondary: #c4d0cb;
-  --on-inverse-tertiary: #aebcb6;
-  --on-inverse-accent: #75d4b5;
-  --on-inverse-border: rgba(255, 255, 255, 0.14);
+  --on-inverse-primary: #f4f3ef;
+  --on-inverse-secondary: #c8c6bd;
+  --on-inverse-tertiary: #a6a49b;
+  --on-inverse-accent: #ff6d52;
+  --on-inverse-border: rgba(255, 255, 255, 0.13);
 
   --white: #fff;
 }
@@ -139,11 +144,15 @@
    El degradado casi imperceptible hacia arriba es lo que da la sensación
    táctil del estilo de referencia: simula luz cayendo sobre una superficie
    física, sin recurrir a un pastel. */
+/* La tarjeta se vuelve papel plano: borde de un píxel, esquina apenas marcada y **sin sombra**.
+   En una identidad de instrumento la jerarquía la da la regla y el aire, no la elevación — y un
+   borde fino con una sombra amplia es de los tics que delatan una interfaz generada. El degradado
+   se va por lo mismo: el papel de un registro no tiene brillo. */
 .psCard {
   border: 1px solid var(--border-subtle);
-  border-radius: var(--r-md);
-  background: linear-gradient(180deg, var(--white) 0%, var(--surface-raised) 100%);
-  box-shadow: var(--elev-1);
+  border-radius: var(--r-xs);
+  background: var(--surface-raised);
+  box-shadow: none;
   transition:
     transform var(--dur) var(--ease-out),
     box-shadow var(--dur) var(--ease-out),
@@ -151,13 +160,24 @@
 }
 
 .psCard.interactive:hover {
-  transform: translateY(-2px);
-  border-color: var(--primary);
-  box-shadow: var(--elev-3);
+  border-color: var(--ink);
+}
+
+/* Una tarjeta dentro de otra es ruido: dos bordes y dos fondos para una sola jerarquía. La de
+   dentro pierde su marco y se separa con una regla, que es como se separan las cosas en un
+   registro impreso. */
+.psCard .psCard {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.psCard .psCard + .psCard {
+  border-top: 1px solid var(--border-subtle);
 }
 
 .psCard.flat {
-  background: var(--surface-raised);
+  background: transparent;
   box-shadow: none;
 }
 
