@@ -65,7 +65,7 @@ async function fetchReportStats(sql: Sql, incidentId: string): Promise<ReportSta
     FROM territories d
     LEFT JOIN community_reports cr
       ON ST_Within(cr.location, d.geometry)
-      AND cr.incident_id = ${incidentId} AND cr.status <> 'rejected'
+      AND cr.incident_id = ${incidentId} AND cr.status NOT IN ('rejected', 'superseded')
     WHERE d.territory_type = 'department' AND d.incident_id = ${incidentId} AND d.deleted_at IS NULL
     GROUP BY d.external_code
   `;
@@ -118,12 +118,25 @@ async function fetchRecentUpdates(sql: Sql, incidentId: string): Promise<UpdateR
 async function fetchIncidentTotals(sql: Sql, incidentId: string) {
   const [row] = await sql<{ total_reports: string; open_needs: string }[]>`
     SELECT
-      count(*) FILTER (WHERE status <> 'rejected') AS total_reports,
+      -- Los retirados (superseded) también fuera. Son los puntos que su fuente dejó de publicar:
+      -- siguen en la base con su historial pero ya no están en el mapa, y un titular que los
+      -- cuenta dice una cifra que la pantalla de al lado no sostiene.
+      -- (Sin comillas invertidas: dentro de una plantilla SQL cierran el literal. Ya van tres.)
+      count(*) FILTER (WHERE status NOT IN ('rejected', 'superseded')) AS total_reports,
       count(*) FILTER (
         WHERE report_type = 'necesidad' AND status NOT IN ('rejected', 'superseded')
       ) AS open_needs
     FROM community_reports
     WHERE incident_id = ${incidentId}
+  `;
+  const [structural] = await sql<{ damaged: string; collapsed: string }[]>`
+    SELECT
+      count(*) AS damaged,
+      count(*) FILTER (WHERE damage_severity = 'colapso') AS collapsed
+    FROM community_reports
+    WHERE incident_id = ${incidentId}
+      AND report_type = 'dano'
+      AND status NOT IN ('rejected', 'superseded')
   `;
   const [damage] = await sql<{ affected_households: string }[]>`
     SELECT coalesce(sum(affected_households), 0) AS affected_households
@@ -133,6 +146,8 @@ async function fetchIncidentTotals(sql: Sql, incidentId: string) {
     totalReports: asNumber(row?.total_reports),
     openNeeds: asNumber(row?.open_needs),
     affectedHouseholds: asNumber(damage?.affected_households),
+    structuresDamaged: asNumber(structural?.damaged),
+    structuresCollapsed: asNumber(structural?.collapsed),
   };
 }
 
@@ -237,10 +252,23 @@ export async function runPublishSituationReport(options: {
           note: "Reportes ciudadanos y de fuentes oficiales, sin rechazados",
         },
         {
+          // La portada decía «Viviendas afectadas: 0» mientras el mapa de al lado mostraba 97
+          // edificaciones colapsadas. La cifra era cierta por su propia definición —cuenta
+          // evaluaciones de campo, y no hay ninguna— pero quien la lee concluye que no hay daño.
+          // Una métrica honesta que se lee como una mentira sigue siendo un problema.
+          id: "structures-damaged",
+          label: "Edificaciones con daño",
+          value: String(totals.structuresDamaged),
+          note:
+            totals.structuresCollapsed > 0
+              ? `${totals.structuresCollapsed} colapsadas · reportadas por fuentes públicas, sin evaluación de campo`
+              : "Reportadas por fuentes públicas, sin evaluación de campo",
+        },
+        {
           id: "affected-households",
-          label: "Viviendas afectadas",
+          label: "Viviendas evaluadas en campo",
           value: String(totals.affectedHouseholds),
-          note: "Suma de evaluaciones de campo revisadas por brigadas",
+          note: "Solo evaluaciones hechas por una brigada en el sitio. Es otra cosa que lo de arriba.",
         },
         {
           id: "open-needs",
