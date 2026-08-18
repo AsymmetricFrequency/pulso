@@ -17,6 +17,43 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # La rama tiene que llamarse como su ticket. No es orden por el orden: con siete personas
+  # trabajando a la vez, una rama llamada `fix` o `pruebas` no dice a quién bloquea si se rompe, ni
+  # qué se estaba resolviendo, ni si dos personas están haciendo lo mismo sin saberlo.
+  #
+  # La convención ya existe en el tablero: `<prioridad>/<código>-<qué hace>`, por ejemplo
+  # `p0/p0-9-licencia-mapadelterremoto`. Esto solo la hace verificable.
+  #
+  # Se comprueba aquí y no con una regla de GitHub porque `branch_name_pattern` no está disponible
+  # en repositorios de cuenta personal. La ventaja de hacerlo en CI es que el mensaje puede explicar
+  # qué hacer, que es lo que a una persona nueva le hace falta.
+  rama:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: La rama se llama como su ticket
+        env:
+          RAMA: ${{ github.head_ref }}
+        run: |
+          if printf '%s' "$RAMA" | grep -Eq '^(p0|p1|p2|p3|plataforma)/(p0|p1|p2|p3|pl)-[0-9]+-[a-z0-9]+(-[a-z0-9]+)*$'; then
+            echo "Rama: $RAMA"
+            exit 0
+          fi
+          echo "::error::La rama '$RAMA' no dice de qué ticket es."
+          echo ""
+          echo "El nombre va así:  <prioridad>/<código-del-ticket>-<qué-hace>"
+          echo "Por ejemplo:       p0/p0-9-licencia-mapadelterremoto"
+          echo "                   plataforma/pl-2-mover-puntos-operaciones"
+          echo ""
+          echo "El código sale del hilo del ticket en #tareas. Si estás trabajando en algo que no"
+          echo "tiene ticket, ábrelo primero — no para el papeleo, sino porque es lo que evita que"
+          echo "dos personas construyan lo mismo sin enterarse."
+          echo ""
+          echo "Para renombrar lo que ya empezaste:"
+          echo "  git branch -m p0/p0-9-licencia-mapadelterremoto"
+          echo "  git push origin -u p0/p0-9-licencia-mapadelterremoto"
+          exit 1
+
   check:
     runs-on: ubuntu-latest
     steps:
