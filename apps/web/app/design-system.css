@@ -42,7 +42,10 @@
      al cambiar de dígito es ilegible de un vistazo. */
   --font-numeric: var(--font-body);
 
-  --text-xs: 11px;
+  /* 12px y no 11px. El escalón más bajo se usa para etiquetas, celdas y metadatos —texto
+     funcional que alguien lee de pie, al sol, en una pantalla de alta densidad— y por debajo de 12
+     se pierde. Ahorrar un píxel aquí no compra nada: la densidad la da el interlineado. */
+  --text-xs: 12px;
   --text-sm: 13px;
   --text-base: 15px;
   --text-md: 17px;
@@ -66,7 +69,10 @@
 
   --text-primary: var(--ink);
   --text-secondary: var(--muted);
-  --text-tertiary: #8a978f;
+  /* Sube de #8a978f (2,99:1, justo por debajo del mínimo de 3:1 incluso para texto grande) a
+     4,6:1 sobre la superficie. Sigue leyéndose como terciario porque lo que lo separa del
+     secundario es el peso y el tamaño, no solo lo pálido que sea. */
+  --text-tertiary: #6a786f;
   --text-inverse: #eef6f1;
 
   /* --- Elevación ----------------------------------------------------------
@@ -311,13 +317,13 @@
 .psChart .axisLabel {
   fill: var(--text-secondary);
   font-family: var(--font-body);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .psChart .barValue {
   fill: var(--text-primary);
   font-family: var(--font-body);
-  font-size: 11px;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
   font-weight: 700;
 }

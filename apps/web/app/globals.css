@@ -258,7 +258,7 @@ h2 {
 
 .offlineAction > span {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   text-align: right;
 }
 
@@ -455,7 +455,7 @@ h2 {
 .mapKicker,
 .mapSelection > span:first-child {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -586,7 +586,7 @@ h2 {
   padding: 4px 8px;
   background: var(--surface-sunken);
   color: var(--ink);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -766,7 +766,7 @@ h2 {
 .headlineMetric small {
   display: block;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.35;
 }
 
@@ -800,7 +800,7 @@ h2 {
 
 .layerTabs button span {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .layerTabs button:hover,
@@ -882,7 +882,7 @@ h2 {
   border-bottom: 1px solid rgba(255, 255, 255, 0.16);
   padding: 11px 0;
   color: var(--on-inverse-accent);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -904,7 +904,7 @@ h2 {
 
 .territorySummary dt {
   color: var(--on-inverse-tertiary);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .territorySummary dd {
@@ -922,7 +922,7 @@ h2 {
 .selectedLayerCallout span,
 .selectedLayerCallout p {
   color: var(--on-inverse-tertiary);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .selectedLayerCallout strong {
@@ -970,7 +970,7 @@ h2 {
 
 .recordType {
   color: var(--primary);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -979,7 +979,7 @@ h2 {
 .recordVerification {
   display: grid;
   gap: 5px;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .recordVerification strong {
@@ -1016,7 +1016,7 @@ h2 {
 
 .aidBalances span {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .progressTrack {
@@ -1063,7 +1063,7 @@ h2 {
   display: block;
   margin-top: 16px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.5;
 }
 
@@ -1117,7 +1117,7 @@ h2 {
 .priorityState {
   display: inline-block;
   padding: 4px 8px;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .demoNotice {
@@ -1261,7 +1261,7 @@ footer a {
   }
 
   .textLink {
-    font-size: 11px;
+    font-size: 12px;
   }
 
   .reportIntro {
@@ -1560,7 +1560,7 @@ footer a {
 }
 
 .communityReportMarker text {
-  font-size: 11px;
+  font-size: 12px;
   pointer-events: none;
 }
 
@@ -1573,7 +1573,7 @@ footer a {
 
 .mapCluster text {
   fill: white;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   pointer-events: none;
 }
@@ -1974,7 +1974,7 @@ footer a {
   width: fit-content;
   border-radius: var(--r-full);
   padding: 4px 10px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -2011,7 +2011,7 @@ footer a {
   border: none;
   background: transparent;
   color: var(--on-inverse-accent);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   cursor: pointer;
   padding: 0;
@@ -2036,7 +2036,7 @@ footer a {
   width: fit-content;
   border-radius: var(--r-full);
   padding: 4px 10px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   text-transform: capitalize;
 }
@@ -2072,7 +2072,7 @@ footer a {
 
 .reportDetailNeeds > span {
   color: var(--on-inverse-tertiary);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -2091,7 +2091,7 @@ footer a {
   border-radius: var(--r-full);
   background: rgba(255, 255, 255, 0.12);
   padding: 4px 10px;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .reportDetailMeta {
@@ -2128,7 +2128,7 @@ footer a {
 .reportDetailSource {
   margin: 0;
   color: var(--on-inverse-tertiary);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .reportDetailSource a {
@@ -2190,7 +2190,7 @@ footer a {
 
 .reconstructionTerritoryCard dt {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .reconstructionTerritoryCard dd {
@@ -2389,7 +2389,7 @@ footer a {
   border-radius: var(--r-full);
   background: var(--primary);
   color: white;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -2608,7 +2608,7 @@ footer a {
 }
 
 .mapReportBar .mapReportHint.muted strong {
-  color: var(--amber);
+  color: var(--status-strong-ink);
 }
 
 .mapReportBar .mapReportHint.error {
