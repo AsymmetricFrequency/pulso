@@ -140,6 +140,58 @@ export const householdRegistryStatsSchema = z.object({
   generatedAt: z.string(),
 });
 
+/**
+ * Foto del daño. **La vía universal**: sirve igual para propietario, arrendatario y ocupante, que
+ * es la razón por la que la evidencia no se apoya en papeles de propiedad.
+ */
+export const createRegistrationEvidenceSchema = z.object({
+  /** El código que recibió la persona. Es su credencial, igual que para borrar. */
+  publicCode: z.string().trim().min(6).max(20),
+  fileName: z.string().trim().min(1).max(180),
+  contentType: z.enum(["image/jpeg", "image/png", "image/webp"]),
+  dataBase64: z
+    .string()
+    .min(4)
+    // 12 MB en binario, con el margen que añade base64.
+    .max(17_000_000),
+});
+
+/** Lo que ve quien audita. Sin la imagen: esa se pide aparte y queda registrado quién la miró. */
+export const registrationQueueItemSchema = z.object({
+  registrationId: z.string(),
+  publicCode: z.string(),
+  neighborhood: z.string().nullable(),
+  territoryName: z.string().nullable(),
+  peopleCount: z.number().int(),
+  dwellingStatus: dwellingStatusSchema,
+  shelteringAt: shelteringAtSchema,
+  officiallyCensused: censusedSchema,
+  signal: z.enum(["coherente", "sin_contraste", "revisar"]).nullable(),
+  checks: z.record(z.string(), z.unknown()).nullable(),
+  evidenceLevel: z.enum(["declarada", "contrastada", "con_foto", "reforzada", "auditado"]),
+  evidenceCount: z.number().int().min(0),
+  hasContact: z.boolean(),
+  reviewedOutcome: z.string().nullable(),
+  createdAt: z.string(),
+});
+
+export const reviewRegistrationSchema = z.object({
+  outcome: z.enum(["respaldado", "sin_evidencia", "duplicado", "inconsistente"]),
+  /** Obligatorio: una auditoría que dice quién y no dice con qué se apoyó no se puede revisar. */
+  rationale: z.string().trim().min(10).max(1_000),
+  evidenceKind: z.enum([
+    "visita_en_terreno",
+    "llamada",
+    "lista_oficial",
+    "senales_automaticas",
+    "otro",
+  ]),
+});
+
+export type CreateRegistrationEvidenceInput = z.infer<typeof createRegistrationEvidenceSchema>;
+export type RegistrationQueueItem = z.infer<typeof registrationQueueItemSchema>;
+export type ReviewRegistrationInput = z.infer<typeof reviewRegistrationSchema>;
+
 export type CreateHouseholdRegistrationInput = z.infer<typeof createHouseholdRegistrationSchema>;
 export type HouseholdRegistrationReceipt = z.infer<typeof householdRegistrationReceiptSchema>;
 export type HouseholdRegistrationSummary = z.infer<typeof householdRegistrationSummarySchema>;

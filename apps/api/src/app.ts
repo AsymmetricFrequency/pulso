@@ -74,6 +74,7 @@ import {
   createOrganizationSchema,
   createProfessionalCredentialSchema,
   createRapidAssessmentSchema,
+  createRegistrationEvidenceSchema,
   createTeamMembershipSchema,
   createTeamSchema,
   createWorkforceProfileSchema,
@@ -110,8 +111,10 @@ import {
   reconstructionProgressSchema,
   redeemMissionInvitationSchema,
   redeemOperationsInvitationSchema,
+  registrationQueueItemSchema,
   reviewCommunityReportSchema,
   reviewContractSchema,
+  reviewRegistrationSchema,
   teamMembershipSchema,
   teamSchema,
   territoryImportResultSchema,
@@ -1112,6 +1115,106 @@ export async function buildApp(options: BuildAppOptions = {}) {
             await householdRegistry.stats(incident.id, request.params.incidentCode),
           ),
         );
+    },
+  );
+
+  /**
+   * Subir la foto del daño. **Sin sesión y sin cuenta**: el código público es la credencial.
+   *
+   * Quien tiene el código puede añadir evidencia a **su** registro y a ningún otro — son ocho
+   * caracteres aleatorios, así que no se llega a un registro ajeno adivinando. Exigir una cuenta
+   * para aportar la prueba de tu propio daño sería ponerle un peaje a lo que más nos sirve.
+   *
+   * La foto es la vía universal: funciona igual para propietario, arrendatario y ocupante, que es
+   * por lo que la evidencia no se apoya en papeles de propiedad.
+   */
+  app.post<{ Params: { incidentCode: string } }>(
+    "/v1/public/incidents/:incidentCode/household-registry/evidence",
+    {
+      // Diez fotos por hora y por IP. Un hogar sube dos o tres; diez cabe de sobra para una familia
+      // con varias viviendas afectadas y corta en seco a quien quiera llenar la base de imágenes.
+      config: { rateLimit: { max: 10, timeWindow: "1 hour" } },
+    },
+    async (request, reply) => {
+      const incident = await incidents.findByCode(request.params.incidentCode);
+      if (!incident) {
+        return reply
+          .status(404)
+          .send({ error: "incident_not_found", message: "La emergencia no existe." });
+      }
+      const input = createRegistrationEvidenceSchema.parse(request.body);
+      const result = await householdRegistry.addEvidence(incident.id, input);
+      if (!result.stored) {
+        return reply.status(404).send({
+          error: "registration_not_found",
+          message: "No encontramos ese código, o la imagen no se pudo leer.",
+        });
+      }
+      return reply.status(201).send({
+        stored: true,
+        // Se devuelve si de verdad se pudieron quitar los metadatos. No se traga en silencio: una
+        // foto sin limpiar es una foto que puede llevar la coordenada exacta de una casa.
+        metadataRemoved: result.stripped,
+      });
+    },
+  );
+
+  // ===========================================================================
+  // La cola de quien audita
+  // ===========================================================================
+  //
+  // Cierra `censar → validar → auditar`. Lo automático produjo señales; aquí una persona
+  // identificada decide y firma.
+  app.get<{
+    Params: { incidentId: string };
+    Querystring: { signal?: string; limit?: string };
+  }>("/v1/operations/incidents/:incidentId/registry-queue", async (request) => {
+    const session = await operationsAccess.resolveSession(
+      bearerToken(request.headers.authorization),
+    );
+    if (session.incidentId !== request.params.incidentId) {
+      throw new MissionAccessDeniedError("La sesión pertenece a otra emergencia.");
+    }
+    // `auditor` entra aquí y no en las rutas que cambian datos: existe para mirar y dejar
+    // constancia, que es exactamente lo que un ente de control necesita poder hacer.
+    if (!["coordinator", "auditor", "incident_admin"].includes(session.role)) {
+      throw new MissionAccessDeniedError("Este rol no puede ver la cola del censo comunitario.");
+    }
+    const limit = Number.parseInt(request.query.limit ?? "", 10);
+    return registrationQueueItemSchema.array().parse(
+      await householdRegistry.queue(request.params.incidentId, {
+        ...(request.query.signal ? { signal: request.query.signal } : {}),
+        ...(Number.isFinite(limit) ? { limit } : {}),
+      }),
+    );
+  });
+
+  app.post<{ Params: { incidentId: string; registrationId: string } }>(
+    "/v1/operations/incidents/:incidentId/registry-queue/:registrationId/review",
+    async (request, reply) => {
+      const session = await operationsAccess.resolveSession(
+        bearerToken(request.headers.authorization),
+      );
+      if (session.incidentId !== request.params.incidentId) {
+        throw new MissionAccessDeniedError("La sesión pertenece a otra emergencia.");
+      }
+      if (!["coordinator", "auditor", "incident_admin"].includes(session.role)) {
+        throw new MissionAccessDeniedError("Este rol no puede auditar registros.");
+      }
+      const input = reviewRegistrationSchema.parse(request.body);
+      const done = await householdRegistry.review(
+        request.params.incidentId,
+        request.params.registrationId,
+        session.actorId,
+        input,
+      );
+      if (!done) {
+        return reply.status(404).send({
+          error: "registration_not_found",
+          message: "Ese registro no existe o ya fue borrado a petición de la persona.",
+        });
+      }
+      return reply.status(201).send({ reviewed: true });
     },
   );
 

@@ -1,12 +1,16 @@
-import { createHmac, randomBytes, randomUUID } from "node:crypto";
+import { createHash, createHmac, randomBytes, randomUUID } from "node:crypto";
 import type { HouseholdRegistryRepository } from "@pulso/domain";
 import type {
   CreateHouseholdRegistrationInput,
+  CreateRegistrationEvidenceInput,
   HouseholdRegistrationReceipt,
   HouseholdRegistryStats,
+  RegistrationQueueItem,
+  ReviewRegistrationInput,
 } from "@pulso/schemas";
 import type postgres from "postgres";
 import { encryptField } from "./field-encryption.js";
+import { stripImageMetadata } from "./strip-image-metadata.js";
 
 type Sql = ReturnType<typeof postgres>;
 
@@ -138,6 +142,128 @@ export class PostgresHouseholdRegistryRepository implements HouseholdRegistryRep
     return rows.length > 0;
   }
 
+  /**
+   * Guarda una foto del daño.
+   *
+   * El código público es la credencial: quien lo tiene puede añadir evidencia a **su** registro y a
+   * ningún otro. No hace falta cuenta, y por eso mismo no se puede subir a un registro ajeno sin
+   * conocer un código de ocho caracteres aleatorios.
+   *
+   * Los metadatos se quitan **antes** de escribir. Si se hiciera después, existiría una ventana —
+   * por corta que sea— en la que la coordenada exacta de la casa de alguien está en la base.
+   */
+  async addEvidence(
+    incidentId: string,
+    input: CreateRegistrationEvidenceInput,
+  ): Promise<{ stored: boolean; stripped: boolean }> {
+    const [registration] = await this.sql<{ id: string }[]>`
+      SELECT id FROM household_self_registrations
+      WHERE incident_id = ${incidentId}
+        AND public_code = ${input.publicCode.trim().toUpperCase()}
+        AND redacted_at IS NULL
+      LIMIT 1
+    `;
+    if (!registration) return { stored: false, stripped: false };
+
+    const raw = Buffer.from(input.dataBase64, "base64");
+    if (raw.length < 4 || raw.length > 12 * 1024 * 1024) return { stored: false, stripped: false };
+
+    const { data, stripped } = stripImageMetadata(raw, input.contentType);
+    const contentHash = createHash("sha256").update(data).digest("hex");
+
+    await this.sql`
+      INSERT INTO registration_evidence (
+        id, registration_id, kind, content, file_name, content_type, byte_size,
+        content_hash, exif_stripped
+      ) VALUES (
+        ${randomUUID()}, ${registration.id}, 'foto_dano', ${data}, ${input.fileName},
+        ${input.contentType}, ${data.length}, ${contentHash}, ${stripped}
+      )
+    `;
+    return { stored: true, stripped };
+  }
+
+  /**
+   * La cola de quien audita, ordenada por lo que de verdad decide a quién mirar primero.
+   *
+   * No es orden de llegada: primero lo que el cruce automático marcó para revisar, y dentro de eso
+   * lo que tiene más personas. Un registro con señal `revisar` y ocho personas dentro pesa más que
+   * uno coherente de una sola — y el orden de una cola es la política de la cola.
+   */
+  async queue(
+    incidentId: string,
+    query: { signal?: string; limit?: number } = {},
+  ): Promise<RegistrationQueueItem[]> {
+    const limit = Math.min(Math.max(query.limit ?? 50, 1), 200);
+    const rows = await this.sql<Record<string, unknown>[]>`
+      SELECT r.id, r.public_code, r.neighborhood, t.name AS territory_name, r.people_count,
+             r.dwelling_status, r.sheltering_at, r.officially_censused, r.created_at,
+             v.signal, v.checks,
+             pulso_evidence_level(r.id) AS evidence_level,
+             (SELECT count(*) FROM registration_evidence e
+                WHERE e.registration_id = r.id AND e.redacted_at IS NULL) AS evidence_count,
+             (r.contact_phone_encrypted IS NOT NULL) AS has_contact,
+             (SELECT rr.outcome FROM registration_reviews rr
+                WHERE rr.registration_id = r.id ORDER BY rr.created_at DESC LIMIT 1) AS reviewed
+      FROM household_self_registrations r
+      LEFT JOIN territories t ON t.id = r.territory_id
+      LEFT JOIN registration_validations v ON v.registration_id = r.id
+      WHERE r.incident_id = ${incidentId}
+        AND r.redacted_at IS NULL
+        AND r.status <> 'retirado'
+        ${query.signal ? this.sql`AND v.signal = ${query.signal}` : this.sql``}
+      ORDER BY
+        CASE v.signal WHEN 'revisar' THEN 0 WHEN 'sin_contraste' THEN 1 ELSE 2 END,
+        r.people_count DESC,
+        r.created_at DESC
+      LIMIT ${limit}
+    `;
+
+    return rows.map((row) => ({
+      registrationId: String(row.id),
+      publicCode: String(row.public_code),
+      neighborhood: (row.neighborhood as string | null) ?? null,
+      territoryName: (row.territory_name as string | null) ?? null,
+      peopleCount: Number(row.people_count ?? 0),
+      dwellingStatus: row.dwelling_status as RegistrationQueueItem["dwellingStatus"],
+      shelteringAt: row.sheltering_at as RegistrationQueueItem["shelteringAt"],
+      officiallyCensused: row.officially_censused as RegistrationQueueItem["officiallyCensused"],
+      signal: (row.signal as RegistrationQueueItem["signal"]) ?? null,
+      checks: (row.checks as Record<string, unknown> | null) ?? null,
+      evidenceLevel: row.evidence_level as RegistrationQueueItem["evidenceLevel"],
+      evidenceCount: Number(row.evidence_count ?? 0),
+      hasContact: row.has_contact === true,
+      reviewedOutcome: (row.reviewed as string | null) ?? null,
+      createdAt:
+        row.created_at instanceof Date ? row.created_at.toISOString() : new Date(0).toISOString(),
+    }));
+  }
+
+  /** La decisión humana, firmada y motivada. */
+  async review(
+    incidentId: string,
+    registrationId: string,
+    reviewerActorId: string,
+    input: ReviewRegistrationInput,
+  ): Promise<boolean> {
+    const [registration] = await this.sql<{ id: string }[]>`
+      SELECT id FROM household_self_registrations
+      WHERE id = ${registrationId} AND incident_id = ${incidentId} AND redacted_at IS NULL
+      LIMIT 1
+    `;
+    if (!registration) return false;
+
+    await this.sql`
+      INSERT INTO registration_reviews (
+        id, registration_id, outcome, reviewer_actor_id, rationale, evidence_kind
+      ) VALUES (
+        ${randomUUID()}, ${registrationId}, ${input.outcome}, ${reviewerActorId},
+        ${input.rationale}, ${input.evidenceKind}
+      )
+    `;
+    return true;
+  }
+
   async stats(incidentId: string, incidentCode: string): Promise<HouseholdRegistryStats> {
     const [totals] = await this.sql<Record<string, unknown>[]>`
       SELECT
@@ -212,6 +338,15 @@ export class EmptyHouseholdRegistryRepository implements HouseholdRegistryReposi
     throw new Error("El registro comunitario necesita base de datos.");
   }
   async redact(): Promise<boolean> {
+    return false;
+  }
+  async addEvidence(): Promise<{ stored: boolean; stripped: boolean }> {
+    return { stored: false, stripped: false };
+  }
+  async queue(): Promise<RegistrationQueueItem[]> {
+    return [];
+  }
+  async review(): Promise<boolean> {
     return false;
   }
   async stats(_incidentId: string, incidentCode: string): Promise<HouseholdRegistryStats> {
