@@ -644,8 +644,11 @@
   transform: translateY(6px);
 }
 
+/* La barra del medio se apaga con `background: transparent`, no con `opacity: 0`.
+   La opacidad del padre es un techo para los hijos: puesta a cero se llevaba por delante los dos
+   pseudo-elementos que forman la X, y el botón abierto quedaba en blanco. */
 .psNavBurger[data-open="true"] {
-  opacity: 0;
+  background: transparent;
 }
 
 .psNavBurger[data-open="true"]::before {
