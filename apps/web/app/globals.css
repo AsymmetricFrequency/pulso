@@ -3542,7 +3542,10 @@ button:active:not(:disabled),
      el papel frío de ahora, y **la hacía desaparecer entera**: el fondo de la página lleva un
      degradado repetido y el multiply contra ese respaldo la borraba. Su crema y el nuestro están
      suficientemente cerca como para que se lea sola, sin trucos. */
-  animation: heroImageIn 900ms var(--ease-out) both;
+  /* 400 ms, no 900. Con la imagen precargada la entrada es un remate, no una espera: novecientos
+     milisegundos de desvanecimiento sobre algo que ya está cargado es hacerle perder el tiempo a
+     quien vino a leer un dato. */
+  animation: heroImageIn 400ms var(--ease-out) both;
 }
 
 @keyframes heroImageIn {

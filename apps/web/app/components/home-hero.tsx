@@ -127,10 +127,12 @@ export function HomeHero() {
       </div>
 
       <div className="homeHeroPanel">
-        {/* `next/image` sirve WebP y AVIF a quien los acepte, y el tamaño declarado reserva el
-            hueco antes de que llegue: sin eso, el texto de al lado salta cuando la imagen carga.
-            Sin `priority` a propósito — la cifra es lo que hay que leer primero y una imagen que
-            bloquea el pintado retrasaría justo eso. */}
+        {/* `priority`, y me equivoqué al no ponerlo la primera vez.
+            Razoné que la cifra debía leerse antes y que precargar la imagen la retrasaría. Pero la
+            ilustración está **sobre el pliegue**: sin precarga, la mitad derecha del hero se queda
+            en blanco todo el primer segundo —más en una conexión lenta— y un hueco no ayuda a leer
+            nada. `next/image` sirve WebP y AVIF a quien los acepte, y el tamaño declarado reserva
+            el sitio para que el texto de al lado no salte cuando llegue. */}
         <Image
           className="homeHeroImage"
           src="/hero-mapa.jpg"
@@ -140,6 +142,7 @@ export function HomeHero() {
           // 34vw es el ancho real del panel en pantalla ancha; con 40vw Next elegía una variante
           // demasiado pequeña y la ampliaba, que es como se ve borrosa una imagen que sí está bien.
           sizes="(max-width: 900px) 92vw, 34vw"
+          priority
         />
 
         {coverage ? (
