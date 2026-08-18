@@ -3160,3 +3160,167 @@ button:active:not(:disabled),
 .traceSection > p {
   max-width: 74ch;
 }
+
+/* =============================================================================
+   Formulario del censo comunitario
+   ===========================================================================
+   Se llena de pie, con una mano, en un teléfono con poca batería. De ahí todo
+   lo de abajo: campos altos, radios grandes, y ningún adorno que no ayude a
+   terminarlo. Un formulario abandonado a mitad es un hogar que no aparece en la
+   lista que se le entrega a la alcaldía. */
+
+.registryForm {
+  display: grid;
+  gap: 22px;
+  margin-top: 8px;
+}
+
+.registryField {
+  display: grid;
+  gap: 6px;
+}
+
+.registryField label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.registryField input {
+  min-height: 48px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  padding: 0 14px;
+  color: var(--ink);
+  font-family: inherit;
+  /* 16px exactos: por debajo de eso iOS hace zoom al enfocar el campo y saca a la persona del
+     formulario. Es la clase de detalle que decide si alguien lo termina. */
+  font-size: 16px;
+}
+
+.registryField input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+.registryField small {
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.registryGroup {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 16px 18px;
+}
+
+/* La pregunta que justifica el registro se marca en la forma, no solo en el texto. */
+.registryGroup.emphasis {
+  border-color: var(--ink);
+}
+
+.registryGroup legend {
+  padding: 0 6px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.registryGroupHint {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.registryCounts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 12px;
+}
+
+/* La etiqueta entera es el área táctil, no solo el círculo de 20px. Acertarle a un radio pequeño
+   con el pulgar y una mano ocupada es exactamente lo que hace abandonar un formulario. */
+.registryCheck {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  min-height: 44px;
+  padding: 6px 0;
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.registryCheck input {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  accent-color: var(--primary);
+}
+
+.registryConsent {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--paper-deep);
+  padding: 16px 18px;
+}
+
+.registryConsent .registryCheck {
+  align-items: flex-start;
+  font-size: 14px;
+}
+
+.registryError {
+  margin: 0;
+  border-left: 3px solid var(--signal);
+  padding-left: 14px;
+  color: var(--signal-ink);
+  font-size: 15px;
+}
+
+.helpStep .registryReceipt {
+  display: grid;
+  gap: 12px;
+  border: 2px solid var(--primary);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  padding: 24px;
+}
+
+.helpStep .registryReceipt h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.helpStep .registryReceipt p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+/* El código en monoespaciada y grande: se va a leer en voz alta por teléfono o a copiar a mano. */
+.registryCode {
+  display: block;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--paper-deep);
+  padding: 16px;
+  font-family: var(--font-data, ui-monospace, monospace);
+  font-size: clamp(26px, 7vw, 34px);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-align: center;
+}
+
+.helpStep .registryReminder {
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+  color: var(--text-secondary);
+}

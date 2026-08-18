@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { RegistryForm } from "./registry-form";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 const INCIDENT = "colombia-2026";
@@ -104,7 +105,7 @@ export function HelpPage() {
       <section className="helpHero">
         <h1>Si el sismo te afectó, esto es lo que sirve saber</h1>
         <p className="helpLede">
-          Cuatro cosas, en el orden en que importan. La primera es la que decide si recibes ayuda
+          Cinco cosas, en el orden en que importan. La primera es la que decide si recibes ayuda
           oficial, y no se hace por internet.
         </p>
       </section>
@@ -216,8 +217,27 @@ export function HelpPage() {
         ) : null}
       </section>
 
-      <section className="helpStep" id="reportar">
+      {/* El registro va en el paso 3, **después** de haber dicho dos veces que el censo oficial es
+          presencial. Ponerlo antes lo convertiría en lo que la página existe para desmentir. */}
+      <section className="helpStep" id="registro">
         <p className="helpStepNum">Paso 3</p>
+        <h2>Deja constancia de que tu hogar quedó afectado</h2>
+        <div className="helpWarning subtle">
+          <p>
+            <strong>Esto no es el censo oficial y no te inscribe en ninguna ayuda.</strong> Lo que
+            hace es permitirnos decirle a tu alcaldía que tu hogar resultó afectado y, si nadie ha
+            venido, que falta censarlos — con el barrio, para que una brigada sepa a dónde ir.
+          </p>
+          <p>
+            Publicamos que hay <strong>44 municipios donde no ha llegado nadie a censar</strong>.
+            Esto es la otra mitad: que ustedes puedan decir dónde están.
+          </p>
+        </div>
+        <RegistryForm />
+      </section>
+
+      <section className="helpStep" id="reportar">
+        <p className="helpStepNum">Paso 4</p>
         <h2>Reporta lo que falta, para que se sepa</h2>
         <p>
           Puedes marcar en el mapa lo que necesitas —agua, alimentos, medicamentos, remoción de
@@ -239,7 +259,7 @@ export function HelpPage() {
       </section>
 
       <section className="helpStep" id="desaparecidos">
-        <p className="helpStepNum">Paso 4</p>
+        <p className="helpStepNum">Paso 5</p>
         <h2>Si estás buscando a alguien</h2>
         <p>
           <strong>Esto no pasa por Pulso.</strong> Las personas desaparecidas tienen una ruta
