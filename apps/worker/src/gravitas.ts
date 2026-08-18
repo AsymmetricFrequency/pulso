@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { CommunityReportMetadata } from "@pulso/schemas";
 import postgres, { type Sql } from "postgres";
 import { isWithinColombia } from "./colombia-bounds.js";
+import { toNeedsList } from "./needs-list.js";
 
 export const GRAVITAS_SOURCE = {
   id: "gravitas-mapa-ciudadano",
@@ -16,7 +17,19 @@ export const GRAVITAS_SOURCE = {
 // Only institutional/physical coordination points are imported — never "persona_disponible"
 // (individual volunteers, whose address_text is frequently a private home address) or
 // "edificio" (building damage reports, which can also pin an individual's residence).
-const IMPORTABLE_CATEGORIES = new Set(["centro_acopio"]);
+const IMPORTABLE_CATEGORIES = new Set(["centro_acopio", "logistica"]);
+
+// `logistica` es el estado de la red de transporte: cierres de vía por derrumbe, aeropuertos sin
+// operación, un túnel cerrado. Se importa desde `P0-10` porque un equipo de rescate necesita saber
+// por dónde puede llegar antes de saber a dónde va, y estos puntos no traen dirección ni contacto:
+// el sitio del cierre es el dato, y la coordenada es de ciudad.
+//
+// `ruta_habilitada` entra igual que `ruta_bloqueada`: una vía reabierta importa tanto como una
+// cerrada, y omitirla dejaría el mapa afirmando un cierre que ya se levantó.
+const ROUTE_STATUS_BY_TIPO: Record<string, "bloqueada" | "habilitada"> = {
+  ruta_bloqueada: "bloqueada",
+  ruta_habilitada: "habilitada",
+};
 
 const SUBTYPE_CATEGORY_MAP: Record<string, string> = {
   atencion_medica: "salud",
@@ -48,6 +61,7 @@ type GravitasFeature = {
     needs_abierta?: unknown;
     category_fields?: {
       tipo?: unknown;
+      detalle?: unknown;
       contacto?: unknown;
       capacidad_actual?: unknown;
       organizacion_responsable?: unknown;
@@ -59,8 +73,9 @@ type GravitasFeature = {
 
 export type MappedGravitasPoint = {
   externalKey: string;
-  reportType: "pmu";
+  reportType: "pmu" | "via";
   category: string | null;
+  routeStatus: "bloqueada" | "habilitada" | null;
   title: string;
   description: string | null;
   location: { type: "Point"; coordinates: [number, number] };
@@ -93,7 +108,15 @@ export function mapGravitasFeature(feature: GravitasFeature): MappedGravitasPoin
     return undefined;
   }
 
-  const title = text(properties.title)?.slice(0, 140);
+  // Gravitas titula estos puntos «Logistica — Cali», que no dice nada. Lo que sirve está en
+  // `detalle` («Aeropuerto cerrado», «Cierre total, sin tiempo estimado de reapertura»), así que el
+  // titular se arma con eso y la ciudad. Es reordenar lo que ya publicaron, no inventarles nada.
+  const detalle = text(properties.category_fields?.detalle);
+  const routeTitle =
+    category === "logistica" && detalle
+      ? [detalle, text(properties.city)].filter(Boolean).join(" — ")
+      : undefined;
+  const title = (routeTitle ?? text(properties.title))?.slice(0, 140);
   if (!title || title.length < 3) return undefined;
 
   const place = [text(properties.city), text(properties.department_name)]
@@ -112,17 +135,21 @@ export function mapGravitasFeature(feature: GravitasFeature): MappedGravitasPoin
   const tipo = text(properties.category_fields?.tipo);
   const mappedCategory = tipo ? (SUBTYPE_CATEGORY_MAP[tipo] ?? null) : null;
 
+  // El tipo del reporte se deriva de la categoría, no se fija. Antes estaba clavado en `pmu`, así
+  // que admitir `logistica` sin esto habría metido el aeropuerto de Buenaventura al mapa como
+  // Puesto de Mando Unificado: quien coordina leería que ahí hay mando. Un dato mal etiquetado
+  // cuesta más que un dato ausente.
+  const isRoute = category === "logistica";
+  const routeStatus = isRoute && tipo ? (ROUTE_STATUS_BY_TIPO[tipo] ?? null) : null;
+  // Sin estado no se puede dibujar ni interpretar, y el esquema lo rechazaría de todas formas:
+  // mejor descartarlo aquí, donde se ve por qué.
+  if (isRoute && !routeStatus) return undefined;
+
   const trustLevel = isFiniteNumber(properties.trust_level) ? properties.trust_level : 0;
   const status = trustLevel >= 2 ? "validated" : trustLevel >= 1 ? "corroborated" : "reported";
 
   const necesita = text(properties.category_fields?.necesita);
-  const needs = necesita
-    ? necesita
-        .split(/[,|]/)
-        .map((item) => item.trim())
-        .filter(Boolean)
-        .slice(0, 40)
-    : undefined;
+  const needs = toNeedsList(necesita, /[,|]/);
 
   const metadata: CommunityReportMetadata = {
     address,
@@ -149,8 +176,10 @@ export function mapGravitasFeature(feature: GravitasFeature): MappedGravitasPoin
 
   return {
     externalKey: properties.id,
-    reportType: "pmu",
-    category: mappedCategory,
+    reportType: isRoute ? "via" : "pmu",
+    // Una vía no lleva categoría: la categoría dice qué falta, y aquí lo que falta es poder pasar.
+    category: isRoute ? null : mappedCategory,
+    routeStatus,
     title,
     description: description || null,
     location: { type: "Point", coordinates: [lng, lat] },
@@ -204,18 +233,19 @@ async function upsertCommunityReports(
     await sql`
       INSERT INTO community_reports (
         id, incident_id, report_type, category, title, description, location,
-        status, external_source_id, external_key, client_mutation_id, metadata
+        status, external_source_id, external_key, client_mutation_id, metadata, route_status
       ) VALUES (
         ${randomUUID()}, ${incident.id}, ${point.reportType}, ${point.category}, ${point.title},
         ${point.description},
         ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(point.location)}), 4326),
         ${point.status}, ${GRAVITAS_SOURCE.id}, ${point.externalKey}, ${randomUUID()},
-        ${sql.json(point.metadata)}
+        ${sql.json(point.metadata)}, ${point.routeStatus}
       )
       ON CONFLICT (external_source_id, external_key) WHERE external_source_id IS NOT NULL
       DO UPDATE SET
         report_type = EXCLUDED.report_type,
         category = EXCLUDED.category,
+        route_status = EXCLUDED.route_status,
         title = EXCLUDED.title,
         description = EXCLUDED.description,
         location = EXCLUDED.location,

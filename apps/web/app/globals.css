@@ -18,6 +18,16 @@
   --amber: #c8811d;
   --blue: #35708f;
   --green: #257350;
+  /* Estado de la vía. Deliberadamente fuera de la escala de revisión (ámbar/verde/gris) y fuera del
+     rojo del rescate: una vía cerrada no compite con una persona bajo escombros, y su color no
+     depende de que Operaciones la haya mirado. El grafito lee como señalización de carretera. */
+  --route-blocked: #2f2a24;
+  --route-open: #257350;
+  /* Daño estructural. El colapso comparte el rojo del rescate porque es lo mismo un paso antes —es
+     donde puede haber gente debajo—; el resto usa un terracota apagado que se lee como estructura
+     y no compite con la escala de revisión. */
+  --damage: #9a5b3d;
+  --damage-collapse: #a8321c;
   --shadow: var(--elev-2);
   --shadow-lift: 0 22px 50px rgba(16, 35, 28, 0.14);
   --radius-sm: 8px;
@@ -1326,6 +1336,85 @@ footer a {
   color: white;
 }
 
+/* Marcador de vía en el mapa de departamento. El glifo ya distingue cerrada de abierta —barra del
+   sentido prohibido contra visto—, así que el color refuerza pero no carga solo con el mensaje:
+   quien no separa el grafito del verde sigue sabiendo si puede pasar. */
+.pulsoMarkerRoute {
+  width: 28px;
+  height: 28px;
+  background: var(--route-blocked);
+  border: 2.5px solid rgba(255, 253, 247, 0.98);
+  color: white;
+  box-shadow: 0 2px 8px rgba(24, 20, 16, 0.42);
+}
+
+.pulsoMarkerRouteOpen {
+  background: var(--route-open);
+}
+
+.pulsoMarkerDamage {
+  width: 26px;
+  height: 26px;
+  background: var(--damage);
+  border: 2px solid rgba(255, 253, 247, 0.98);
+  color: white;
+  box-shadow: 0 2px 8px rgba(58, 34, 22, 0.35);
+}
+
+/* El colapso es más grande y más rojo. Con ~100 colapsos entre miles de daños leves, la diferencia
+   de tamaño es lo que permite encontrarlos sin filtrar nada. */
+.pulsoMarkerCollapse {
+  width: 30px;
+  height: 30px;
+  background: var(--damage-collapse);
+  border-width: 2.5px;
+  box-shadow: 0 2px 10px rgba(122, 32, 14, 0.5);
+}
+
+/* Marcador de rescate: más grande y en el rojo crítico. No lleva el ámbar de "sin verificar" que
+   usan los demás porque a esta escala el estado de revisión no es la información que importa —
+   importa que ahí abajo hay alguien. */
+.pulsoMarkerRescue {
+  width: 34px;
+  height: 34px;
+  background: var(--status-critical);
+  border: 2.5px solid rgba(255, 253, 247, 0.98);
+  color: white;
+  box-shadow: 0 2px 10px rgba(138, 44, 18, 0.55);
+}
+
+/* Solo pulsa cuando alguien reportó señales de vida. Si pulsara siempre sería decoración y el mapa
+   dejaría de significar nada; así el movimiento es información. */
+.pulsoMarkerRescueLive {
+  animation: pulsoRescuePulse 1.8s ease-out infinite;
+}
+
+@keyframes pulsoRescuePulse {
+  0% {
+    box-shadow:
+      0 2px 10px rgba(138, 44, 18, 0.55),
+      0 0 0 0 rgba(194, 55, 31, 0.55);
+  }
+  70% {
+    box-shadow:
+      0 2px 10px rgba(138, 44, 18, 0.55),
+      0 0 0 14px rgba(194, 55, 31, 0);
+  }
+  100% {
+    box-shadow:
+      0 2px 10px rgba(138, 44, 18, 0.55),
+      0 0 0 0 rgba(194, 55, 31, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulsoMarkerRescueLive {
+    animation: none;
+    outline: 3px solid rgba(194, 55, 31, 0.4);
+    outline-offset: 3px;
+  }
+}
+
 .pulsoClusterIcon {
   background: none;
   border: none;
@@ -1396,6 +1485,32 @@ footer a {
   fill: var(--text-tertiary);
 }
 
+.communityReportMarker.rescue circle {
+  fill: var(--status-critical);
+  stroke: white;
+  stroke-width: 2;
+}
+
+.communityReportMarker.route circle {
+  fill: var(--route-blocked);
+  stroke: white;
+  stroke-width: 2;
+}
+
+.communityReportMarker.route.open circle {
+  fill: var(--route-open);
+}
+
+.communityReportMarker.damage circle {
+  fill: var(--damage);
+  stroke: white;
+  stroke-width: 2;
+}
+
+.communityReportMarker.damage.collapse circle {
+  fill: var(--damage-collapse);
+}
+
 .communityReportMarker.pendingPoint {
   fill: var(--signal);
   stroke: white;
@@ -1404,6 +1519,48 @@ footer a {
 
 .statusDot.pmu {
   background: var(--green);
+}
+
+.statusDot.rescue {
+  background: var(--status-critical);
+}
+
+.statusDot.route.blocked {
+  background: var(--route-blocked);
+}
+
+.reportDetailGeocoded {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--paper-deep);
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.reportDetailGeocoded svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+/* El mismo gris del círculo de precisión del mapa, y punteado como él: la leyenda y el dibujo
+   tienen que verse hermanos o la leyenda no explica nada. */
+.statusDot.geocoded {
+  background: transparent;
+  border: 1px dashed #8a7f66;
+}
+
+.statusDot.damage {
+  background: var(--damage);
+}
+
+.statusDot.damage.collapse {
+  background: var(--damage-collapse);
 }
 
 /* Fondo del modal de reporte: cubre toda la pantalla e intercepta el clic, así que ya no le
@@ -1468,6 +1625,99 @@ footer a {
   border-color: var(--primary);
   background: var(--primary);
   color: white;
+}
+
+/* El rescate ocupa la fila entera encima de los otros dos. La jerarquía visual es la prioridad
+   declarada del proyecto: es el único reporte donde el retraso se mide en vidas. */
+.communityReportTypeToggle button.communityReportRescueOption {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  border-color: var(--status-critical);
+  color: var(--status-critical-ink);
+  background: var(--status-critical-soft);
+  font-size: 14px;
+}
+
+.communityReportTypeToggle button.communityReportRescueOption.active {
+  background: var(--status-critical);
+  color: white;
+}
+
+.communityReportRescue {
+  display: grid;
+  gap: 12px;
+}
+
+.communityReportRescue fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.communityReportRescue legend {
+  padding: 0 0 6px;
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.communityReportChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* 44px de alto mínimo: se toca con una mano, de pie, probablemente temblando. */
+.communityReportChips button {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: white;
+  color: var(--ink);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.communityReportChips button.active {
+  border-color: var(--status-critical);
+  background: var(--status-critical-soft);
+  color: var(--status-critical-ink);
+  font-weight: 700;
+}
+
+.communityReportRescueTitle {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+
+/* Va dentro del formulario y no al final: Pulso no despacha equipos, y quien reporta tiene que
+   saberlo antes de enviar, no después. */
+.communityReportRescueWarn {
+  margin: 0;
+  border-left: 3px solid var(--status-critical);
+  background: var(--status-critical-soft);
+  padding: 8px 10px;
+  color: var(--status-critical-ink);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.reportDetailRescue {
+  border-left: 3px solid var(--status-critical);
+  background: var(--status-critical-soft);
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+}
+
+.communityReportFormActions button.communityReportRescueSubmit {
+  background: var(--status-critical);
+  border-color: var(--status-critical);
 }
 
 .communityReportCategoryGrid {
@@ -1698,6 +1948,33 @@ footer a {
 
 .reportDetailMeta {
   margin: 4px 0;
+}
+
+/* La columna de etiquetas heredaba los 82 px de `.territorySummary`, y ahí no caben palabras como
+   «Confirmaciones»: se montaba encima de su propio valor y se leía «Confirmacion2reportes». */
+.reportDetailMeta div {
+  grid-template-columns: 96px 1fr;
+}
+
+.reportDetailMeta dt {
+  overflow-wrap: anywhere;
+}
+
+/* El aviso de contacto va destacado y sobre la línea de procedencia: quien abre una necesidad y
+   quiere ayudar tiene que ver ahí que hay una forma de llegar, no descubrirlo leyendo el pie. */
+.reportDetailContact {
+  margin: 0 0 10px;
+  border-left: 3px solid var(--on-inverse-accent);
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--on-inverse-secondary, var(--on-inverse-tertiary));
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.reportDetailContact a {
+  color: var(--on-inverse-accent);
+  font-weight: 700;
 }
 
 .reportDetailSource {

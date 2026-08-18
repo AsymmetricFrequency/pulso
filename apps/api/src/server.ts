@@ -1,4 +1,7 @@
+import postgres from "postgres";
 import { buildApp } from "./app.js";
+import { DiscordClient, discordConfigFromEnv } from "./discord.js";
+import { PostgresAdminRepository } from "./postgres-admin-repository.js";
 import { createPostgresRepositories } from "./postgres-repositories.js";
 
 const port = Number.parseInt(process.env.API_PORT ?? "3001", 10);
@@ -28,8 +31,29 @@ const postgresRepositories =
         identityFingerprintSecret ?? "pulso-local-identity-fingerprint-secret-2026",
       )
     : undefined;
+/**
+ * Panel administrativo.
+ *
+ * Es opcional en los tres frentes y a propósito: sin Postgres, sin credenciales de Discord, o sin
+ * secreto de sesión, la API arranca igual y `/v1/admin/*` responde 503 diciendo qué falta. En una
+ * emergencia, una herramienta interna a medio configurar no puede impedir que la API pública
+ * levante — el panel sirve para mirar la operación, no para que la operación exista.
+ */
+const discordConfig = discordConfigFromEnv();
+const adminSessionSecret = process.env.ADMIN_SESSION_SECRET;
+const adminSql =
+  databaseUrl && adminSessionSecret && adminSessionSecret.length >= 32
+    ? postgres(databaseUrl, { max: 4 })
+    : null;
+const adminRepository =
+  adminSql && adminSessionSecret ? new PostgresAdminRepository(adminSql, adminSessionSecret) : null;
+const discordClient = discordConfig ? new DiscordClient(discordConfig) : null;
+
 const app = await buildApp({
   logger: true,
+  adminPanelUrl: process.env.ADMIN_PANEL_URL ?? "http://localhost:3000",
+  ...(adminRepository ? { adminRepository } : {}),
+  ...(discordClient ? { discordClient } : {}),
   persistence: postgresRepositories ? "postgres" : "memory",
   missionInvitationSecret:
     missionInvitationSecret ?? "pulso-local-invitation-secret-change-me-2026",
@@ -64,6 +88,9 @@ const app = await buildApp({
 
 if (postgresRepositories) {
   app.addHook("onClose", async () => postgresRepositories.close());
+}
+if (adminSql) {
+  app.addHook("onClose", async () => adminSql.end());
 }
 
 const shutdown = async (signal: string) => {

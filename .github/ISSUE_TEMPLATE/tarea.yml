@@ -1,0 +1,84 @@
+name: Tarea
+description: Un trabajo que alguien puede tomar y terminar
+labels: ["libre"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        El criterio de un buen ticket es que quien lo tome **no tenga que preguntar nada** para
+        empezar. Si al releerlo queda una pregunta abierta, resuélvela aquí antes de publicar.
+
+  - type: textarea
+    id: problema
+    attributes:
+      label: Qué falta hoy
+      description: El estado actual, no la solución. Qué no se puede hacer y a quién le duele.
+    validations:
+      required: true
+
+  - type: textarea
+    id: acepta
+    attributes:
+      label: Acepta cuando
+      description: Cómo sabemos que está terminado. Observable, no una intención.
+      placeholder: |
+        Un coordinador ve los rescates abiertos sin filtrar nada, y al marcar uno como atendido
+        desaparece de la cola activa sin borrarse del historial.
+    validations:
+      required: true
+
+  - type: textarea
+    id: ojo
+    attributes:
+      label: Ojo con
+      description: >
+        Trampas conocidas, decisiones ya tomadas que hay que respetar, intentos anteriores que
+        fallaron. Lo que le va a costar un día a quien lo tome si nadie se lo dice.
+
+  - type: dropdown
+    id: prioridad
+    attributes:
+      label: Prioridad
+      description: Ver docs/32-direccion.md
+      options:
+        - P0 — salvar vidas
+        - P1 — censo de damnificados
+        - P2 — conectar la ayuda
+        - P3 — trazabilidad del dinero
+        - Plataforma — sostiene al resto
+    validations:
+      required: true
+
+  - type: dropdown
+    id: rol
+    attributes:
+      label: Rol
+      multiple: true
+      options:
+        - frontend
+        - backend
+        - data
+        - gis
+        - devops
+        - ai
+        - blockchain
+        - contributor
+    validations:
+      required: true
+
+  - type: dropdown
+    id: tamano
+    attributes:
+      label: Tamaño
+      options:
+        - S — menos de un día
+        - M — dos o tres días
+        - L — una semana o más
+    validations:
+      required: true
+
+  - type: input
+    id: depende
+    attributes:
+      label: Depende de
+      description: Otros tickets que tienen que estar antes. Vacío si no depende de nada.

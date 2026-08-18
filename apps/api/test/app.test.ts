@@ -997,4 +997,61 @@ describe("identity and trust API", () => {
       validProfessionalCredentials: 1,
     });
   });
+
+  /**
+   * El orden de la cola pública es una decisión de producto, no un detalle del adaptador.
+   *
+   * La lista va recortada (800 en vista de país sobre más de 2.288 reportes) y antes se ordenaba
+   * por estado de revisión: un rescate recién enviado, que por definición nadie ha validado
+   * todavía, quedaba detrás de cada necesidad ya validada y podía no entrar en la respuesta.
+   * Esperar a que alguien lo valide es exactamente el tiempo que no hay.
+   */
+  it("puts a fresh rescue report above everything else in the public queue", async () => {
+    const app = await buildApp();
+    apps.push(app);
+
+    await app.inject({
+      method: "POST",
+      url: "/v1/incidents",
+      payload: {
+        code: "colombia-2026",
+        name: "Respuesta Colombia 2026",
+        disasterType: "earthquake",
+        countryCode: "CO",
+        timezone: "America/Bogota",
+        startedAt: "2026-08-10T07:34:00-05:00",
+      },
+    });
+
+    const post = (payload: Record<string, unknown>) =>
+      app.inject({
+        method: "POST",
+        url: "/v1/public/incidents/colombia-2026/community-reports",
+        payload: {
+          clientMutationId: crypto.randomUUID(),
+          location: { type: "Point", coordinates: [-76.53, 3.43] },
+          ...payload,
+        },
+      });
+
+    await post({ reportType: "necesidad", category: "agua", title: "Falta agua potable" });
+    await post({ reportType: "pmu", title: "PMU Comuna 3" });
+    const rescue = await post({
+      reportType: "rescate",
+      title: "2 personas bajo escombros — se oyen señales de vida",
+      peopleReported: 2,
+      signsOfLife: "yes",
+      respondersOnSite: false,
+    });
+
+    expect(rescue.statusCode).toBe(201);
+
+    const listed = await app.inject({
+      method: "GET",
+      url: "/v1/public/incidents/colombia-2026/community-reports",
+    });
+    const [first] = listed.json().reports as Array<{ reportType: string; signsOfLife: string }>;
+
+    expect(first).toMatchObject({ reportType: "rescate", signsOfLife: "yes" });
+  });
 });

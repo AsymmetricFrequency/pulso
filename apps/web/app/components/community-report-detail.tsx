@@ -1,6 +1,10 @@
 "use client";
 
-import { externalSourceLabels, type PublicCommunityReport } from "./community-report-form";
+import {
+  externalSourceLabels,
+  type PublicCommunityReport,
+  peopleReportedLabel,
+} from "./community-report-form";
 import {
   IconAlert,
   IconBox,
@@ -8,14 +12,45 @@ import {
   IconCalendar,
   IconCheck,
   IconClock,
+  IconCollapse,
+  IconDamage,
   IconFlag,
   IconLocation,
+  IconRescue,
+  IconRouteBlocked,
   IconUsers,
 } from "./icons";
 
 export const REPORT_TYPE_LABEL: Record<PublicCommunityReport["reportType"], string> = {
+  rescate: "Personas atrapadas",
   pmu: "Puesto de mando",
   necesidad: "Necesidad",
+  via: "Estado de la vía",
+  dano: "Daño estructural",
+};
+
+const DAMAGE_SEVERITY_LABEL: Record<
+  NonNullable<PublicCommunityReport["damageSeverity"]>,
+  string
+> = {
+  colapso: "Colapso",
+  grave: "Daño grave",
+  moderado: "Daño moderado",
+  leve: "Daño leve",
+  // No es un hueco: hay daño reportado y nadie con criterio técnico ha ido a calificarlo. Decirlo
+  // así es lo que convierte la ficha en una cola de trabajo para las brigadas de evaluación.
+  sin_evaluar: "Sin evaluar todavía",
+};
+
+const ROUTE_STATUS_LABEL: Record<NonNullable<PublicCommunityReport["routeStatus"]>, string> = {
+  bloqueada: "Sin paso",
+  habilitada: "Habilitada",
+};
+
+const SIGNS_OF_LIFE_LABEL: Record<NonNullable<PublicCommunityReport["signsOfLife"]>, string> = {
+  yes: "Se reportan señales de vida",
+  unknown: "Sin confirmar todavía",
+  no: "No se percibieron señales",
 };
 
 export const reportStatusToken = (status: PublicCommunityReport["status"]) => {
@@ -103,12 +138,46 @@ export function CommunityReportDetailCard({ report, onClose }: CommunityReportDe
       </button>
 
       <p className="eyebrow reportDetailKind">
-        {report.reportType === "pmu" ? <IconFlag /> : <IconAlert />}
+        {report.reportType === "rescate" ? (
+          <IconRescue />
+        ) : report.reportType === "pmu" ? (
+          <IconFlag />
+        ) : report.reportType === "via" ? (
+          <IconRouteBlocked />
+        ) : report.reportType === "dano" ? (
+          report.damageSeverity === "colapso" ? (
+            <IconCollapse />
+          ) : (
+            <IconDamage />
+          )
+        ) : (
+          <IconAlert />
+        )}
         {REPORT_TYPE_LABEL[report.reportType]}
       </p>
       <h3>{report.title}</h3>
 
       <div className="reportDetailBadges">
+        {/* En una vía, lo primero es si se puede pasar. El estado de revisión viene después:
+            saber que Operaciones todavía no la miró no le sirve a quien está decidiendo la ruta. */}
+        {report.damageSeverity && (
+          <span
+            className={`communityReportStatusBadge ${
+              report.damageSeverity === "colapso" ? "unverified" : "muted"
+            }`}
+          >
+            {DAMAGE_SEVERITY_LABEL[report.damageSeverity]}
+          </span>
+        )}
+        {report.routeStatus && (
+          <span
+            className={`communityReportStatusBadge ${
+              report.routeStatus === "habilitada" ? "verified" : "muted"
+            }`}
+          >
+            {ROUTE_STATUS_LABEL[report.routeStatus]}
+          </span>
+        )}
         <span className={`communityReportStatusBadge ${reportStatusToken(report.status)}`}>
           {STATUS_LABEL[report.status]}
         </span>
@@ -118,6 +187,16 @@ export function CommunityReportDetailCard({ report, onClose }: CommunityReportDe
           </span>
         )}
       </div>
+
+      {/* El aviso va antes de la descripción, no en una nota al pie: alguien puede estar leyendo
+          esto para decidir si coge el carro. */}
+      {report.locationPrecision === "geocoded" && (
+        <p className="reportDetailGeocoded">
+          <IconLocation />
+          Punto aproximado: la ubicación se dedujo de la dirección escrita, no la puso nadie desde
+          el sitio. Guíate por la dirección y confirma antes de desplazarte.
+        </p>
+      )}
 
       {report.description && <p className="reportDetailDescription">{report.description}</p>}
 
@@ -130,6 +209,40 @@ export function CommunityReportDetailCard({ report, onClose }: CommunityReportDe
             ))}
           </ul>
         </div>
+      )}
+
+      {/* Los tres datos del rescate van arriba de todo lo demás y sin plegar: son lo que un equipo
+          mira para decidir a qué punto va primero. */}
+      {report.reportType === "rescate" && (
+        <dl className="reportDetailMeta reportDetailRescue">
+          <div>
+            <dt>
+              <IconUsers />
+              Personas
+            </dt>
+            <dd>{peopleReportedLabel(report.peopleReported) ?? "Sin dato"}</dd>
+          </div>
+          <div>
+            <dt>
+              <IconAlert />
+              Señales de vida
+            </dt>
+            <dd>{report.signsOfLife ? SIGNS_OF_LIFE_LABEL[report.signsOfLife] : "Sin dato"}</dd>
+          </div>
+          <div>
+            <dt>
+              <IconFlag />
+              Rescatistas
+            </dt>
+            <dd>
+              {report.respondersOnSite === null
+                ? "Sin dato"
+                : report.respondersOnSite
+                  ? "Ya hay equipo en el sitio"
+                  : "Nadie en el sitio al reportar"}
+            </dd>
+          </div>
+        </dl>
       )}
 
       <dl className="reportDetailMeta">
@@ -205,6 +318,21 @@ export function CommunityReportDetailCard({ report, onClose }: CommunityReportDe
           </div>
         )}
       </dl>
+
+      {/* Enlace a la fuente en vez de copiar el contacto.
+          264 fichas importadas declaran tener un teléfono en su origen. Ese número se lo dieron a
+          esa plataforma, no a Pulso, así que no se republica aquí — pero callar que existe deja a
+          quien quiere ayudar sin forma de llegar. El enlace resuelve las dos cosas: la conexión
+          ocurre y el dato personal se queda donde su dueño lo puso. */}
+      {source && metadata?.hasContact && (
+        <p className="reportDetailContact">
+          Esta ficha tiene datos de contacto <strong>en su fuente original</strong>. Pulso no los
+          copia.{" "}
+          <a href={source.url} target="_blank" rel="noreferrer noopener">
+            Abrir en {source.name} ↗
+          </a>
+        </p>
+      )}
 
       {source && (
         <p className="reportDetailSource">

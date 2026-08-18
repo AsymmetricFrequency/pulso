@@ -1,25 +1,25 @@
 <div align="center">
 
-# PULSO VIDA
+# PULSO
 
 ### Información territorial para actuar
 
 Infraestructura abierta y local-first para coordinar emergencias, hacer visible lo que ocurre en el territorio y demostrar cómo llega la ayuda.
 
-[**pulso.my**](https://pulso.my) · [Operación desde el día 4](docs/25-day-four-affected-people.md) · [Informe público](docs/24-public-situation-report.md) · [Arquitectura](docs/02-technical-architecture.md)
+[**pulso.my**](https://pulso.my) · [Dirección y prioridades](docs/32-direccion.md) · [Backlog](docs/33-backlog.md) · [Cómo contribuir](CONTRIBUTING.md) · [Arquitectura](docs/02-technical-architecture.md)
 
-![Estado P0](https://img.shields.io/badge/estado-P0%20en%20construcci%C3%B3n-d08b25)
+![Prioridad P0](https://img.shields.io/badge/prioridad-P0%20salvar%20vidas-c2371f)
 ![Implementación Colombia](https://img.shields.io/badge/implementaci%C3%B3n-Colombia-006a4e)
 ![Offline first](https://img.shields.io/badge/dise%C3%B1o-offline--first-39779c)
-![Solana](https://img.shields.io/badge/integridad-Solana-10231c)
+![Licencia Apache 2.0](https://img.shields.io/badge/licencia-Apache--2.0-10231c)
 
 </div>
 
-![PULSO VIDA — Información territorial para actuar](apps/web/public/og.png)
+![PULSO — Información territorial para actuar](apps/web/public/og.png)
 
-## Qué es PULSO VIDA
+## Qué es PULSO
 
-PULSO VIDA convierte señales dispersas del territorio en información útil, trazable y publicable durante una emergencia. Conecta comunidades, brigadas, profesionales, organizaciones, donantes y autoridades sin exigir conectividad permanente ni conocimientos técnicos.
+PULSO convierte señales dispersas del territorio en información útil, trazable y publicable durante una emergencia. Conecta comunidades, brigadas, profesionales, organizaciones, donantes y autoridades sin exigir conectividad permanente ni conocimientos técnicos.
 
 La primera implementación está enfocada en Colombia, pero el protocolo puede adaptarse a terremotos, inundaciones, incendios, huracanes y otras emergencias en cualquier país.
 
@@ -32,7 +32,7 @@ El sistema responde seis preguntas esenciales:
 5. ¿Qué equipos están trabajando y qué evidencia respalda su actividad?
 6. ¿El informe público conserva la misma integridad con la que fue publicado?
 
-Desde el cuarto día, PULSO VIDA no crea un censo digital paralelo: enlaza señales comunitarias, visitas de campo y referencias oficiales en un expediente común. Una persona puede ser atendida sin documento; una referencia no se convierte automáticamente en beneficiario y una posible duplicidad siempre pasa por revisión humana.
+Desde el cuarto día, PULSO no crea un censo digital paralelo: enlaza señales comunitarias, visitas de campo y referencias oficiales en un expediente común. Una persona puede ser atendida sin documento; una referencia no se convierte automáticamente en beneficiario y una posible duplicidad siempre pasa por revisión humana.
 
 ## Informe público
 
@@ -49,7 +49,7 @@ La navegación sigue la jerarquía:
 
 `Colombia → departamento → municipio/distrito → ciudad/localidad → zona operativa`
 
-Las cifras actuales están marcadas como **datos sintéticos de demostración**. PULSO VIDA no publicará información real hasta conectar fuentes verificadas y activar revisión editorial y de privacidad.
+Las cifras que se publican salen de fuentes reales con procedencia: SGC, DANE, USGS, SECOP II, el repositorio oficial de Cali y reportes ciudadanos. Cuando un dato todavía no existe, la interfaz lo dice y explica por qué — nunca se rellena con un número de demostración. Ver [`26-source-ingestion.md`](docs/26-source-ingestion.md).
 
 ## Cómo funciona
 
@@ -74,31 +74,47 @@ PostgreSQL/PostGIS es la fuente de verdad operacional. Solana no almacena person
 | **Pulso Mapa** | Informe público de cobertura, daños, necesidades, donaciones y equipos. |
 | **Pasaporte de Recuperación** | Expediente versionado de cada caso, vivienda, animal o activo. |
 | **Pulso Verifica** | Identidad, credenciales profesionales, evidencia y validación. |
-| **Protocolo PULSO VIDA** | Contratos abiertos de datos, sincronización, auditoría e integridad. |
+| **Protocolo PULSO** | Contratos abiertos de datos, sincronización, auditoría e integridad. |
+
+## Prioridades
+
+Los cuatro objetivos **están ordenados**: no son áreas paralelas, son fases de una misma cadena. Ante
+dos tareas gana la de prioridad más alta, siempre. El razonamiento está en
+[`32-direccion.md`](docs/32-direccion.md).
+
+| | Objetivo | Estado |
+| --- | --- | --- |
+| **P0** | **Salvar vidas** — dónde hay gente atrapada y quién puede llegar | Reporte ciudadano en pie; falta la cola de coordinación |
+| **P1** | **Saber quién quedó afectado** — quiénes son y qué necesitan | Solo modelo de datos; sin API |
+| **P2** | **Conectar la ayuda con quien la necesita** | Necesidades y acopios visibles; sin emparejar |
+| **P3** | **Trazar la plata pública** — en qué se gasta y si llegó | Funcionando sobre SECOP II |
+
+La prioridad más avanzada es la más baja de las cuatro. Está dicho a propósito: una persona bajo
+escombros tiene horas, un contrato mal adjudicado tiene años y tribunales, y construir en orden
+inverso a la urgencia es el error más fácil de cometer aquí.
 
 ## Estado actual
 
 | Área | Estado |
 | --- | --- |
-| Landing e informe público | Implementados con cinco capas y datos sintéticos |
-| API pública de solo lectura | Implementada, cacheable y con contrato `demo / live` |
-| Mapa territorial | DANE MGN 2023 conectado: 33 departamentos y 1.121 municipios |
-| Territorios, zonas y cobertura | API, historial y adaptadores PostgreSQL implementados |
-| Captura de campo offline | Visitas, evaluaciones, evidencia y cola IndexedDB implementadas |
-| Identidad operacional | Invitaciones, sesiones, passkeys y perfiles de confianza implementados |
-| Equipos y asignaciones | Creación, membresías, aceptación e idempotencia implementadas |
-| Donaciones e inventario | Catálogo, necesidades, lotes, inspecciones, movimientos y entregas modelados |
-| Personas y hogares afectados | Modelo relacional, fuentes externas y cola de posibles duplicados implementados en migración |
-| Ingesta oficial Cali | Importador de cifras, acopios, albergues y bancos de sangre implementado |
-| Sismicidad oficial SGC | Feed versionado y proyección pública de eventos implementados |
-| Geografía oficial DANE | Importador jerárquico y API GeoJSON pública implementados |
-| PostgreSQL/PostGIS | Trece migraciones; validación en contenedor pendiente |
-| Solana | Programa Anchor y pruebas locales aprobadas; Devnet pendiente |
+| Informe público y mapa | En producción con datos reales y procedencia por fuente |
+| Reporte ciudadano | Rescate, PMU y necesidad; publica sin cuenta y con límite de tasa |
+| Auditoría de recursos públicos | SECOP II ingerido, revisión humana y lectura previa con Claude |
+| API pública de solo lectura | Implementada y cacheable |
+| Mapa territorial | DANE MGN 2023: 33 departamentos y 1.121 municipios |
+| Captura de campo offline | Visitas, evaluaciones, evidencia y cola IndexedDB |
+| Identidad operacional | Invitaciones, sesiones, passkeys y perfiles de confianza |
+| Equipos y asignaciones | Creación, membresías, aceptación e idempotencia |
+| Donaciones e inventario | Modelado en migración; sin API |
+| Personas y hogares afectados | Modelado en migración; **sin API** — es el hueco más grande |
+| Fuentes conectadas | SGC, DANE, USGS, SECOP II, Cali oficial y cuatro plataformas ciudadanas |
+| PostgreSQL/PostGIS | 24 migraciones aplicadas en producción |
+| Solana | Programa Anchor probado en local; Devnet pendiente |
 | Program ID | `PuLsRBUdu4JxfP9tPU4WyNvWx7Vu2dS7NfCipm8YBmh` |
 
 ## Donaciones y materiales
 
-PULSO VIDA no suma materiales incompatibles ni confunde promesas con entregas. Cada insumo utiliza una unidad canónica y conserva especificación, lote, inspección y movimiento.
+PULSO no suma materiales incompatibles ni confunde promesas con entregas. Cada insumo utiliza una unidad canónica y conserva especificación, lote, inspección y movimiento.
 
 ```text
 promesa → recepción → inspección → aceptación → almacenamiento
@@ -199,6 +215,20 @@ research/              Investigación territorial con fuentes
 
 ## Documentación esencial
 
+### Si acabas de llegar
+
+Lee estos tres, en este orden. Son quince minutos y después puedes tomar un ticket sin preguntarle
+nada a nadie.
+
+- [**Dirección y prioridades**](docs/32-direccion.md) — qué se construye primero y por qué
+- [**Backlog**](docs/33-backlog.md) — los tickets, con criterios de aceptación y tamaño
+- [**Cómo contribuir**](CONTRIBUTING.md) — las cuatro invariantes, ramas, revisión
+
+### Gestión del proyecto
+
+- [Discord como sistema de gestión](docs/34-discord.md)
+- [Entidades públicas y universidades](docs/35-alianzas.md)
+
 ### Producto y territorio
 
 - [Visión y principios](docs/00-vision.md)
@@ -210,6 +240,9 @@ research/              Investigación territorial con fuentes
 - [Informe público territorial](docs/24-public-situation-report.md)
 - [Día 4: personas afectadas, coordinación y ayuda trazable](docs/25-day-four-affected-people.md)
 - [Fuentes e ingesta de datos públicos](docs/26-source-ingestion.md)
+- [Fuentes conectadas y su estado](docs/37-fuentes.md)
+- [Reportar personas atrapadas](docs/36-rescate.md)
+- [Lectura previa de contratos con Claude](docs/31-contract-triage.md)
 
 ### Ingeniería y confianza
 
@@ -231,10 +264,19 @@ research/              Investigación territorial con fuentes
 - **Cero fricción:** comunidades y brigadas no necesitan wallet ni SOL.
 - **Estándares abiertos:** los datos deben ser interoperables y exportables.
 
+## Contribuir
+
+El proyecto está abierto y hay trabajo repartible ahora mismo. El camino más corto:
+[dirección](docs/32-direccion.md) → [backlog](docs/33-backlog.md) → [cómo contribuir](CONTRIBUTING.md).
+
+La coordinación ocurre en Discord; un hilo por ticket, con los mismos roles y etiquetas que en
+GitHub. Ver [`34-discord.md`](docs/34-discord.md).
+
 ## Dominio y licencia
 
 - Dominio oficial: [**pulso.my**](https://pulso.my)
-- Implementación inicial: **PULSO VIDA Colombia**
-- Estado: **P0 en construcción**
+- Implementación inicial: **PULSO Colombia**
+- Prioridad actual: **P0 — personas bajo escombros**
 
-La licencia de código y datos se definirá antes de aceptar contribuciones externas. No debe asumirse una licencia hasta que exista un archivo `LICENSE` aprobado.
+El **código** está bajo [Apache-2.0](LICENSE). La licencia de los **datos** publicados todavía no
+está decidida: hasta que exista, no asumas nada sobre reutilizarlos.

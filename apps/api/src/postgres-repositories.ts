@@ -770,7 +770,7 @@ export function createPostgresRepositories(
   const sql = postgres(databaseUrl, { max: 10, idle_timeout: 20, connect_timeout: 10 });
   return {
     assessments: new PostgresAssessmentRepository(sql),
-    communityReports: new PostgresCommunityReportRepository(sql),
+    communityReports: new PostgresCommunityReportRepository(sql, identityFingerprintSecret),
     evidence: new PostgresEvidenceRepository(sql),
     identityTrust: new PostgresIdentityTrustRepository(identityFingerprintSecret, sql),
     incidents: new PostgresIncidentRepository(sql),

@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import {
   AssessmentNotFoundError,
@@ -118,11 +119,13 @@ import {
 } from "@simplewebauthn/server";
 import Fastify from "fastify";
 import { ZodError } from "zod";
+import { registerAdminRoutes } from "./admin-routes.js";
 import { MemoryAssessmentRepository } from "./assessment-repositories.js";
 import {
   type CaliPublicSourceRepository,
   EmptyCaliPublicSourceRepository,
 } from "./cali-public-source-repositories.js";
+import type { DiscordClient } from "./discord.js";
 import { EmptyPublicFundsRepository } from "./empty-public-funds-repository.js";
 import { MemoryEvidenceRepository } from "./evidence-repositories.js";
 import { MemoryCommunityReportRepository } from "./memory-community-report-repository.js";
@@ -136,7 +139,9 @@ import { MemoryTerritoryRepository } from "./memory-territory-repository.js";
 import { MemoryWorkforceProfileRepository } from "./memory-workforce-profile-repository.js";
 import { MemoryMissionAccessRepository } from "./mission-access-repositories.js";
 import { MemoryOperationsAccessRepository } from "./operations-access-repositories.js";
+import type { PostgresAdminRepository } from "./postgres-admin-repository.js";
 import { EmptySeismicShakingRepository } from "./postgres-seismic-shaking-repository.js";
+import { rescueAlertMessage } from "./rescue-alert.js";
 import {
   EmptySgcPublicSourceRepository,
   type SgcPublicSourceRepository,
@@ -175,6 +180,10 @@ export type BuildAppOptions = {
   materialSupplierRepository?: MaterialSupplierRepository;
   workforceProfileRepository?: WorkforceProfileRepository;
   reconstructionProgressRepository?: ReconstructionProgressRepository;
+  /** Panel administrativo. Sin esto las rutas `/v1/admin/*` responden 503 explicando qué falta. */
+  adminRepository?: PostgresAdminRepository;
+  discordClient?: DiscordClient;
+  adminPanelUrl?: string;
   persistence?: "memory" | "postgres";
   logger?: boolean;
   missionInvitationSecret?: string;
@@ -234,6 +243,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
     options.caliPublicSourceRepository ?? new EmptyCaliPublicSourceRepository();
   const sgcPublicSource = options.sgcPublicSourceRepository ?? new EmptySgcPublicSourceRepository();
   const siteUrl = options.siteUrl ?? "http://localhost:3000";
+  const adminPanelUrl = options.adminPanelUrl ?? siteUrl;
   const rpID = options.webauthnRpId ?? "localhost";
   const origin = options.webauthnOrigin ?? "http://localhost:3000";
   const adminKey = options.missionAdminKey ?? "pulso-local-admin";
@@ -334,7 +344,30 @@ export async function buildApp(options: BuildAppOptions = {}) {
   };
 
   await app.register(cors, {
-    origin: process.env.NODE_ENV === "production" ? siteUrl : true,
+    // El panel vive en otro subdominio (`admin.pulso.my`) y manda la cookie de sesión, así que
+    // necesita estar en la lista y `credentials`. Sin `credentials` el navegador descarta la cookie
+    // en silencio y la sesión parece no crearse nunca.
+    origin: process.env.NODE_ENV === "production" ? [siteUrl, adminPanelUrl].filter(Boolean) : true,
+    credentials: true,
+  });
+  await app.register(cookie);
+
+  registerAdminRoutes(app, {
+    admin: options.adminRepository ?? null,
+    discord: options.discordClient ?? null,
+    incidentCode: process.env.PULSO_INCIDENT_CODE ?? "colombia-2026",
+    panelUrl: adminPanelUrl,
+    secureCookies: process.env.NODE_ENV === "production",
+    superuserDiscordIds: (process.env.ADMIN_SUPERUSER_DISCORD_IDS ?? "")
+      .split(",")
+      .map((id) => id.trim())
+      .filter(Boolean),
+    // Un valor corto no es una credencial, es una invitación a probar combinaciones. Si está mal
+    // puesto se ignora en silencio en vez de abrir una puerta débil creyendo que está cerrada.
+    breakGlassToken:
+      process.env.ADMIN_BREAK_GLASS_TOKEN && process.env.ADMIN_BREAK_GLASS_TOKEN.length >= 32
+        ? process.env.ADMIN_BREAK_GLASS_TOKEN
+        : null,
   });
 
   app.setErrorHandler((error, _request, reply) => {
@@ -551,6 +584,19 @@ export async function buildApp(options: BuildAppOptions = {}) {
         ? createHash("sha256").update(`community-report:${request.ip}`).digest("hex")
         : null;
       const report = await communityReports.create(incident.id, input, { sourceIpHash });
+
+      // El aviso se manda **después** de escribir y **sin esperarlo**.
+      //
+      // Después, porque un fallo al avisar nunca puede impedir que el reporte se guarde: sería la
+      // peor forma posible de perder un rescate. Y sin esperarlo, porque quien reporta está de pie
+      // al lado de un derrumbe con mala señal, y no tiene por qué mirar una pantalla girando
+      // mientras hablamos con Discord. `alert()` se traga sus propios errores y tiene timeout, así
+      // que esta promesa no puede romper nada ni quedarse colgada.
+      const alertMessage = options.discordClient
+        ? rescueAlertMessage(publicCommunityReportSchema.parse(report), siteUrl)
+        : null;
+      if (alertMessage) void options.discordClient?.alert(alertMessage);
+
       return reply.status(201).send(publicCommunityReportSchema.parse(report));
     },
   );
@@ -579,14 +625,30 @@ export async function buildApp(options: BuildAppOptions = {}) {
         ...(boundingBox ? { boundingBox } : {}),
         ...(mapView ? { view: "map" as const } : {}),
       });
+      // Validar el lote con `.parse()` hacía que **una** fila mala dejara sin lista a las 2.300
+      // buenas: un importador guardó una necesidad con un texto más largo del que admite el
+      // esquema y la ruta entera pasó a devolver `validation_error`. En una emergencia, servir
+      // 2.299 puntos vale más que servir cero, así que cada fila se valida sola. Lo que no se
+      // hace es esconderlo: las descartadas se cuentan en `unavailable` y se registran con su
+      // identificador, porque un punto que desaparece en silencio es peor que uno que falta.
+      const schema = mapView ? mapCommunityReportSchema : publicCommunityReportSchema;
+      const reports: unknown[] = [];
+      let unavailable = 0;
+      for (const report of page.reports) {
+        const parsed = schema.safeParse(report);
+        if (parsed.success) {
+          reports.push(parsed.data);
+          continue;
+        }
+        unavailable += 1;
+        request.log.error(
+          { reportId: (report as { id?: string }).id, issues: parsed.error.issues },
+          "Reporte descartado de la lista pública por no pasar su propio esquema",
+        );
+      }
       return reply
         .header("Cache-Control", "public, max-age=15, s-maxage=30, stale-while-revalidate=60")
-        .send({
-          reports: mapView
-            ? mapCommunityReportSchema.array().parse(page.reports)
-            : publicCommunityReportSchema.array().parse(page.reports),
-          total: page.total,
-        });
+        .send({ reports, total: page.total, ...(unavailable > 0 ? { unavailable } : {}) });
     },
   );
 

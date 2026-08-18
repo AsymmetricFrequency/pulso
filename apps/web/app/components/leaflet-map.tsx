@@ -8,7 +8,7 @@ import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import { useEffect, useRef } from "react";
 import type { PublicCommunityReport } from "./community-report-form";
-import { reportMarkerSvg } from "./icons";
+import { reportMarkerKey, reportMarkerSvg } from "./icons";
 
 type DepartmentProperties = { dpto_ccdgo: string; dpto_cnmbre: string };
 type MunicipalityProperties = {
@@ -36,11 +36,54 @@ const statusColor = (status: PublicCommunityReport["status"]) => {
 };
 
 function reportDivIcon(report: PublicCommunityReport) {
+  // Un rescate no se colorea por estado de revisión. El ámbar de «sin verificar» lo haría
+  // indistinguible de una necesidad recién reportada, y aquí la distinción tiene que sobrevivir a
+  // una mirada de medio segundo sobre un mapa con miles de puntos.
+  if (report.reportType === "rescate") {
+    const live = report.signsOfLife === "yes" ? " pulsoMarkerRescueLive" : "";
+    return L.divIcon({
+      className: "pulsoMarker",
+      html:
+        `<span class="pulsoMarkerDot pulsoMarkerRescue${live}">` +
+        `${reportMarkerSvg("rescate", 18)}</span>`,
+      iconSize: [34, 34],
+      iconAnchor: [17, 17],
+    });
+  }
+  // Una vía tampoco. Lo que importa de ella es si se puede pasar, no si alguien de Operaciones ya
+  // la miró: pintarla de ámbar por «sin verificar» escondería justo el dato que se viene a buscar.
+  if (report.reportType === "via") {
+    const open = report.routeStatus === "habilitada";
+    return L.divIcon({
+      className: "pulsoMarker",
+      html:
+        `<span class="pulsoMarkerDot pulsoMarkerRoute${open ? " pulsoMarkerRouteOpen" : ""}">` +
+        `${reportMarkerSvg(reportMarkerKey(report), 16)}</span>`,
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+    });
+  }
+  // Un daño tampoco se colorea por estado de revisión: lo que decide si alguien va es la severidad.
+  if (report.reportType === "dano") {
+    const collapse = report.damageSeverity === "colapso";
+    return L.divIcon({
+      className: "pulsoMarker",
+      html:
+        `<span class="pulsoMarkerDot pulsoMarkerDamage${collapse ? " pulsoMarkerCollapse" : ""}">` +
+        `${reportMarkerSvg(reportMarkerKey(report), collapse ? 17 : 14)}</span>`,
+      iconSize: collapse ? [30, 30] : [26, 26],
+      iconAnchor: collapse ? [15, 15] : [13, 13],
+    });
+  }
   const color = statusColor(report.status);
+  // Punteado significa **una** cosa: «sin verificar». Antes también marcaba las coordenadas
+  // deducidas, y eso lo volvía ilegible: quien mira no podía separar «nadie ha confirmado esto» de
+  // «dedujimos dónde está», que son problemas distintos con consecuencias distintas. La
+  // incertidumbre de ubicación se dibuja aparte, con el círculo de precisión.
   const dashed = report.status === "reported" ? "border-style:dashed;" : "";
   return L.divIcon({
     className: "pulsoMarker",
-    html: `<span style="background:${color};${dashed}" class="pulsoMarkerDot">${reportMarkerSvg(report.reportType)}</span>`,
+    html: `<span style="background:${color};${dashed}" class="pulsoMarkerDot">${reportMarkerSvg(reportMarkerKey(report))}</span>`,
     iconSize: [26, 26],
     iconAnchor: [13, 13],
   });
@@ -182,16 +225,57 @@ export function LeafletMap({
       iconCreateFunction: clusterIcon("#10231c"),
       maxClusterRadius: 44,
     });
+    // Los rescates salen del clúster y van en su propia capa, por encima. Agrupados quedarían
+    // absorbidos por el globo de «37 reportes» de su cuadra: existirían en los datos y no en la
+    // pantalla, que para esto es lo mismo que no existir.
+    //
+    // Las vías van en la misma capa por la misma razón, y son pocas: un cierre escondido dentro de
+    // un clúster manda a un equipo por una carretera que no existe.
+    const rescueLayer = L.layerGroup();
+    // Los puntos cuya coordenada se dedujo de una dirección escrita llevan el círculo de precisión:
+    // la misma convención que usa el GPS de un teléfono para decir «está en algún sitio de aquí
+    // dentro». Es legible sin leyenda y no compite con ningún otro código del mapa.
+    //
+    // 300 m es el orden de magnitud real del error a nivel de calle: Nominatim sin número de casa
+    // devuelve el centroide de la vía, y una carrera larga mide bastante más que una cuadra.
+    const accuracyLayer = L.layerGroup();
     for (const report of reports) {
       const [lng, lat] = report.location.coordinates;
-      const marker = L.marker([lat, lng], { icon: reportDivIcon(report) });
+      // Los colapsos salen del clúster con los rescates y las vías: son ~100 entre miles de puntos
+      // y el globo de «37 reportes» de su cuadra los haría desaparecer justo donde importan.
+      const alwaysVisible =
+        report.reportType === "rescate" ||
+        report.reportType === "via" ||
+        (report.reportType === "dano" && report.damageSeverity === "colapso");
+      const marker = L.marker([lat, lng], {
+        icon: reportDivIcon(report),
+        zIndexOffset: report.reportType === "rescate" ? 1_000 : alwaysVisible ? 900 : 0,
+      });
+      if (report.locationPrecision === "geocoded") {
+        accuracyLayer.addLayer(
+          L.circle([lat, lng], {
+            radius: 300,
+            interactive: false,
+            color: "#8a7f66",
+            weight: 1,
+            dashArray: "3 3",
+            fillColor: "#8a7f66",
+            fillOpacity: 0.1,
+          }),
+        );
+      }
       marker.bindPopup(`<strong>${report.title}</strong>`);
       marker.on("click", () => callbacksRef.current.onSelectReport(report));
-      group.addLayer(marker);
+      (alwaysVisible ? rescueLayer : group).addLayer(marker);
     }
+    // El círculo va debajo de todo: es contexto, no un punto más que atender.
+    map.addLayer(accuracyLayer);
     map.addLayer(group);
+    map.addLayer(rescueLayer);
     return () => {
+      map.removeLayer(accuracyLayer);
       map.removeLayer(group);
+      map.removeLayer(rescueLayer);
     };
   }, [reports, departmentFeature]);
 

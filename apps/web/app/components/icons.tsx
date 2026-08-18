@@ -293,16 +293,87 @@ export const IconStore = (props: IconProps) => (
    React) y dentro del `divIcon` de Leaflet (donde son una cadena de HTML). Un
    componente no sirve para lo segundo. */
 
-export const REPORT_MARKER_PATH: Record<"pmu" | "necesidad", string> = {
+/**
+ * Clave de dibujo de un marcador. No coincide con `reportType` a propósito: una vía se pinta
+ * distinto según esté cerrada o abierta, y esa diferencia tiene que estar en la **forma**, no solo
+ * en el color — quien no distingue rojo de verde también necesita saber si puede pasar.
+ */
+export type ReportMarkerKey =
+  | "rescate"
+  | "pmu"
+  | "necesidad"
+  | "via-bloqueada"
+  | "via-habilitada"
+  | "dano"
+  | "dano-colapso";
+
+export const reportMarkerKey = (report: {
+  reportType: string;
+  routeStatus?: string | null;
+  damageSeverity?: string | null;
+}): ReportMarkerKey =>
+  report.reportType === "via"
+    ? report.routeStatus === "habilitada"
+      ? "via-habilitada"
+      : "via-bloqueada"
+    : report.reportType === "dano"
+      ? report.damageSeverity === "colapso"
+        ? "dano-colapso"
+        : "dano"
+      : (report.reportType as ReportMarkerKey);
+
+export const REPORT_MARKER_PATH: Record<ReportMarkerKey, string> = {
+  // Persona con los brazos levantados: hay alguien ahí abajo. A 14 píxeles no cabe un dibujo de
+  // escombros que se distinga de la montañita de la categoría `escombros`, y confundir los dos es
+  // justo lo que este tipo de reporte existe para evitar.
+  rescate:
+    "M12 3.6a1.9 1.9 0 1 0 0 3.8 1.9 1.9 0 1 0 0-3.8M12 8.4v5.4M8.4 6.6 12 10l3.6-3.4M9 19l3-5.2 3 5.2",
   // Bandera: puesto de mando.
   pmu: "M6 21V3M6 3h11l-2 3.5L17 10H6",
   // Triángulo de alerta: necesidad.
   necesidad:
     "M10.3 3.9 1.9 18a2 2 0 0 0 1.7 3h16.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0ZM12 9v4M12 17h.01",
+  // Las dos vías comparten el círculo —son la misma familia, «estado de la vía»— y se separan por
+  // lo de dentro: la barra del sentido prohibido cuando está cerrada, el visto cuando está abierta.
+  // Es la misma pareja de señales que ya está en cualquier carretera.
+  "via-bloqueada": "M12 3a9 9 0 1 0 0 18 9 9 0 1 0 0-18M7.5 12h9",
+  "via-habilitada": "M12 3a9 9 0 1 0 0 18 9 9 0 1 0 0-18M8 12.2l2.7 2.8L16 9.4",
+  // Edificio con una grieta: daño estructural. El colapso es el mismo edificio partido, con la
+  // mitad caída — se distingue de un vistazo y sin depender del color, que es lo que hace falta
+  // cuando lo que se busca en el mapa es dónde pudo quedar gente debajo.
+  dano: "M5 21V6l7-3 7 3v15M5 21h14M12 8v3l-2 2 2 2v3",
+  "dano-colapso": "M4 21V8l6-3v7M20 21l-2-7-8 3 2 7M4 21h16M9 12l3 2",
 };
 
+/** El mismo trazo del marcador, como componente, para el formulario y las leyendas. */
+export const IconRescue = (props: IconProps) => (
+  <Icon {...props}>
+    <path d={REPORT_MARKER_PATH.rescate} />
+  </Icon>
+);
+
+/** El mismo trazo, para la leyenda del mapa. */
+export const IconRouteBlocked = (props: IconProps) => (
+  <Icon {...props}>
+    <path d={REPORT_MARKER_PATH["via-bloqueada"]} />
+  </Icon>
+);
+
+/** El mismo trazo, para la leyenda y la ficha de un daño. */
+export const IconDamage = (props: IconProps) => (
+  <Icon {...props}>
+    <path d={REPORT_MARKER_PATH.dano} />
+  </Icon>
+);
+
+export const IconCollapse = (props: IconProps) => (
+  <Icon {...props}>
+    <path d={REPORT_MARKER_PATH["dano-colapso"]} />
+  </Icon>
+);
+
 /** Marcador listo para incrustar como HTML, para el `divIcon` de Leaflet. */
-export const reportMarkerSvg = (type: "pmu" | "necesidad", size = 14) =>
+export const reportMarkerSvg = (type: ReportMarkerKey, size = 14) =>
   `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" ` +
   `stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">` +
   `<path d="${REPORT_MARKER_PATH[type]}"/></svg>`;

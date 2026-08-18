@@ -677,3 +677,70 @@
   align-items: center;
   gap: var(--space-2);
 }
+
+/* =============================================================================
+   Auditoría de recursos públicos
+   =========================================================================== */
+
+.fundsCaveat {
+  max-width: 82ch;
+  margin: 0 0 var(--space-8);
+  border-left: 3px solid var(--status-strong);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  background: var(--status-strong-soft);
+  padding: var(--space-4);
+  color: var(--status-strong-ink);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+}
+
+.fundsGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: var(--space-5);
+  align-items: start;
+  margin-bottom: var(--space-12);
+}
+
+.fundsReviewCard,
+.fundsStagesCard {
+  padding: var(--space-5);
+}
+
+.fundsDonutRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-5);
+}
+
+.fundsEmpty {
+  margin: var(--space-3) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  line-height: 1.65;
+}
+
+.fundsContracts {
+  margin-bottom: var(--space-12);
+}
+
+/* El objeto contractual se muestra completo: es el dato que permite juzgar si un contrato
+   pertenece a la emergencia, y truncarlo dejaría a quien lee sin con qué decidir. */
+.fundsObject {
+  max-width: 46ch;
+  line-height: 1.5;
+}
+
+.fundsSub {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-tertiary);
+  font-size: var(--text-xs);
+}
+
+@media (max-width: 900px) {
+  .fundsGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -56,6 +56,15 @@ const toOperationsContract = (row: Record<string, unknown>): OperationsContractD
   reviewedAt: asIso(row.reviewed_at),
   reviewedByActorId: (row.reviewed_by_actor_id as string | null) ?? null,
   reviewNotes: (row.review_notes as string | null) ?? null,
+  triage: row.triage_at
+    ? {
+        verdict: row.triage_verdict as "likely" | "unlikely" | "unclear",
+        confidence: Number.parseFloat(String(row.triage_confidence ?? 0)),
+        rationale: (row.triage_rationale as string | null) ?? "",
+        model: (row.triage_model as string | null) ?? "",
+        at: asIso(row.triage_at) ?? "",
+      }
+    : null,
 });
 
 export class PostgresPublicFundsRepository implements PublicFundsRepository {
@@ -197,6 +206,8 @@ export class PostgresPublicFundsRepository implements PublicFundsRepository {
              c.object, c.contract_type, c.modality, c.status, c.emergency_relevance,
              c.relevance_signals, c.signed_at, c.currency, c.total_value, c.invoiced_value,
              c.paid_value, c.source_url, c.reviewed_at, c.reviewed_by_actor_id, c.review_notes,
+             c.triage_verdict, c.triage_confidence, c.triage_rationale, c.triage_model,
+             c.triage_at,
              e.name AS entity_name, e.nit AS entity_nit,
              t.name AS territory_name,
              p.source_system, p.source_reference, p.retrieved_at, p.parser_version, p.content_hash
@@ -206,7 +217,12 @@ export class PostgresPublicFundsRepository implements PublicFundsRepository {
       LEFT JOIN territories t ON t.id = c.territory_id
       WHERE c.incident_id = ${incidentId} ${pendingFilter}
       ORDER BY
-        -- Los candidatos del clasificador primero: ya traen una señal que mirar.
+        -- La lectura previa manda el orden: revisar primero los contratos que probablemente son
+        -- de la emergencia es la diferencia entre una cola de 356 y una de veinte. Dentro de cada
+        -- veredicto va lo más caro, y los que aún no tienen lectura quedan después de los
+        -- candidatos pero antes de los descartados — nadie los ha mirado todavía.
+        CASE c.triage_verdict
+          WHEN 'likely' THEN 0 WHEN 'unclear' THEN 1 WHEN 'unlikely' THEN 3 ELSE 2 END,
         CASE c.emergency_relevance WHEN 'probable' THEN 0 ELSE 1 END,
         c.total_value DESC
       LIMIT ${limit}
@@ -236,6 +252,8 @@ export class PostgresPublicFundsRepository implements PublicFundsRepository {
              c.object, c.contract_type, c.modality, c.status, c.emergency_relevance,
              c.relevance_signals, c.signed_at, c.currency, c.total_value, c.invoiced_value,
              c.paid_value, c.source_url, c.reviewed_at, c.reviewed_by_actor_id, c.review_notes,
+             c.triage_verdict, c.triage_confidence, c.triage_rationale, c.triage_model,
+             c.triage_at,
              e.name AS entity_name, e.nit AS entity_nit,
              t.name AS territory_name,
              p.source_system, p.source_reference, p.retrieved_at, p.parser_version, p.content_hash

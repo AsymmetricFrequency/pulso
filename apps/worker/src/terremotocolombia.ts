@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { CommunityReportMetadata } from "@pulso/schemas";
 import postgres, { type Sql } from "postgres";
 import { isWithinColombia } from "./colombia-bounds.js";
+import { normalizeNeeds } from "./needs-list.js";
 
 export const TERREMOTOCOLOMBIA_SOURCE = {
   id: "terremotocolombia-co",
@@ -80,10 +81,7 @@ export function mapAcopioRecord(record: AcopioRecord): MappedTerremotoColombiaPo
   const title = (record.name ?? "").trim().slice(0, 140);
   if (title.length < 3) return undefined;
 
-  const needs = (record.accepts ?? [])
-    .map((tag) => ACCEPTS_LABEL[tag] ?? tag)
-    .filter(Boolean)
-    .slice(0, 40);
+  const needs = normalizeNeeds((record.accepts ?? []).map((tag) => ACCEPTS_LABEL[tag] ?? tag));
 
   const description = record.description?.trim().slice(0, 2_000) || null;
 

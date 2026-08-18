@@ -539,3 +539,43 @@
     flex: 1 1 100%;
   }
 }
+
+/* Lectura previa automática del contrato.
+   Se distingue visualmente de las señales del clasificador y de la decisión humana: es una
+   sugerencia, y tiene que verse como tal — de ahí el fondo tenue y el rótulo que dice de dónde
+   viene. El color solo acompaña al texto; el veredicto se lee sin depender de él. */
+.reviewTriage {
+  border-left: 3px solid var(--border);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  background: var(--surface-sunken);
+  padding: var(--space-3) var(--space-4);
+}
+
+.reviewTriage[data-verdict="likely"] {
+  border-left-color: var(--status-strong);
+}
+
+.reviewTriage[data-verdict="unclear"] {
+  border-left-color: var(--status-moderate);
+}
+
+.reviewTriageTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+.reviewTriageTop span {
+  color: var(--text-tertiary);
+  font-size: var(--text-xs);
+}
+
+.reviewTriageWhy {
+  margin: var(--space-1) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  line-height: 1.55;
+}

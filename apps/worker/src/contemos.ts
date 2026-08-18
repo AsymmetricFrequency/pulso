@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { CommunityReportMetadata } from "@pulso/schemas";
 import postgres, { type Sql } from "postgres";
 import { isWithinColombia } from "./colombia-bounds.js";
+import { toNeedsList } from "./needs-list.js";
 
 export const CONTEMOS_SOURCE = {
   id: "contemos-mapa-situacion",
@@ -28,6 +29,9 @@ const CATEGORY_MAP: Record<string, string> = {
   animales: "animales",
   logistica: "logistica",
   impresion3d: "otro",
+  // `otro` es una categoría válida de community_reports y contemos la usa de verdad. Faltaba
+  // aquí, así que 166 necesidades reales se descartaban por no reconocer su propia categoría.
+  otro: "otro",
 };
 
 type ContemosRecord = {
@@ -95,13 +99,7 @@ export function mapContemosRecord(record: ContemosRecord): MappedContemosPoint |
     .join(" — ")
     .slice(0, 2_000);
 
-  const needs = record.items
-    ? record.items
-        .split("|")
-        .map((item) => item.trim())
-        .filter(Boolean)
-        .slice(0, 40)
-    : undefined;
+  const needs = toNeedsList(record.items, "|");
 
   const metadata: CommunityReportMetadata = {
     address: record.direccion?.trim() || undefined,

@@ -12,6 +12,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@fastify/cookie": "11.1.2",
     "@fastify/cors": "11.3.0",
     "@pulso/domain": "workspace:*",
     "@pulso/schemas": "workspace:*",

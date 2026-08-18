@@ -11,6 +11,7 @@ export function Footer() {
         <nav aria-label="Navegación de pie de página">
           <a href="/#informe">Informe público</a>
           <a href="/#ayuda">Ayuda y donaciones</a>
+          <a href="/auditoria">Auditoría de recursos</a>
           <a href="/reconstruccion">Reconstrucción</a>
           <a href="/#metodologia">Cómo verificamos</a>
           <a href="/operations">Acceso operaciones</a>

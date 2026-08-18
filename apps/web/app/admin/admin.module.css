@@ -1,0 +1,873 @@
+/* Panel administrativo. Usa los tokens del sistema de diseño, sin paleta propia: si el panel
+   inventara sus colores, un estado "crítico" aquí no querría decir lo mismo que en el informe
+   público, y esa es exactamente la confusión que los tokens existen para evitar. */
+
+.app {
+  min-height: 100dvh;
+}
+
+.shell {
+  width: min(1240px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 24px 0 64px;
+}
+
+/* Barra fija con las tres secciones. Se queda arriba porque el contador de rescates abiertos vive
+   ahí: la cifra que justifica el panel no puede desaparecer al bajar por una lista de tickets. */
+.topBar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter: blur(10px);
+  padding: 0 max(16px, calc((100% - 1240px) / 2));
+  min-height: 60px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-decoration: none;
+}
+
+.brand em {
+  margin-left: 6px;
+  color: var(--muted);
+  font-style: normal;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+}
+
+.brandMark {
+  width: 22px;
+  height: 22px;
+  background: url("/brand/pulso-mark.png") center / contain no-repeat;
+}
+
+.tabs {
+  display: flex;
+  gap: 2px;
+  margin-right: auto;
+}
+
+.tab,
+.tabOn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  padding: 0 14px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tab:hover {
+  color: var(--ink);
+}
+
+.tabOn {
+  composes: tab;
+  border-bottom-color: var(--primary);
+  color: var(--ink);
+}
+
+/* Dos contadores con significados distintos: uno informa, el otro reclama atención. Si los dos se
+   vieran igual, el que importa dejaría de importar. */
+.badgeQuiet,
+.badgeAlert {
+  min-width: 20px;
+  border-radius: var(--r-full);
+  padding: 1px 6px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  text-align: center;
+}
+
+.badgeQuiet {
+  background: var(--status-none-soft);
+  color: var(--muted);
+}
+
+.badgeAlert {
+  background: var(--status-critical);
+  color: white;
+}
+
+.eyebrow {
+  margin: 0 0 4px;
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.identity img {
+  border-radius: var(--r-full);
+}
+
+.identity div {
+  display: grid;
+  line-height: 1.3;
+}
+
+.identity span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.identity button {
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: transparent;
+  min-height: 36px;
+  padding: 0 12px;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+/* --- Puerta de entrada ---------------------------------------------------- */
+
+.gate {
+  max-width: 460px;
+  margin: 15vh auto 0;
+  text-align: center;
+}
+
+.gate h1 {
+  margin: 0 0 12px;
+  font-size: 44px;
+  letter-spacing: -0.04em;
+}
+
+.gateEyebrow {
+  composes: eyebrow;
+}
+
+.gate p {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.gateHint {
+  font-size: 13px;
+}
+
+.gateError {
+  border-left: 3px solid var(--status-critical);
+  background: var(--status-critical-soft);
+  padding: 10px 12px;
+  color: var(--status-critical-ink);
+  text-align: left;
+  font-size: 13px;
+}
+
+/* El morado es el de Discord: el botón tiene que parecerse a lo que va a pasar al pulsarlo. */
+.discordButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  margin-top: 8px;
+  border-radius: var(--r-sm);
+  background: #5865f2;
+  padding: 0 24px;
+  color: white;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+/* --- Avisos --------------------------------------------------------------- */
+
+.notice,
+.readOnly {
+  margin: 0 0 20px;
+  border-left: 3px solid var(--status-strong);
+  background: var(--status-strong-soft);
+  padding: 10px 12px;
+  color: var(--status-strong-ink);
+  font-size: 13px;
+}
+
+/* Rojo crítico y no ámbar: no es un aviso, es una condición anómala que hay que deshacer en cuanto
+   se pueda. */
+.breakGlass {
+  margin: 0 0 20px;
+  border-left: 3px solid var(--status-critical);
+  background: var(--status-critical-soft);
+  padding: 10px 12px;
+  color: var(--status-critical-ink);
+  font-size: 13px;
+}
+
+.section {
+  margin-bottom: 40px;
+}
+
+.section h2 {
+  margin: 0 0 4px;
+  font-size: 24px;
+}
+
+.section h3 {
+  margin: 24px 0 8px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.sectionNote {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.empty {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* Un área sin nadie detrás. Ámbar y no rojo: no está roto, falta gente. */
+.gap {
+  margin: 0 0 16px;
+  border-left: 3px solid var(--status-strong);
+  background: var(--status-strong-soft);
+  padding: 10px 12px;
+  color: var(--status-strong-ink);
+  font-size: 13px;
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.filterGroup {
+  display: flex;
+  gap: 2px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 2px;
+  background: var(--surface);
+}
+
+.chip,
+.chipOn {
+  min-height: 32px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  padding: 0 12px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.chipOn {
+  composes: chip;
+  background: var(--primary);
+  color: white;
+}
+
+.filterSelect select {
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  padding: 0 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.filterCount {
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Rescate -------------------------------------------------------------- */
+
+.rescueCard {
+  display: grid;
+  gap: 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.rescueCard div {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.rescueCard strong {
+  font-family: var(--font-display);
+  font-size: 52px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.rescueCard p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* Solo se pinta de rojo cuando de verdad hay rescates abiertos. Un panel permanentemente en alarma
+   deja de comunicar alarma. */
+.rescueActive {
+  border-color: var(--status-critical);
+  background: var(--status-critical-soft);
+  color: var(--status-critical-ink);
+}
+
+.rescueActive p {
+  color: var(--status-critical-ink);
+}
+
+/* --- Métricas ------------------------------------------------------------- */
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+
+.metric {
+  display: grid;
+  gap: 2px;
+  background: var(--surface);
+  padding: 16px;
+}
+
+.metric strong {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 400;
+}
+
+.metric span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.metric small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+/* --- Tabla ---------------------------------------------------------------- */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.table th {
+  border-bottom: 1px solid var(--line);
+  padding: 8px 10px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.table td {
+  border-bottom: 1px solid var(--line);
+  padding: 10px;
+}
+
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.badge {
+  display: inline-block;
+  border-radius: var(--r-full);
+  padding: 3px 9px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.s_succeeded,
+.t_hecho {
+  background: var(--status-light-soft);
+  color: var(--status-light-ink);
+}
+
+.s_unchanged,
+.t_libre {
+  background: var(--surface-sunken, var(--status-none-soft));
+  color: var(--muted);
+}
+
+.s_running,
+.t_tomado,
+.t_en_revision {
+  background: var(--status-moderate-soft);
+  color: var(--status-moderate-ink);
+}
+
+.s_failed,
+.s_quarantined,
+.t_bloqueado {
+  background: var(--status-critical-soft);
+  color: var(--status-critical-ink);
+}
+
+.s_none {
+  background: var(--status-none-soft);
+  color: var(--muted);
+}
+
+/* --- Proyecto: qué hay y qué falta ---------------------------------------- */
+
+.priorityBlock {
+  margin-top: 24px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--line-strong);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+/* El mismo código de color que los tickets: la prioridad significa lo mismo en las dos pantallas. */
+.priorityBlock[data-priority="P0"] {
+  border-left-color: var(--status-critical);
+}
+.priorityBlock[data-priority="P1"] {
+  border-left-color: var(--status-strong);
+}
+.priorityBlock[data-priority="P2"] {
+  border-left-color: var(--status-moderate);
+}
+.priorityBlock[data-priority="P3"] {
+  border-left-color: var(--status-light);
+}
+
+.priorityBlock header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  border-bottom: 1px solid var(--line);
+  padding: 12px 16px;
+}
+
+.priorityCount {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.capList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cap {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+  padding: 11px 16px;
+}
+
+.cap:last-child {
+  border-bottom: 0;
+}
+
+/* Lo que falta se lee primero. Lo ya hecho baja de contraste: sigue estando, deja de competir. */
+.cap[data-status="listo"] {
+  opacity: 0.62;
+}
+
+.cap > div {
+  flex: 1;
+}
+
+.cap strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.cap p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.cap .badge {
+  flex: 0 0 auto;
+  min-width: 68px;
+  text-align: center;
+}
+
+.c_listo {
+  background: var(--status-light-soft);
+  color: var(--status-light-ink);
+}
+
+.c_parcial {
+  background: var(--status-strong-soft);
+  color: var(--status-strong-ink);
+}
+
+.c_falta {
+  background: var(--status-critical-soft);
+  color: var(--status-critical-ink);
+}
+
+.capTask {
+  flex: 0 0 auto;
+  min-height: 28px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--paper-deep);
+  padding: 0 9px;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* --- Equipo --------------------------------------------------------------- */
+
+.memberGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.memberCard {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  padding: 14px;
+}
+
+.memberCard header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.memberCard header img {
+  border-radius: var(--r-full);
+}
+
+.memberCard header div {
+  display: grid;
+  line-height: 1.3;
+}
+
+.memberCard header span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.roleChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* 32px y no 44: es una pantalla de escritorio con muchos chips por tarjeta, y aquí la densidad
+   ayuda más que el tamaño de toque. El resto del panel sí respeta los 44. */
+.roleChips button {
+  min-height: 32px;
+  border-radius: var(--r-full);
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.roleChips button:disabled {
+  cursor: default;
+  opacity: 0.75;
+}
+
+.roleOn {
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: white;
+}
+
+.roleOff {
+  border: 1px dashed var(--line-strong);
+  background: transparent;
+  color: var(--muted);
+}
+
+.memberLoad {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Tareas --------------------------------------------------------------- */
+
+.stale {
+  color: var(--status-strong-ink);
+}
+
+.taskList {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.task {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--line-strong);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  padding: 14px 16px;
+}
+
+/* La prioridad se lee en el borde antes que en cualquier texto. P0 en rojo crítico porque es la
+   única donde el retraso se mide en vidas. */
+.task[data-priority="P0"] {
+  border-left-color: var(--status-critical);
+}
+.task[data-priority="P1"] {
+  border-left-color: var(--status-strong);
+}
+.task[data-priority="P2"] {
+  border-left-color: var(--status-moderate);
+}
+.task[data-priority="P3"] {
+  border-left-color: var(--status-light);
+}
+
+.taskHead {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.taskCode {
+  border-radius: var(--r-sm);
+  background: var(--paper-deep);
+  padding: 2px 7px;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.taskMeta {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.taskSummary {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.taskAcceptance {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.taskAcceptance span {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.taskDepends {
+  margin: 6px 0 0;
+  color: var(--status-strong-ink);
+  font-size: 12px;
+}
+
+/* El nivel de urgencia se lee antes que cualquier ticket. Rojo solo el primero: si los cuatro
+   gritaran, ninguno gritaría. */
+.horizonTitle {
+  display: grid;
+  gap: 2px;
+  margin: 28px 0 10px;
+  border-left: 3px solid var(--line-strong);
+  padding-left: 12px;
+}
+
+.horizonTitle span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.horizonTitle[data-horizon="extrema"] {
+  border-left-color: var(--status-critical);
+  color: var(--status-critical-ink);
+}
+.horizonTitle[data-horizon="urgente"] {
+  border-left-color: var(--status-strong);
+}
+.horizonTitle[data-horizon="media"] {
+  border-left-color: var(--status-moderate);
+}
+
+.taskBranch {
+  margin: 8px 0 0;
+}
+
+.taskBranch code {
+  display: inline-block;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--paper-deep);
+  padding: 3px 8px;
+  font-size: 11.5px;
+  user-select: all;
+}
+
+.taskTechnical {
+  margin-top: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--paper-deep);
+}
+
+.taskTechnical summary {
+  padding: 8px 12px;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* `pre` con ajuste de línea: el texto trae saltos deliberados y no debe desbordar en horizontal. */
+.taskTechnical pre {
+  margin: 0;
+  border-top: 1px solid var(--line);
+  padding: 12px;
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.claimRow {
+  margin-top: 12px;
+}
+
+.claimFree,
+.claimMine {
+  min-height: 40px;
+  border-radius: var(--r-sm);
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.claimFree {
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: white;
+}
+
+.claimMine {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+}
+
+.claimFree:disabled,
+.claimMine:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.claimTaken {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.taskActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.taskActions select,
+.taskActions button {
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: white;
+  padding: 0 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.taskActions button:disabled,
+.taskActions select:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

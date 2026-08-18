@@ -86,6 +86,7 @@ export async function completeIngestionRun(
     recordsSeen?: number;
     httpStatus?: number | null;
     errorMessage?: string | null;
+    etag?: string | null;
   },
 ) {
   if (result.status === "failed") {
@@ -103,9 +104,42 @@ export async function completeIngestionRun(
     UPDATE source_ingestion_runs SET
       status = ${result.status},
       finished_at = now(),
-      records_seen = ${Math.max(0, result.recordsSeen ?? 0)}
+      records_seen = ${Math.max(0, result.recordsSeen ?? 0)},
+      http_status = ${result.httpStatus ?? null},
+      etag = ${result.etag ?? null}
     WHERE id = ${runId} AND status = 'running'
   `;
+}
+
+/**
+ * El ETag de la última corrida que llegó a hablar con la fuente.
+ *
+ * Permite pedir con `If-None-Match` y que la fuente conteste 304 con cero bytes cuando no hay nada
+ * nuevo. Las columnas `etag` y el estado `unchanged` existían en `012` desde el principio y ningún
+ * importador los usaba: la primera fuente que lo necesitó fue una de 4 MB por descarga.
+ */
+export async function lastEtagForSource(sql: Sql, sourceId: string): Promise<string | null> {
+  const [row] = await sql<{ etag: string | null }[]>`
+    SELECT etag FROM source_ingestion_runs
+    WHERE source_id = ${sourceId} AND etag IS NOT NULL
+    ORDER BY started_at DESC
+    LIMIT 1
+  `;
+  return row?.etag ?? null;
+}
+
+/** El ETag que devolvió una ingesta, si la devolvió. */
+export function etagFromResult(result: unknown): string | null {
+  if (typeof result !== "object" || result === null) return null;
+  const value = (result as Record<string, unknown>).etag;
+  return typeof value === "string" && value ? value : null;
+}
+
+/** El código HTTP que devolvió una ingesta, si la devolvió. */
+export function httpStatusFromResult(result: unknown): number | null {
+  if (typeof result !== "object" || result === null) return null;
+  const value = (result as Record<string, unknown>).httpStatus;
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
 /**
@@ -165,4 +199,35 @@ export function httpStatusFromError(error: unknown): number | null {
   if (!match?.[1]) return null;
   const status = Number.parseInt(match[1], 10);
   return Number.isFinite(status) ? status : null;
+}
+
+/**
+ * Retira los puntos que su fuente dejó de publicar.
+ *
+ * Sin esto el mapa solo crece. Medido el 17/08: **648 puntos —el 17 % del mapa— que su fuente ya no
+ * publicaba**, y en `contemos` era el 54 % de lo suyo. Un centro de acopio que cerró seguía
+ * apareciendo abierto, que es peor que no tenerlo: manda gente con cosas a una puerta cerrada.
+ *
+ * No se borra nada. Pasan a `superseded`, que es el vocabulario que ya existía para «esto ya no es
+ * el estado actual»: salen de las vistas públicas, se quedan en la base con su historial, y si la
+ * fuente vuelve a publicarlos el upsert los devuelve a la vida solo.
+ *
+ * **Las 24 horas de gracia son el punto entero.** Una corrida que falla a medias, o un feed que
+ * parpadea, no puede vaciar el mapa. Un punto tiene que llevar un día sin aparecer para retirarse,
+ * así que hacen falta muchas corridas malas seguidas —no una— para hacer daño. Y en una emergencia
+ * de una semana, un dato de hace más de un día ya no es el estado de nada.
+ */
+export async function retireUnseenPoints(
+  sql: Sql,
+  sourceId: string,
+  gracePeriod = "24 hours",
+): Promise<number> {
+  const rows = await sql<{ id: string }[]>`
+    UPDATE community_reports SET status = 'superseded', updated_at = now()
+    WHERE external_source_id = ${sourceId}
+      AND status NOT IN ('rejected', 'superseded')
+      AND updated_at < now() - ${gracePeriod}::interval
+    RETURNING id
+  `;
+  return rows.length;
 }

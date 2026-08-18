@@ -7,7 +7,7 @@ import type { ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { reportStatusToken } from "./community-report-detail";
 import { CommunityReportForm, type PublicCommunityReport } from "./community-report-form";
-import { IconLocation, REPORT_MARKER_PATH } from "./icons";
+import { IconLocation, REPORT_MARKER_PATH, reportMarkerKey } from "./icons";
 
 // Leaflet touches `window` at module scope, which breaks Next.js's server render pass
 // even inside a "use client" component — it must only ever be loaded in the browser.
@@ -508,6 +508,40 @@ export function AtlasMap({
     [reports, optimisticReports],
   );
 
+  const rescueCount = useMemo(
+    () => allReports.filter((report) => report.reportType === "rescate").length,
+    [allReports],
+  );
+
+  // Solo las bloqueadas van a la leyenda. Una vía reabierta se dibuja —quien la creía cerrada
+  // necesita verlo— pero contarla junto a los cierres sería sumar buenas y malas noticias en la
+  // misma cifra.
+  // Solo los colapsos van a la leyenda. Un daño leve es una fachada agrietada y hay cientos; un
+  // colapso es donde puede haber gente debajo, y son la fracción que decide a dónde se va primero.
+  const collapseCount = useMemo(
+    () =>
+      allReports.filter(
+        (report) => report.reportType === "dano" && report.damageSeverity === "colapso",
+      ).length,
+    [allReports],
+  );
+
+  // Cuántos puntos tienen la coordenada deducida de una dirección escrita. Va a la leyenda porque
+  // el círculo de precisión se entiende solo, pero saber **cuántos** hay cambia cómo se lee el mapa
+  // entero: no es lo mismo que sean tres que ochenta.
+  const geocodedCount = useMemo(
+    () => allReports.filter((report) => report.locationPrecision === "geocoded").length,
+    [allReports],
+  );
+
+  const blockedRouteCount = useMemo(
+    () =>
+      allReports.filter(
+        (report) => report.reportType === "via" && report.routeStatus !== "habilitada",
+      ).length,
+    [allReports],
+  );
+
   const projectedEvents = useMemo(() => {
     if (!projection) return [];
     return sgcEvents.flatMap((event) => {
@@ -678,7 +712,7 @@ export function AtlasMap({
           ) : (
             <>
               <IconLocation />
-              Reportar un PMU o una necesidad
+              Reportar personas atrapadas o una necesidad
             </>
           )}
         </button>
@@ -827,7 +861,19 @@ export function AtlasMap({
                 // biome-ignore lint/a11y/useSemanticElements: SVG marker cannot be represented by an HTML button.
                 <g
                   key={key}
-                  className={`communityReportMarker ${reportStatusToken(report.status)}`}
+                  className={`communityReportMarker ${
+                    // Ni el rescate ni las vías se colorean por estado de revisión. El rescate,
+                    // porque en el mapa de país tiene que distinguirse de las 2.288 necesidades sin
+                    // que nadie amplíe. Una vía, porque lo que importa de ella es si se puede pasar
+                    // —no si alguien de Operaciones ya la miró—.
+                    report.reportType === "rescate"
+                      ? "rescue"
+                      : report.reportType === "via"
+                        ? `route ${report.routeStatus === "habilitada" ? "open" : "blocked"}`
+                        : report.reportType === "dano"
+                          ? `damage ${report.damageSeverity === "colapso" ? "collapse" : ""}`
+                          : reportStatusToken(report.status)
+                  }`}
                   transform={`translate(${entry.x}, ${entry.y}) scale(${1 / zoomTransform.scale})`}
                   onClick={(event) => {
                     event.stopPropagation();
@@ -839,12 +885,16 @@ export function AtlasMap({
                   role="button"
                   tabIndex={0}
                 >
-                  <circle r={9} />
+                  <circle r={report.reportType === "rescate" ? 12 : 9} />
                   {/* El glifo se dibuja a escala 0.55 y centrado: el trazo del set está pensado
                       para 24 y aquí el marcador mide 18 de diámetro. */}
                   <path
-                    d={REPORT_MARKER_PATH[report.reportType]}
-                    transform="scale(0.55) translate(-12, -12)"
+                    d={REPORT_MARKER_PATH[reportMarkerKey(report)]}
+                    transform={
+                      report.reportType === "rescate"
+                        ? "scale(0.72) translate(-12, -12)"
+                        : "scale(0.55) translate(-12, -12)"
+                    }
                     fill="none"
                     stroke="currentColor"
                     strokeWidth={2.4}
@@ -906,6 +956,42 @@ export function AtlasMap({
         {sgcEvents.length > 0 ? (
           <li>
             <i className="statusDot seismic" /> {sgcEvents.length} eventos SGC ≥ M 2 en la región
+          </li>
+        ) : null}
+        {/* Los rescates se cuentan aparte y antes. Sumarlos a «2.288 reportes ciudadanos» los
+            desaparecería justo en la línea que la gente lee para saber qué está pasando. */}
+        {rescueCount > 0 ? (
+          <li>
+            <i className="statusDot rescue" />{" "}
+            {rescueCount === 1
+              ? "1 punto con personas atrapadas reportadas"
+              : `${rescueCount} puntos con personas atrapadas reportadas`}
+          </li>
+        ) : null}
+        {collapseCount > 0 ? (
+          <li>
+            <i className="statusDot damage collapse" />{" "}
+            {collapseCount === 1
+              ? "1 edificación colapsada"
+              : `${collapseCount} edificaciones colapsadas`}
+          </li>
+        ) : null}
+        {/* Va justo detrás de los rescates y antes del recuento general: quien coordina lee esta
+            línea para saber si el camino al punto existe. */}
+        {blockedRouteCount > 0 ? (
+          <li>
+            <i className="statusDot route blocked" />{" "}
+            {blockedRouteCount === 1
+              ? "1 vía o terminal sin paso"
+              : `${blockedRouteCount} vías o terminales sin paso`}
+          </li>
+        ) : null}
+        {geocodedCount > 0 ? (
+          <li>
+            <i className="statusDot geocoded" />{" "}
+            {geocodedCount === 1
+              ? "1 punto con ubicación aproximada, deducida de su dirección"
+              : `${geocodedCount} puntos con ubicación aproximada, deducida de su dirección`}
           </li>
         ) : null}
         {allReports.length > 0 ? (

@@ -9,5 +9,6 @@ export * from "./operations.js";
 export * from "./public-funds.js";
 export * from "./public-report.js";
 export * from "./reconstruction-progress.js";
+export * from "./redact-contacts.js";
 export * from "./territory.js";
 export * from "./workforce-profile.js";

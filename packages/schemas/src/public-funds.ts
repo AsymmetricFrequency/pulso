@@ -132,6 +132,22 @@ export const operationsContractSchema = publicContractSchema.extend({
   reviewedAt: z.string().nullable(),
   reviewedByActorId: z.uuid().nullable(),
   reviewNotes: z.string().nullable(),
+  /**
+   * Lectura previa automática del objeto, para ordenar la cola.
+   *
+   * Vocabulario propio (`likely`/`unlikely`/`unclear`) y no el de `emergencyRelevance`: esto es
+   * lo que opinó un modelo tras leer el objeto, no lo que decidió una persona. Viaja solo en la
+   * vista de operaciones — el informe público no publica suposiciones de máquina.
+   */
+  triage: z
+    .object({
+      verdict: z.enum(["likely", "unlikely", "unclear"]),
+      confidence: z.number().min(0).max(1),
+      rationale: z.string(),
+      model: z.string(),
+      at: z.string(),
+    })
+    .nullable(),
 });
 
 /**

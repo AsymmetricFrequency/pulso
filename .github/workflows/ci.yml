@@ -1,0 +1,58 @@
+# Lo mismo que `pnpm lint && pnpm typecheck && pnpm test` en local.
+#
+# Existe porque entró gente al proyecto: con una persona, romper `main` se nota y se arregla en
+# cinco minutos; con siete, `main` roto bloquea a seis. Es la condición para poder hacer merge
+# rápido sin revisar todo a mano.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Un push nuevo sobre la misma rama cancela la corrida anterior: nadie necesita el resultado de un
+# commit que ya fue reemplazado, y la cola libre importa cuando hay que desplegar con prisa.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.4.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Lint y formato
+        run: pnpm lint
+
+      # Los paquetes compartidos se compilan antes de chequear tipos.
+      #
+      # `@pulso/domain` y `apps/api` importan `@pulso/schemas` por su `dist`, no por el fuente. En
+      # una máquina donde ya se trabajó, ese `dist` existe de antes y el typecheck pasa; en un clon
+      # limpio como este no existe y falla con trece «Cannot find module» que no tienen nada que ver
+      # con el cambio. Es la misma trampa que está avisada en CONTRIBUTING.md, y la CI es justo
+      # donde más despista porque nadie ve el árbol de archivos.
+      - name: Compilar paquetes compartidos
+        run: pnpm --filter @pulso/schemas --filter @pulso/domain build
+
+      # `@pulso/solana` queda fuera: sus tipos los genera `anchor build` en `target/types/`, que no
+      # está versionado. Instalar Rust, Solana CLI y Anchor costaría varios minutos en cada PR para
+      # comprobar un programa que casi nunca cambia; se verifica con `pnpm test:solana:integration`
+      # cuando se toca. Que el trabajo del día a día espere por eso sería la forma más segura de que
+      # la gente empiece a ignorar la CI.
+      - name: Tipos
+        run: pnpm -r --filter '!@pulso/solana' typecheck
+
+      - name: Pruebas
+        run: pnpm test

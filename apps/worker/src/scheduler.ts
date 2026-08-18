@@ -2,16 +2,22 @@ import postgres from "postgres";
 import { AYUDAS_PEREIRA_SOURCE, runAyudasPereiraIngestion } from "./ayudaspereira.js";
 import { CALI_OFFICIAL_SOURCE, runCaliOfficialIngestion } from "./cali-official.js";
 import { CONTEMOS_SOURCE, runContemosIngestion } from "./contemos.js";
+import { CUIDARCOLOMBIA_SOURCE, runCuidarColombiaIngestion } from "./cuidarcolombia.js";
 import { DANE_MGN_SOURCE, runDaneTerritoryIngestion } from "./dane-territories.js";
 import { GRAVITAS_SOURCE, runGravitasIngestion } from "./gravitas.js";
 import {
   completeIngestionRun,
+  etagFromResult,
   httpStatusFromError,
+  httpStatusFromResult,
   type IngestionSourceDefinition,
+  lastEtagForSource,
   outcomeFromResult,
   recordsSeenFromResult,
+  retireUnseenPoints,
   startIngestionRun,
 } from "./ingestion-run-log.js";
+import { MAPADELTERREMOTO_SOURCE, runMapaDelTerremotoIngestion } from "./mapadelterremoto.js";
 import { runPublishSituationReport } from "./publish-situation-report.js";
 import { REDCALIAYUDA_SOURCE, runRedCaliAyudaIngestion } from "./redcaliayuda.js";
 import {
@@ -20,6 +26,7 @@ import {
 } from "./redcaliayuda-acopio.js";
 import { runSecopIngestion, SECOP_SOURCE } from "./secop.js";
 import { runSgcEarthquakeIngestion, SGC_EARTHQUAKE_SOURCE } from "./sgc-earthquakes.js";
+import { detectHealthChange, healthChangeMessage, sendAlert } from "./source-health.js";
 import { runTerremotoColombiaIngestion, TERREMOTOCOLOMBIA_SOURCE } from "./terremotocolombia.js";
 import { runUsgsShakingIngestion, USGS_SHAKEMAP_SOURCE } from "./usgs.js";
 
@@ -35,6 +42,8 @@ export type IngestionSourceName =
   | "redcaliayuda-acopio"
   | "secop"
   | "usgs"
+  | "mapadelterremoto"
+  | "cuidarcolombia"
   | "publish-situation-report";
 
 export type IngestionSourceConfig = {
@@ -52,7 +61,7 @@ export type IngestionSourceConfig = {
    * `runId` es la corrida que el orquestador ya abrió. Las fuentes oficiales lo necesitan para
    * colgar de ella sus versiones de registro en vez de abrir una segunda corrida en paralelo.
    */
-  run: (context: { runId: string | null }) => Promise<unknown>;
+  run: (context: { runId: string | null; previousEtag?: string | null }) => Promise<unknown>;
 };
 
 // `?? undefined`-style spreads on a value returned from a function call don't narrow under
@@ -160,6 +169,29 @@ export const INGESTION_SOURCES: IngestionSourceConfig[] = [
     run: () => runUsgsShakingIngestion(withDatabaseUrl({ incidentCode: incidentCode() })),
   },
   {
+    // 4 MB por descarga, con `cache-control: max-age=300` de su lado. Media hora es más lento que su
+    // propia caché y, al pedir con `If-None-Match`, la mayoría de las corridas no descarga nada.
+    name: "mapadelterremoto",
+    everyMs: 30 * MINUTE,
+    source: MAPADELTERREMOTO_SOURCE,
+    run: ({ previousEtag }) =>
+      runMapaDelTerremotoIngestion(
+        withDatabaseUrl({ incidentCode: incidentCode(), previousEtag: previousEtag ?? null }),
+      ),
+  },
+  {
+    // Cada hora y con `If-None-Match`. Su fichero cambia una vez al día («próxima revisión» a las
+    // 7:20), y la geocodificación de los puntos nuevos va a 4 peticiones por minuto: no conviene
+    // que dos corridas se pisen.
+    name: "cuidarcolombia",
+    everyMs: 60 * MINUTE,
+    source: CUIDARCOLOMBIA_SOURCE,
+    run: ({ previousEtag }) =>
+      runCuidarColombiaIngestion(
+        withDatabaseUrl({ incidentCode: incidentCode(), previousEtag: previousEtag ?? null }),
+      ),
+  },
+  {
     // Staggered after the community-report sources so each refresh picks up their latest counts.
     name: "publish-situation-report",
     everyMs: 20 * MINUTE,
@@ -170,6 +202,28 @@ export const INGESTION_SOURCES: IngestionSourceConfig[] = [
     },
   },
 ];
+
+/**
+ * Avisa si esta corrida cambió el estado de salud de la fuente.
+ *
+ * Va aparte y se traga sus errores: un fallo al avisar no puede impedir que la corrida se registre
+ * ni que el error original se propague a BullMQ.
+ */
+async function announceHealthChange(
+  sql: postgres.Sql,
+  sourceId: string,
+  runId: string,
+  displayName: string,
+): Promise<void> {
+  try {
+    const change = await detectHealthChange(sql, sourceId, runId);
+    if (!change) return;
+    console.info("Cambio de salud de una fuente", { source: sourceId, kind: change.kind });
+    await sendAlert(healthChangeMessage(change, displayName));
+  } catch {
+    // Silencio deliberado.
+  }
+}
 
 /**
  * Ejecuta una fuente dejando constancia de la corrida —incluido el fallo— en
@@ -193,13 +247,36 @@ export async function runIngestionSourceWithLog(source: IngestionSourceConfig): 
   const definition = source.source;
   const sql = postgres(databaseUrl, { max: 1 });
   try {
+    // El ETag de la corrida anterior viaja a la ingesta para que pueda pedir con `If-None-Match`.
+    // Las fuentes que no lo usan lo ignoran.
+    const previousEtag = await lastEtagForSource(sql, definition.id);
     const runId = await startIngestionRun(sql, definition);
     try {
-      const result = await source.run({ runId });
+      const result = await source.run({ runId, previousEtag });
+
+      // Solo se retira tras una corrida que **de verdad** trajo datos. Una que devolvió 304 no vio
+      // nada, así que no puede afirmar que un punto dejó de publicarse.
+      const retired =
+        outcomeFromResult(result) === "succeeded" && recordsSeenFromResult(result) > 0
+          ? await retireUnseenPoints(sql, definition.id)
+          : 0;
+      if (retired > 0) {
+        console.info("Puntos retirados por dejar de publicarse", {
+          source: source.name,
+          retired,
+        });
+      }
+
       await completeIngestionRun(sql, runId, {
         status: outcomeFromResult(result),
         recordsSeen: recordsSeenFromResult(result),
+        httpStatus: httpStatusFromResult(result),
+        // Si la corrida no trajo ETag nuevo se conserva el anterior: perderlo obligaría a la
+        // siguiente a descargarlo todo otra vez.
+        etag: etagFromResult(result) ?? previousEtag,
       });
+
+      await announceHealthChange(sql, definition.id, runId, definition.name);
       return result;
     } catch (error) {
       await completeIngestionRun(sql, runId, {
@@ -207,6 +284,7 @@ export async function runIngestionSourceWithLog(source: IngestionSourceConfig): 
         httpStatus: httpStatusFromError(error),
         errorMessage: (error instanceof Error ? error.message : String(error)).slice(0, 2_000),
       });
+      await announceHealthChange(sql, definition.id, runId, definition.name);
       throw error;
     }
   } finally {
