@@ -797,8 +797,11 @@
    verdad sobre el dato, mientras que una tabla continua sugiere un bloque
    homogéneo que no existe. */
 
+/* `auto-fit` y no `repeat(6)`: ahora la rejilla se usa dos veces con tres y cuatro tarjetas, y con
+   seis columnas fijas el grupo de tres dejaba media fila vacía con una línea suelta al lado. */
 .headlineGrid {
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: var(--space-3);
   border: 0;
   border-radius: 0;

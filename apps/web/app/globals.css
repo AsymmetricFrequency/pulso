@@ -3523,56 +3523,149 @@ button:active:not(:disabled),
   border-color: var(--ink);
 }
 
-/* El resumen va al lado del titular, no debajo: es la prueba de la frase que se acaba de leer y
-   separarlos obligaría a creer primero y comprobar después. */
-.homeHeroAside {
+/* --- El panel de la derecha: ilustración + cifras -------------------------
+   La ilustración es la marca del proyecto y va al lado del dato, no en su
+   lugar. Las cifras van debajo de ella porque son la prueba de la frase que se
+   acaba de leer: separarlas obligaría a creer primero y comprobar después. */
+
+.homeHeroPanel {
   display: grid;
-  gap: 14px;
-  border-top: 2px solid var(--ink);
-  padding-top: 16px;
+  gap: 18px;
+  align-content: start;
 }
 
-.homeHeroAside dl {
+.homeHeroImage {
+  width: 100%;
+  height: auto;
+  border-radius: var(--r-xs);
+  /* La ilustración viene del papel crema de la identidad anterior. `multiply` la funde con el papel
+     frío de ahora en vez de dejarla flotando como una postal pegada encima. */
+  mix-blend-mode: multiply;
+  animation: heroImageIn 900ms var(--ease-out) both;
+}
+
+@keyframes heroImageIn {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.homeHeroFigures {
   display: grid;
   gap: 0;
   margin: 0;
+  border-top: 2px solid var(--ink);
 }
 
-.homeHeroAside dl > div {
+.homeHeroFigures > div {
   display: flex;
   gap: 16px;
   justify-content: space-between;
   align-items: baseline;
   border-bottom: 1px solid var(--line);
-  padding: 12px 0;
+  padding: 11px 0;
+  /* Entran escalonadas, 60 ms una tras otra: el ojo las lee en orden en vez de recibirlas de golpe,
+     y el orden es información —la primera es la que importa—. */
+  animation: heroRowIn 500ms var(--ease-out) both;
 }
 
-.homeHeroAside dt {
+.homeHeroFigures > div:nth-child(1) {
+  animation-delay: 240ms;
+}
+.homeHeroFigures > div:nth-child(2) {
+  animation-delay: 300ms;
+}
+.homeHeroFigures > div:nth-child(3) {
+  animation-delay: 360ms;
+}
+
+@keyframes heroRowIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.homeHeroFigures dt {
   color: var(--text-secondary);
   font-size: 14px;
   line-height: 1.35;
 }
 
-.homeHeroAside dd {
+.homeHeroFigures dd {
   margin: 0;
   font-family: var(--font-data, ui-monospace, monospace);
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
 
-.homeHeroAside dd.alarm {
+.homeHeroFigures dd.alarm {
   color: var(--signal-ink);
 }
 
-.homeHeroAside a {
+.homeHeroMethod {
   display: inline-flex;
   align-items: center;
+  justify-self: start;
   min-height: 44px;
   color: var(--primary);
   font-size: 14px;
   font-weight: 600;
+}
+
+/* --- Leyenda breve bajo los botones --------------------------------------- */
+
+.homeHeroLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.homeHeroLegend li {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  color: var(--text-secondary);
+  font-size: 13px;
+  animation: heroRowIn 500ms var(--ease-out) both;
+}
+
+.homeHeroLegend li:nth-child(1) {
+  animation-delay: 420ms;
+}
+.homeHeroLegend li:nth-child(2) {
+  animation-delay: 470ms;
+}
+.homeHeroLegend li:nth-child(3) {
+  animation-delay: 520ms;
+}
+
+.homeHeroLegend svg {
+  flex: none;
+  color: var(--ink);
+}
+
+/* Quien pidió que nada se mueva ve la página quieta y completa, no a medias. */
+@media (prefers-reduced-motion: reduce) {
+  .homeHeroImage,
+  .homeHeroFigures > div,
+  .homeHeroLegend li {
+    animation: none;
+  }
 }
 
 @media (max-width: 900px) {

@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
+import { IconCollapse, IconRescue, IconRouteBlocked } from "./icons";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 const INCIDENT = "colombia-2026";
@@ -11,15 +13,45 @@ type Coverage = {
 };
 
 /**
+ * Cuenta desde cero hasta el valor real.
+ *
+ * No es un adorno: la cifra del titular es el hallazgo entero de la portada, y verla subir hace que
+ * el ojo se quede en ella el segundo que hace falta para leer la frase que la rodea. Dura poco y se
+ * detiene — una animación que sigue moviéndose compite con el texto en vez de servirlo.
+ *
+ * Respeta `prefers-reduced-motion`: quien pidió que nada se mueva ve el número final directamente.
+ */
+function useCountUp(target: number, durationMs = 900): number {
+  const [value, setValue] = useState(target);
+  const frame = useRef<number>(0);
+
+  useEffect(() => {
+    if (target <= 0) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setValue(target);
+      return;
+    }
+    const start = performance.now();
+    const tick = (now: number) => {
+      const progress = Math.min(1, (now - start) / durationMs);
+      // Desaceleración cúbica: arranca rápido y frena, que es como se lee un contador real.
+      setValue(Math.round(target * (1 - (1 - progress) ** 3)));
+      if (progress < 1) frame.current = requestAnimationFrame(tick);
+    };
+    setValue(0);
+    frame.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame.current);
+  }, [target, durationMs]);
+
+  return value;
+}
+
+/**
  * La portada abre con el hallazgo, no con un eslogan.
  *
  * Antes decía «Lo que ocurre, lo que falta y dónde se está ayudando» — una frase que ocupaba la
- * primera pantalla entera y no contenía un solo dato. Quien llegaba veía cero información antes de
- * desplazarse, y el botón más prominente era **la vista de brigada**: la acción más destacada del
- * sitio apuntaba a las poquísimas personas que son brigada.
- *
- * Ahora abre con la cifra que tenemos y que no tiene nadie más: en cuántos municipios sacudió
- * fuerte y todavía no ha ido nadie. Es nuestra, sale de la API, y se actualiza sola.
+ * primera pantalla entera y no contenía un solo dato, con el botón más prominente apuntando a la
+ * vista de brigada: la acción más destacada del sitio, para las poquísimas personas que son brigada.
  */
 export function HomeHero() {
   const [coverage, setCoverage] = useState<Coverage | null>(null);
@@ -39,16 +71,15 @@ export function HomeHero() {
   }, []);
 
   const silent = coverage?.counts.silencio ?? 0;
+  const shown = useCountUp(silent);
 
   return (
     <section className="homeHero">
       <div className="homeHeroText">
-        {/* Sin dato no se inventa un número: se dice lo que el proyecto hace, que también es cierto.
-            Un titular que dijera «En 0 municipios…» sería peor que no tener titular. */}
         <h1>
           {silent > 0 ? (
             <>
-              En <strong>{silent}</strong> municipios todavía no ha ido nadie a contar a los
+              En <strong>{shown}</strong> municipios todavía no ha ido nadie a contar a los
               afectados.
             </>
           ) : (
@@ -63,8 +94,7 @@ export function HomeHero() {
         </p>
 
         <div className="homeHeroActions">
-          {/* El orden cambia respecto a antes, y es la decisión de esta pantalla: el botón lleno es
-              para quien perdió la casa, no para las brigadas. Ellas saben a dónde entrar. */}
+          {/* El botón lleno es para quien perdió la casa, no para las brigadas. Ellas saben entrar. */}
           <a className="homeHeroPrimary" href="/necesito-ayuda">
             Necesito ayuda
           </a>
@@ -72,11 +102,41 @@ export function HomeHero() {
             Ver el mapa
           </a>
         </div>
+
+        {/* Tres cosas que el mapa distingue, con el mismo glifo que usa el mapa. No son adorno: son
+            la leyenda antes de la leyenda, para que quien baje ya sepa qué está mirando. */}
+        <ul className="homeHeroLegend">
+          <li>
+            <IconRescue width={18} height={18} aria-hidden="true" />
+            <span>Personas atrapadas reportadas</span>
+          </li>
+          <li>
+            <IconCollapse width={18} height={18} aria-hidden="true" />
+            <span>Edificaciones colapsadas</span>
+          </li>
+          <li>
+            <IconRouteBlocked width={18} height={18} aria-hidden="true" />
+            <span>Vías sin paso</span>
+          </li>
+        </ul>
       </div>
 
-      {coverage ? (
-        <aside className="homeHeroAside" aria-label="Resumen de la cobertura del censo">
-          <dl>
+      <div className="homeHeroPanel">
+        {/* `next/image` sirve WebP y AVIF a quien los acepte, y el tamaño declarado reserva el
+            hueco antes de que llegue: sin eso, el texto de al lado salta cuando la imagen carga.
+            Sin `priority` a propósito — la cifra es lo que hay que leer primero y una imagen que
+            bloquea el pintado retrasaría justo eso. */}
+        <Image
+          className="homeHeroImage"
+          src="/hero-mapa.jpg"
+          width={700}
+          height={630}
+          alt="Ilustración de Colombia con los puntos y rutas de la respuesta a la emergencia"
+          sizes="(max-width: 900px) 100vw, 40vw"
+        />
+
+        {coverage ? (
+          <dl className="homeHeroFigures">
             <div>
               <dt>Municipios sin que haya ido nadie</dt>
               <dd className="alarm">{silent}</dd>
@@ -90,9 +150,12 @@ export function HomeHero() {
               <dd>{coverage.municipalitiesWithShaking.toLocaleString("es-CO")}</dd>
             </div>
           </dl>
-          <a href="#censo">Cómo se calcula</a>
-        </aside>
-      ) : null}
+        ) : null}
+
+        <a className="homeHeroMethod" href="#censo">
+          Cómo se calcula
+        </a>
+      </div>
     </section>
   );
 }
