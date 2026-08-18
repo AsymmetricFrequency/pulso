@@ -245,6 +245,29 @@ primero se lee, lo segundo no se rodea.
 | [Un Ladrillo por Colombia](https://unladrilloporcolombia.com) | Contadores de ladrillos y casas completadas | Sin API. Publica nombres de donantes | Enlazar. Es reconstrucción (P2), no emergencia |
 | [El Tiempo · mapa de acopios](https://www.eltiempo.com/datos/este-es-el-mapa-completo-de-los-centros-de-acopio-habilitados-en-colombia-para-ayudar-a-los-damnificados-del-terremoto-de-magnitud-7-3577654) | Mapa nacional de acopios | Medio de comunicación, no fuente primaria | Usar para localizar la fuente original |
 
+### Ninguna ciudad publica sus acopios como dato abierto
+
+Respuesta de `PL-12`, verificada ciudad por ciudad el 18 de agosto. Está aquí para que nadie vuelva
+a gastar una tarde buscando lo que no existe.
+
+| Dónde | Qué hay |
+| --- | --- |
+| `datos.gov.co` (catálogo nacional) | Nada de esta emergencia. Buscado por «acopio», «donacion», «sismo», «ayuda humanitaria» y «albergue» |
+| **Bogotá** | Lo único que publica algo — y lo publica como **mapa, no como dato**: remite a Mapas Bogotá / IDECA sin enlazar conjunto ni API |
+| IDECA (ArcGIS de Bogotá) | Catálogo público y consultable. Su carpeta `emergencias` tiene amenaza por movimientos en masa, respuesta sísmica y estaciones de bomberos. **Ninguna capa de acopios** |
+| Medellín, Manizales, Armenia, Ibagué | **Sin portal de datos abiertos propio.** Ningún dominio previsible responde, y nada suyo en el catálogo nacional |
+
+**Lo que sí existe, y por qué no se ingiere.** Hay una capa pública en ArcGIS Online con **1.502
+acopios de todo el país**, alimentada por un formulario Survey123 y muy completa —incluye si el
+punto *sigue activo*, que es justo lo que a nosotros nos falta—. Dos cosas la dejan fuera por ahora:
+la publica una organización privada sin metodología publicada, y sus campos incluyen `teléfono`,
+`correo_electrónico` y `persona_de_contacto`. **Eso último no se importa nunca**, y lo primero es
+una decisión de procedencia que no se toma de pasada.
+
+**Y un dato que importa más que la respuesta:** Bogotá cerró seis puntos de acopio el 17 de agosto.
+Los acopios abren y cierran en días. Una fuente oficial publicada una vez y no mantenida sería peor
+que no tenerla — es la misma razón por la que retiramos los puntos que su fuente deja de publicar.
+
 ### Bogotá no tenía lo que dijimos que tenía
 
 El rastreo del 16 de agosto anotó el portal de Bogotá como «la única lista para conectar hoy». Al ir
