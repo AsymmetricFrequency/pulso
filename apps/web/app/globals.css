@@ -3280,9 +3280,10 @@ button:active:not(:disabled),
   padding: 16px 18px;
 }
 
-.registryConsent .registryCheck {
-  align-items: flex-start;
+.registryConsentText {
+  margin: 0;
   font-size: 14px;
+  line-height: 1.55;
 }
 
 .registryError {

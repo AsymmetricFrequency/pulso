@@ -306,19 +306,19 @@ export function RegistryForm({ municipalityCode = null }: { municipalityCode?: s
         ) : null}
       </div>
 
-      {/* El consentimiento tiene que ser informado, no largo. Arriba va lo que de verdad cambia algo
-          para quien firma, en tres frases; debajo, el texto completo al que apunta el registro, a un
-          toque de distancia y sin sacarlo de la página. */}
+      {/* Sin casilla: el propio botón es el acto de autorización.
+          La Ley 1581 exige una autorización **previa, expresa e informada**. Pulsar un botón que
+          dice lo que hace, bajo un aviso que dice a qué se autoriza, es un acto expreso — el mismo
+          patrón de la mayoría de trámites públicos. La casilla era un toque más y un modo de fallo
+          más (formulario rechazado por no marcarla) sobre alguien que acaba de perder la casa.
+          Lo que **no** cambia: la fila sigue apuntando a la versión del texto que se mostró, así
+          que sigue siendo demostrable a qué autorizó cada persona. */}
       <div className="registryConsent">
-        <label className="registryCheck">
-          <input type="checkbox" name="consent" required />
-          <span>
-            Autorizo que usen estos datos <strong>solo</strong> para decirle a mi alcaldía que mi
-            hogar resultó afectado. Entiendo que{" "}
-            <strong>esto no me inscribe en ninguna ayuda</strong>. Puedo pedir que se borren cuando
-            quiera.
-          </span>
-        </label>
+        <p className="registryConsentText">
+          Al registrar autorizas que usemos estos datos <strong>solo</strong> para decirle a tu
+          alcaldía que tu hogar resultó afectado. <strong>No te inscribe en ninguna ayuda.</strong>{" "}
+          Puedes pedir que se borren cuando quieras con el código que recibirás.
+        </p>
         <details>
           <summary>Leer el texto completo</summary>
           <p>{CONSENT_FULL}</p>
