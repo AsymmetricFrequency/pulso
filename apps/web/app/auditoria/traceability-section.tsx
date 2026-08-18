@@ -182,13 +182,22 @@ export function TraceabilitySection() {
               </dd>
             </div>
           </dl>
-          {/* Decirlo aquí y no en una nota al pie. Es el límite real de la garantía que ofrecemos, y
-              esconderlo sería vender una verificación independiente que todavía no existe. */}
+          {/* Va aquí y no en una nota al pie, y dice lo que dicen los números en vez de lo que nos
+              gustaría que dijeran. Vender una verificación independiente que no existe es peor que
+              no ofrecer ninguna: quien audita dejaría de mirar creyendo que ya está mirado. */}
           <p>
-            Cada corte guarda el hash de lo que publicó, así que se puede comprobar que una cifra no
-            cambió después. Pero mientras «anclados fuera de Pulso» siga en cero,{" "}
-            <strong>esa comprobación se hace contra nosotros mismos</strong> — no es verificación
-            independiente todavía.
+            Cada corte guarda el hash de lo que publicó, así que se puede comprobar que <em>ese</em>{" "}
+            corte no cambió después.{" "}
+            {integrity.chained === 0
+              ? "Los cortes anteriores al 18 de agosto no están enlazados entre sí, así que la serie no se puede verificar completa: un corte que faltara no dejaría hueco. Desde hoy cada corte nuevo apunta al anterior, y este contador sube con ellos."
+              : `${integrity.chained.toLocaleString("es-CO")} están enlazados al corte anterior, así que esa parte de la serie se verifica completa y no solo corte por corte.`}{" "}
+            {integrity.externallyAnchored === 0 ? (
+              <>
+                Y mientras «anclados fuera de Pulso» siga en cero,{" "}
+                <strong>toda la comprobación se hace contra nosotros mismos</strong> — todavía no es
+                verificación independiente.
+              </>
+            ) : null}
           </p>
         </article>
       </div>

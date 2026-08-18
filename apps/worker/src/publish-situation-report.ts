@@ -328,13 +328,31 @@ export async function runPublishSituationReport(options: {
     const snapshotJson = JSON.stringify(snapshot);
     const snapshotHash = createHash("sha256").update(snapshotJson).digest("hex");
 
+    // Cada corte apunta al anterior.
+    //
+    // Sin esto, los cortes son islas: cada uno lleva su propio hash, así que se puede comprobar que
+    // **ese** corte no cambió, pero no que la serie esté completa. Un corte borrado no deja hueco y
+    // nadie puede demostrar que faltó. Encadenarlos convierte 227 comprobaciones sueltas en una
+    // sola cadena verificable de punta a punta, que es la diferencia entre «este número no se tocó»
+    // y «no se tocó ni se escondió ninguno».
+    //
+    // Los cortes publicados antes de esto se quedan sin enlace: no se pueden encadenar hacia atrás
+    // sin reescribir lo ya publicado, y reescribir el historial es exactamente lo que la cadena
+    // existe para hacer imposible. El contador de encadenados sube desde aquí.
+    const [previous] = await sql<{ id: string }[]>`
+      SELECT id FROM public_report_publications
+      WHERE incident_id = ${incident.id} AND status = 'published'
+      ORDER BY cutoff_at DESC, created_at DESC
+      LIMIT 1
+    `;
+
     await sql`
       INSERT INTO public_report_publications (
         id, incident_id, schema_version, status, cutoff_at, snapshot, snapshot_hash,
-        privacy_reviewed_at, published_at
+        privacy_reviewed_at, published_at, supersedes_publication_id
       ) VALUES (
         ${randomUUID()}, ${incident.id}, 1, 'published', ${now}, ${sql.json(snapshot)},
-        ${snapshotHash}, ${now}, ${now}
+        ${snapshotHash}, ${now}, ${now}, ${previous?.id ?? null}
       )
     `;
 
