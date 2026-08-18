@@ -1,8 +1,9 @@
 "use client";
 
 import { geoBounds, geoIdentity, geoPath } from "d3-geo";
-import type { Feature, FeatureCollection, Geometry } from "geojson";
+import type { FeatureCollection, Geometry } from "geojson";
 import dynamic from "next/dynamic";
+import type { ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { reportStatusToken } from "./community-report-detail";
 import { CommunityReportForm, type PublicCommunityReport } from "./community-report-form";
@@ -158,6 +159,10 @@ type AtlasMapProps = {
   onSelectCode?: (code: string, name: string) => void;
   onActiveReportChange?: (report: PublicCommunityReport | null) => void;
   focusMunicipalityCode?: string;
+  // Niveles territoriales adicionales (municipio/localidad del perfil de demostración) que el
+  // llamador quiera anexar al mismo breadcrumb del recuadro verde, en vez de duplicar
+  // "Colombia › departamento" en una barra aparte.
+  trailExtra?: ReactNode;
 };
 
 const MAX_SPREAD_RING = 8;
@@ -256,6 +261,7 @@ export function AtlasMap({
   onSelectCode,
   onActiveReportChange,
   focusMunicipalityCode,
+  trailExtra,
 }: AtlasMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(720);
@@ -568,13 +574,7 @@ export function AtlasMap({
       ),
     [data],
   );
-  const selected = departments.find(
-    (feature: Feature<Geometry, DepartmentProperties>) =>
-      feature.properties.dpto_ccdgo === selectedCode,
-  );
   const selectedStatus = definition.statuses[selectedCode] ?? definition.defaultStatus;
-  const zoomedDepartmentName = departments.find((item) => item.properties.dpto_ccdgo === zoomedCode)
-    ?.properties.dpto_cnmbre;
 
   // "¿Dónde estoy parado?" — el municipio que hay debajo del centro de la vista. Se resuelve
   // contra los polígonos DANE ya cargados, sin pedirle nada a un geocodificador externo.
@@ -659,6 +659,13 @@ export function AtlasMap({
       {/* Dónde estoy parado. Va arriba y siempre visible: es la primera pregunta que se hace
           cualquiera que abre un mapa, y antes solo aparecía debajo, después del mapa. */}
       <div className="mapWhereAmI" aria-live="polite">
+        <p className="mapWhereDetail">
+          {zoomedCode
+            ? mapCenter
+              ? `Centro de la vista: ${formatLatLng(mapCenter)}`
+              : "Moviendo el mapa verás en qué municipio estás"
+            : "Toca un departamento para entrar y ver sus reportes uno por uno"}
+        </p>
         <div className="mapWhereTrail">
           <button
             type="button"
@@ -668,41 +675,9 @@ export function AtlasMap({
           >
             Colombia
           </button>
-          {zoomedDepartmentName ? (
-            <>
-              <i aria-hidden="true">›</i>
-              <span className="mapCrumb current">{zoomedDepartmentName}</span>
-            </>
-          ) : null}
-          {centerMunicipalityName ? (
-            <>
-              <i aria-hidden="true">›</i>
-              <span className="mapCrumb current">{centerMunicipalityName}</span>
-            </>
-          ) : null}
-        </div>
-        <p className="mapWhereDetail">
-          {zoomedCode
-            ? mapCenter
-              ? `Centro de la vista: ${formatLatLng(mapCenter)}`
-              : "Moviendo el mapa verás en qué municipio estás"
-            : "Toca un departamento para entrar y ver sus reportes uno por uno"}
-        </p>
-      </div>
-
-      <div className="mapToolbar">
-        <div className="mapToolbarLayer">
-          <span className="mapKicker">Capa visible</span>
-          <strong>{definition.title}</strong>
-        </div>
-        <div className="mapToolbarActions">
-          {zoomedCode && (
-            <button type="button" className="mapZoomReset" onClick={() => setZoomedCode(null)}>
-              ← Volver a Colombia
-            </button>
-          )}
-          <label>
-            <span>Ir a un departamento</span>
+          <i aria-hidden="true">›</i>
+          <label className="mapCrumbSelect">
+            <span className="srOnly">Ir a un departamento</span>
             <select
               value={selectedCode}
               onChange={(event) => {
@@ -720,13 +695,26 @@ export function AtlasMap({
               ))}
             </select>
           </label>
+          {trailExtra}
+          {centerMunicipalityName ? (
+            <>
+              <i aria-hidden="true">›</i>
+              <span className="mapCrumb current">{centerMunicipalityName}</span>
+            </>
+          ) : null}
+          <span className={`coverageBadge ${selectedStatus.token}`}>{selectedStatus.label}</span>
         </div>
       </div>
 
-      {/* Reportar es la acción principal de esta pantalla, así que vive en su propia barra con
-          dos caminos: tocar el mapa o dejar que el dispositivo diga dónde estás. */}
-      <div className={`mapReportBar${reportMode ? " active" : ""}`}>
-        <button
+      {/* Capa activa y reportar comparten una sola barra: son las dos acciones inmediatas antes
+          de tocar el mapa, y antes vivían en dos franjas separadas mostrando información afín. */}
+      <div className={`mapToolbar${reportMode ? " active" : ""}`}>
+        <div className="mapToolbarLayer">
+          <span className="mapKicker">Capa visible</span>
+          <strong>{definition.title}</strong>
+        </div>
+       <div className="flex">
+         <button
           type="button"
           className={`mapReportToggle${reportMode ? " active" : ""}`}
           onClick={() => {
@@ -759,6 +747,7 @@ export function AtlasMap({
             </>
           )}
         </button>
+       </div>
         {reportMode ? (
           <p className="mapReportHint" role="status">
             Toca el punto exacto en el mapa. Puedes acercarte primero para afinar.
@@ -979,12 +968,6 @@ export function AtlasMap({
           }}
         />
       )}
-
-      <div className="mapSelection" aria-live="polite">
-        <span>Territorio seleccionado</span>
-        <strong>{selected?.properties.dpto_cnmbre ?? "Cargando…"}</strong>
-        <span className={`coverageBadge ${selectedStatus.token}`}>{selectedStatus.label}</span>
-      </div>
 
       <ul className="mapLegend embedded" aria-label={`Leyenda: ${definition.title}`}>
         {definition.legend.map((item) => (

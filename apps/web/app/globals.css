@@ -414,11 +414,17 @@ h2 {
   position: relative;
   z-index: 2;
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
   border-bottom: 1px solid var(--line);
-  padding: 16px 18px;
+  background: var(--surface);
+  padding: 12px 18px;
+  transition: background var(--dur) var(--ease-out);
+}
+
+.mapToolbar.active {
+  background: var(--status-strong-soft);
 }
 
 .mapToolbar > div,
@@ -758,31 +764,6 @@ h2 {
 .layerTabs button.active {
   border-color: var(--primary);
   background: rgba(0, 106, 78, 0.07);
-}
-
-.territoryTrail {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin: 18px 0 12px;
-  color: var(--muted);
-  font-size: 13px;
-}
-
-.territoryTrail i {
-  color: var(--text-tertiary);
-  font-style: normal;
-}
-
-.territoryTrail select {
-  max-width: 220px;
-  border: 0;
-  border-bottom: 1px solid var(--line);
-  background: transparent;
-  padding: 4px 22px 4px 2px;
-  color: var(--ink);
-  font-weight: 700;
 }
 
 .srOnly {
@@ -1269,16 +1250,6 @@ footer a {
     min-height: 390px;
   }
 
-  .mapToolbar {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .mapToolbar select {
-    max-width: none;
-    width: 100%;
-  }
-
   .footerTop,
   .footerBottom {
     flex-direction: column;
@@ -1288,14 +1259,6 @@ footer a {
 
 /* --- Interactive map: zoom, PMU/necesidad reporting --- */
 
-.mapToolbarActions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-}
-
-.mapZoomReset,
 .mapReportToggle {
   display: inline-flex;
   align-items: center;
@@ -1311,7 +1274,6 @@ footer a {
   white-space: nowrap;
 }
 
-.mapZoomReset:hover,
 .mapReportToggle:hover {
   border-color: var(--primary);
   color: var(--primary-dark);
@@ -1321,16 +1283,6 @@ footer a {
   border-color: var(--signal);
   background: var(--signal);
   color: white;
-}
-
-.mapReportHint {
-  margin: 0;
-  border-bottom: 1px solid var(--line);
-  background: var(--status-strong-soft);
-  padding: 9px 18px;
-  color: var(--status-strong-ink);
-  font-size: 12px;
-  font-weight: 600;
 }
 
 .department.zoomed {
@@ -2117,43 +2069,54 @@ footer a {
   font-variant-numeric: tabular-nums;
 }
 
+.mapCrumbSelect {
+  display: inline-flex;
+}
+
+.mapCrumbSelect select {
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.14);
+  padding: 2px 8px;
+  color: var(--white);
+  font-size: inherit;
+  font-weight: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+
+.mapCrumbSelect select:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.mapCrumbSelect select option {
+  color: var(--ink);
+}
+
+.mapWhereTrail .coverageBadge {
+  margin-left: auto;
+  background: rgba(255, 253, 247, 0.94);
+}
+
 .mapToolbarLayer {
   display: grid;
   gap: 4px;
 }
 
-/* Reportar es la acción principal de la pantalla, así que tiene su propia barra y no compite
-   con los selectores de navegación. */
-.mapReportBar {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-  border-bottom: 1px solid var(--line);
-  background: var(--surface);
-  padding: 12px 18px;
-  transition: background var(--dur) var(--ease-out);
-}
-
-.mapReportBar.active {
-  background: var(--status-strong-soft);
-}
-
-.mapReportBar .mapReportToggle {
+.mapReportToggle {
   border-color: var(--primary);
   background: var(--primary);
   color: var(--white);
   box-shadow: 0 6px 16px rgba(4, 98, 74, 0.28);
 }
 
-.mapReportBar .mapReportToggle:hover {
+.mapReportToggle:hover {
   background: var(--primary-dark);
   color: var(--white);
 }
 
-.mapReportBar .mapReportToggle.active {
+.mapReportToggle.active {
   border-color: var(--signal);
   background: var(--signal);
   box-shadow: 0 6px 16px rgba(217, 75, 56, 0.3);
@@ -2188,24 +2151,27 @@ footer a {
   opacity: 0.6;
 }
 
-.mapReportBar .mapReportHint {
+.mapReportHint {
   flex: 1 1 220px;
+  margin: 0;
   border: 0;
   background: none;
   padding: 0;
   color: var(--status-strong-ink);
+  font-size: 12px;
+  font-weight: 600;
 }
 
-.mapReportBar .mapReportHint.muted {
+.mapReportHint.muted {
   color: var(--muted);
   font-weight: 400;
 }
 
-.mapReportBar .mapReportHint.muted strong {
+.mapReportHint.muted strong {
   color: var(--amber);
 }
 
-.mapReportBar .mapReportHint.error {
+.mapReportHint.error {
   flex-basis: 100%;
   color: var(--signal);
 }
@@ -2332,12 +2298,12 @@ button:active:not(:disabled),
     font-size: 15px;
   }
 
-  .mapReportBar {
+  .mapToolbar {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .mapReportBar .mapReportToggle,
+  .mapReportToggle,
   .mapLocateButton {
     justify-content: center;
     /* 44px de alto mínimo: es el objetivo táctil que exige una mano en campo. */
