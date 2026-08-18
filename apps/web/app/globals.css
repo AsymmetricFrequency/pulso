@@ -1640,8 +1640,17 @@ footer a {
   flex-wrap: wrap;
   gap: 6px;
   margin: 14px 0 0;
-  padding: 0;
+  padding: 0 18px;
   border: 0;
+}
+
+/* La tarjeta de «Territorio seleccionado» flota sobre esta esquina. La leyenda nunca llegaba tan
+   a la derecha y por eso no chocaba; los filtros sí, y una fila que se mete debajo de la tarjeta
+   esconde justo el botón que apaga el último tipo. */
+@media (min-width: 900px) {
+  .mapFilters {
+    padding-right: 230px;
+  }
 }
 
 .mapFilterChip {
