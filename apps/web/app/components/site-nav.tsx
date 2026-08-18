@@ -6,6 +6,7 @@ const SECTIONS = [
   { id: "informe", label: "Informe" },
   { id: "situacion", label: "Qué pasa" },
   { id: "intensidad", label: "Intensidad" },
+  { id: "censo", label: "Censo" },
   { id: "mapa", label: "Mapa" },
   { id: "ayuda", label: "Ayuda" },
   { id: "metodologia", label: "Cómo verificamos" },
