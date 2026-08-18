@@ -63,7 +63,8 @@ Redis se comparte con las otras apps del host, así que Pulso usa el **índice d
 
 ## Secretos
 
-Los tres secretos (`MISSION_INVITATION_SECRET`, `IDENTITY_FINGERPRINT_SECRET`, `MISSION_ADMIN_KEY`)
+Los cuatro secretos (`MISSION_INVITATION_SECRET`, `IDENTITY_FINGERPRINT_SECRET`, `MISSION_ADMIN_KEY`,
+`PII_ENCRYPTION_KEY`)
 y la contraseña de Postgres se generaron con `openssl rand` en el momento del despliegue — los
 valores `replace-with-...` del `.env.example` nunca llegaron a producción. `apps/api/src/server.ts`
 ya se negaba a arrancar sin ellos cuando `NODE_ENV=production`, así que la falta habría sido ruidosa

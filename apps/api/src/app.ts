@@ -128,7 +128,7 @@ import {
   verifyAuthenticationResponse,
   verifyRegistrationResponse,
 } from "@simplewebauthn/server";
-import Fastify from "fastify";
+import Fastify, { type FastifyServerOptions } from "fastify";
 import { ZodError } from "zod";
 import { registerAdminRoutes } from "./admin-routes.js";
 import { MemoryAssessmentRepository } from "./assessment-repositories.js";
@@ -203,7 +203,11 @@ export type BuildAppOptions = {
   discordClient?: DiscordClient;
   adminPanelUrl?: string;
   persistence?: "memory" | "postgres";
-  logger?: boolean;
+  /**
+   * `true` para el registrador por omisión, o la configuración completa de Fastify — que es como se
+   * pasa el tachado de los campos personales. Ver `server.ts`.
+   */
+  logger?: FastifyServerOptions["logger"];
   missionInvitationSecret?: string;
   operationsAccessSecret?: string;
   identityFingerprintSecret?: string;

@@ -769,6 +769,12 @@ export function createPostgresRepositories(
   databaseUrl: string,
   missionInvitationSecret: string,
   identityFingerprintSecret = missionInvitationSecret,
+  /**
+   * Clave con la que se cifran los datos personales del censo comunitario. Propia y no prestada:
+   * una fuga en el sistema de invitaciones no puede llevarse por delante los nombres y teléfonos
+   * de familias que perdieron su casa.
+   */
+  piiEncryptionKey = missionInvitationSecret,
 ) {
   const sql = postgres(databaseUrl, { max: 10, idle_timeout: 20, connect_timeout: 10 });
   return {
@@ -788,10 +794,17 @@ export function createPostgresRepositories(
     censusCoverage: new PostgresCensusCoverageRepository(sql),
     aidTraceability: new PostgresAidTraceabilityRepository(sql),
     householdRegistry: new PostgresHouseholdRegistryRepository(sql, {
-      // El cifrado de campo y la huella de identidad se derivan de secretos **distintos**: si
-      // fueran el mismo, quien obtuviera uno podría tanto descifrar un nombre como reconstruir
-      // qué documento produjo qué huella.
-      fieldSecret: missionInvitationSecret,
+      // **Clave propia, no prestada.**
+      //
+      // Antes esto derivaba del secreto de invitaciones de misión, que es de otro sistema
+      // completamente. `deriveKey` separa por propósito, así que no había colisión criptográfica —
+      // pero compartir el secreto de origen significa que una fuga en el sistema de invitaciones
+      // se lleva por delante los nombres y teléfonos de familias que perdieron su casa. Dos cosas
+      // sin ninguna relación no deben caer juntas.
+      //
+      // La caída al secreto viejo existe para que un despliegue sin la variable nueva no deje de
+      // funcionar, y se anuncia en el arranque para que no pase inadvertida.
+      fieldSecret: piiEncryptionKey,
       fingerprintSecret: identityFingerprintSecret,
     }),
     reconstructionProgress: new PostgresReconstructionProgressRepository(sql),

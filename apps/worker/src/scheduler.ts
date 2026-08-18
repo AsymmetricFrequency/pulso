@@ -19,6 +19,7 @@ import {
 } from "./ingestion-run-log.js";
 import { MAPADELTERREMOTO_SOURCE, runMapaDelTerremotoIngestion } from "./mapadelterremoto.js";
 import { runPublishSituationReport } from "./publish-situation-report.js";
+import { runRedactExpiredRegistrations } from "./redact-expired-registrations.js";
 import { REDCALIAYUDA_SOURCE, runRedCaliAyudaIngestion } from "./redcaliayuda.js";
 import {
   REDCALIAYUDA_ACOPIO_SOURCE,
@@ -44,7 +45,8 @@ export type IngestionSourceName =
   | "usgs"
   | "mapadelterremoto"
   | "cuidarcolombia"
-  | "publish-situation-report";
+  | "publish-situation-report"
+  | "redact-expired-registrations";
 
 export type IngestionSourceConfig = {
   name: IngestionSourceName;
@@ -190,6 +192,18 @@ export const INGESTION_SOURCES: IngestionSourceConfig[] = [
       runCuidarColombiaIngestion(
         withDatabaseUrl({ incidentCode: incidentCode(), previousEtag: previousEtag ?? null }),
       ),
+  },
+  {
+    // Retención de datos personales del censo comunitario. Una vez al día es suficiente: la
+    // ventana es de noventa días y un día de margen no cambia nada. Va aquí y no en un cron del
+    // sistema para que viva con el resto de trabajos programados y se vea cuando alguien mire.
+    name: "redact-expired-registrations",
+    everyMs: 24 * 60 * MINUTE,
+    run: () => {
+      const databaseUrl = process.env.DATABASE_URL;
+      if (!databaseUrl) throw new Error("DATABASE_URL is required to apply data retention");
+      return runRedactExpiredRegistrations({ databaseUrl });
+    },
   },
   {
     // Staggered after the community-report sources so each refresh picks up their latest counts.

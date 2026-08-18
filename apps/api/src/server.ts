@@ -10,6 +10,22 @@ const persistenceDriver = process.env.PERSISTENCE_DRIVER ?? "memory";
 const databaseUrl = process.env.DATABASE_URL;
 const missionInvitationSecret = process.env.MISSION_INVITATION_SECRET;
 const identityFingerprintSecret = process.env.IDENTITY_FINGERPRINT_SECRET;
+
+/**
+ * Clave dedicada al cifrado de datos personales del censo comunitario.
+ *
+ * Si falta, se cae al secreto de invitaciones —para que un despliegue sin la variable siga
+ * funcionando— pero se avisa en el arranque. Una degradación silenciosa de seguridad es peor que
+ * una ruidosa: la ruidosa se arregla.
+ */
+const piiEncryptionKey = process.env.PII_ENCRYPTION_KEY;
+if (!piiEncryptionKey && process.env.NODE_ENV === "production") {
+  console.warn(
+    "[pulso] PII_ENCRYPTION_KEY no está definida: los datos personales del censo se están " +
+      "cifrando con la clave de invitaciones. Funciona, pero une dos sistemas que no deberían " +
+      "caer juntos. Genera una con: openssl rand -base64 48",
+  );
+}
 const missionAdminKey = process.env.MISSION_ADMIN_KEY;
 if (
   process.env.NODE_ENV === "production" &&
@@ -29,6 +45,9 @@ const postgresRepositories =
         databaseUrl,
         missionInvitationSecret ?? "pulso-local-invitation-secret-change-me-2026",
         identityFingerprintSecret ?? "pulso-local-identity-fingerprint-secret-2026",
+        piiEncryptionKey ??
+          missionInvitationSecret ??
+          "pulso-local-invitation-secret-change-me-2026",
       )
     : undefined;
 /**
@@ -50,7 +69,31 @@ const adminRepository =
 const discordClient = discordConfig ? new DiscordClient(discordConfig) : null;
 
 const app = await buildApp({
-  logger: true,
+  /**
+   * El registrador **tacha** los campos personales antes de escribirlos.
+   *
+   * Hoy Fastify no registra los cuerpos de las peticiones, así que nada se está filtrando. Esto no
+   * arregla una fuga: impide la que llegaría el día que alguien suba el nivel de detalle del
+   * registro para depurar algo y se lleve por delante los teléfonos de doscientas familias sin
+   * enterarse. Una protección que depende de que nadie toque una opción no es una protección.
+   *
+   * `censor` dice qué se tachó en vez de borrar la clave: un registro con huecos silenciosos se
+   * lee como si el dato no hubiera venido.
+   */
+  logger: {
+    redact: {
+      paths: [
+        "req.body.contactName",
+        "req.body.contactPhone",
+        "req.body.document",
+        "req.body.contact",
+        "req.headers.authorization",
+        "req.headers.cookie",
+        'req.headers["x-admin-key"]',
+      ],
+      censor: "[tachado: dato personal]",
+    },
+  },
   adminPanelUrl: process.env.ADMIN_PANEL_URL ?? "http://localhost:3000",
   ...(adminRepository ? { adminRepository } : {}),
   ...(discordClient ? { discordClient } : {}),
