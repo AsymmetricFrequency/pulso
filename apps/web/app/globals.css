@@ -1632,20 +1632,16 @@ footer a {
   border: 1px dashed #8a7f66;
 }
 
-/* El filtro vive pegado al mapa, no en una barra lateral: lo que se apaga y se enciende tiene que
-   verse cambiar sin mover los ojos de los puntos. */
+/* El filtro va pegado a la leyenda, no flotando sobre el mapa: son la misma conversación —la
+   leyenda dice qué es cada punto, el filtro decide cuáles se ven— y flotando tapaba justo la línea
+   que dice dónde está parada la vista. */
 .mapFilters {
-  position: absolute;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  z-index: 4;
-  top: 14px;
-  left: 14px;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  max-width: calc(100% - 28px);
+  margin: 14px 0 0;
+  padding: 0;
+  border: 0;
 }
 
 .mapFilterChip {
