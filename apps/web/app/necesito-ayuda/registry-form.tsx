@@ -52,7 +52,7 @@ type Receipt = { publicCode: string; createdAt: string };
  * sirve para priorizar, y priorizar es un lujo comparado con existir en la lista. Un formulario
  * abandonado a mitad es un hogar que no aparece.
  */
-export function RegistryForm() {
+export function RegistryForm({ municipalityCode = null }: { municipalityCode?: string | null }) {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [receipt, setReceipt] = useState<Receipt | null>(null);
@@ -81,6 +81,8 @@ export function RegistryForm() {
         body: JSON.stringify({
           clientMutationId: crypto.randomUUID(),
           neighborhood: text("neighborhood"),
+          // Viene del municipio que la persona ya escribió arriba: no se le pregunta dos veces.
+          territoryCode: municipalityCode,
           peopleCount: count("peopleCount"),
           childrenCount: count("childrenCount"),
           olderAdultsCount: count("olderAdultsCount"),

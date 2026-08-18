@@ -3696,3 +3696,70 @@ button:active:not(:disabled),
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+
+/* --- «¿En qué municipio estás?» ------------------------------------------
+   La pregunta que decide qué se le dice a quien entra. Va sola y grande porque
+   de su respuesta salen dos caminos que no se parecen. */
+
+.whereForm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.whereForm input {
+  flex: 1 1 260px;
+  min-height: 52px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  padding: 0 16px;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 16px;
+}
+
+.whereForm input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+.whereResult {
+  display: grid;
+  gap: 16px;
+  margin-top: 20px;
+  border-top: 2px solid var(--ink);
+  padding-top: 18px;
+  animation: whereIn 320ms var(--ease-out) both;
+}
+
+@keyframes whereIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.whereResultPlace {
+  margin: 0;
+  font-family: var(--font-data, ui-monospace, monospace);
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.whereResultPlace strong {
+  font-size: 18px;
+  letter-spacing: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .whereResult {
+    animation: none;
+  }
+}

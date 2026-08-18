@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { RegistryForm } from "./registry-form";
+import { WhereAreYou } from "./where-are-you";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 const INCIDENT = "colombia-2026";
@@ -105,25 +105,26 @@ export function HelpPage() {
       <section className="helpHero">
         <h1>Si el sismo te afectó, esto es lo que sirve saber</h1>
         <p className="helpLede">
-          Cinco cosas, en el orden en que importan. La primera es la que decide si recibes ayuda
-          oficial, y no se hace por internet.
+          Lo primero es saber en qué municipio estás: la respuesta correcta no es la misma en una
+          ciudad con brigadas censando que en una vereda donde todavía no ha ido nadie.
         </p>
       </section>
 
       {/* Paso 1. Va primero y con el aviso más fuerte de la página. Alguien puede llegar aquí
           creyendo que registrarse en un sitio web lo mete en el censo, esperar, y perder el día en
           que pasó la brigada por su calle. */}
+      <WhereAreYou />
+
       <section className="helpStep" id="censo-oficial">
-        <p className="helpStepNum">Paso 1</p>
-        <h2>El censo oficial es presencial. No hay forma de inscribirse por internet.</h2>
+        <p className="helpStepNum">Sobre el censo oficial</p>
+        <h2>Quién censa, y por qué no se hace por internet</h2>
         <div className="helpWarning">
           <p>
-            <strong>
-              No existe censo por QR, por teléfono, por formulario digital ni por redes sociales.
-            </strong>{" "}
-            La Alcaldía de Cali lo advirtió expresamente, y aplica igual en el resto del país: el
-            registro de familias afectadas lo diligencia{" "}
-            <strong>personal autorizado, casa a casa</strong>.
+            <strong>El censo oficial lo diligencia personal autorizado, casa a casa.</strong> No
+            existe inscripción por QR, por teléfono, por formulario digital ni por redes sociales —
+            la Alcaldía de Cali lo advirtió expresamente para su ciudad, y es la forma en que
+            funciona el registro en todo el país: lo cargan los consejos municipales y
+            departamentales de gestión del riesgo desde el terreno.
           </p>
           <p>
             Si alguien te pide datos o dinero para «inscribirte en las ayudas», no es el censo. El
@@ -131,10 +132,10 @@ export function HelpPage() {
           </p>
         </div>
         <p>
-          Lo que sí puedes hacer para que te censen: preguntar en tu <strong>alcaldía</strong> o en
-          la oficina de <strong>Gestión del Riesgo</strong> de tu municipio cuándo pasa la brigada
-          por tu barrio o vereda, y estar cuando pase. Si vives en un albergue, pregúntale a quien
-          lo coordina — normalmente el censo llega antes ahí.
+          <strong>Y de ahí sale el problema que este sitio existe para mostrar:</strong> si el
+          registro solo avanza cuando una brigada llega a tu puerta, en los municipios donde no ha
+          llegado ninguna el censo no avanza. Por eso la primera pregunta de esta página es dónde
+          estás.
         </p>
         <p className="helpAside">
           <strong>Pulso no te censa y no puede hacerlo.</strong> Somos una plataforma de código
@@ -144,7 +145,7 @@ export function HelpPage() {
       </section>
 
       <section className="helpStep" id="cerca">
-        <p className="helpStepNum">Paso 2</p>
+        <p className="helpStepNum">También te sirve</p>
         <h2>Dónde hay un albergue o un punto de acopio cerca de ti</h2>
         <p>
           Tenemos {supplies.toLocaleString("es-CO")} puntos de acopio y{" "}
@@ -217,27 +218,8 @@ export function HelpPage() {
         ) : null}
       </section>
 
-      {/* El registro va en el paso 3, **después** de haber dicho dos veces que el censo oficial es
-          presencial. Ponerlo antes lo convertiría en lo que la página existe para desmentir. */}
-      <section className="helpStep" id="registro">
-        <p className="helpStepNum">Paso 3</p>
-        <h2>Deja constancia de que tu hogar quedó afectado</h2>
-        <div className="helpWarning subtle">
-          <p>
-            <strong>Esto no es el censo oficial y no te inscribe en ninguna ayuda.</strong> Lo que
-            hace es permitirnos decirle a tu alcaldía que tu hogar resultó afectado y, si nadie ha
-            venido, que falta censarlos — con el barrio, para que una brigada sepa a dónde ir.
-          </p>
-          <p>
-            Publicamos que hay <strong>44 municipios donde no ha llegado nadie a censar</strong>.
-            Esto es la otra mitad: que ustedes puedan decir dónde están.
-          </p>
-        </div>
-        <RegistryForm />
-      </section>
-
       <section className="helpStep" id="reportar">
-        <p className="helpStepNum">Paso 4</p>
+        <p className="helpStepNum">Y si falta algo</p>
         <h2>Reporta lo que falta, para que se sepa</h2>
         <p>
           Puedes marcar en el mapa lo que necesitas —agua, alimentos, medicamentos, remoción de
@@ -259,7 +241,7 @@ export function HelpPage() {
       </section>
 
       <section className="helpStep" id="desaparecidos">
-        <p className="helpStepNum">Paso 5</p>
+        <p className="helpStepNum">Si buscas a alguien</p>
         <h2>Si estás buscando a alguien</h2>
         <p>
           <strong>Esto no pasa por Pulso.</strong> Las personas desaparecidas tienen una ruta
