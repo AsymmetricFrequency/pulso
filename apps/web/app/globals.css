@@ -1170,7 +1170,11 @@ footer {
   flex-wrap: wrap;
 }
 
+/* 44px también en el pie. Un enlace del pie se toca igual que uno de arriba, y medían 21. */
 footer a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: var(--muted);
   text-decoration: underline;
 }
@@ -3386,6 +3390,11 @@ button:active:not(:disabled),
 }
 
 .registryConsent summary {
+  display: inline-flex;
+  align-items: center;
+  /* Medía 21px. Es el control que abre el texto legal completo: si alguien quiere leerlo antes de
+     firmar, no puede fallar el toque. */
+  min-height: 44px;
   color: var(--primary);
   cursor: pointer;
   font-size: 13px;
