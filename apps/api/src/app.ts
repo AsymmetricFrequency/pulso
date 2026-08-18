@@ -1,10 +1,12 @@
 import { createHash } from "node:crypto";
+
 import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import rateLimit from "@fastify/rate-limit";
 import {
   AssessmentNotFoundError,
   type AssessmentRepository,
+  type CensusCoverageRepository,
   type CommunityReportBoundingBox,
   CommunityReportNotFoundError,
   CommunityReportRateLimitError,
@@ -47,6 +49,7 @@ import {
   actorTrustProfileSchema,
   assessmentSummarySchema,
   beginPasskeyAuthenticationSchema,
+  censusCoverageSummarySchema,
   communityReportSchema,
   completeFieldVisitSchema,
   coverageEventSchema,
@@ -142,6 +145,7 @@ import { MemoryWorkforceProfileRepository } from "./memory-workforce-profile-rep
 import { MemoryMissionAccessRepository } from "./mission-access-repositories.js";
 import { MemoryOperationsAccessRepository } from "./operations-access-repositories.js";
 import type { PostgresAdminRepository } from "./postgres-admin-repository.js";
+import { EmptyCensusCoverageRepository } from "./postgres-census-coverage-repository.js";
 import { EmptySeismicShakingRepository } from "./postgres-seismic-shaking-repository.js";
 import { PublicReadCache } from "./public-read-cache.js";
 import { rescueAlertMessage } from "./rescue-alert.js";
@@ -177,6 +181,7 @@ export type BuildAppOptions = {
   communityReportRepository?: CommunityReportRepository;
   publicFundsRepository?: PublicFundsRepository;
   seismicShakingRepository?: SeismicShakingRepository;
+  censusCoverageRepository?: CensusCoverageRepository;
   publicReportRepository?: PublicReportRepository;
   caliPublicSourceRepository?: CaliPublicSourceRepository;
   sgcPublicSourceRepository?: SgcPublicSourceRepository;
@@ -241,6 +246,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
     new MemoryReconstructionProgressRepository(incidents, materialSuppliers, workforceProfiles);
   const publicFunds = options.publicFundsRepository ?? new EmptyPublicFundsRepository();
   const seismicShaking = options.seismicShakingRepository ?? new EmptySeismicShakingRepository();
+  const censusCoverage = options.censusCoverageRepository ?? new EmptyCensusCoverageRepository();
   const publicReports = options.publicReportRepository ?? new MemoryPublicReportRepository();
   const caliPublicSource =
     options.caliPublicSourceRepository ?? new EmptyCaliPublicSourceRepository();
@@ -920,6 +926,37 @@ export async function buildApp(options: BuildAppOptions = {}) {
           territoryShakingSchema
             .array()
             .parse(await seismicShaking.listByIncident(incident.id, { level })),
+        );
+    },
+  );
+
+  // Dónde falta censar.
+  //
+  // Es la pregunta que la Defensoría del Pueblo puso en público el 13 de agosto —«la falta de censo
+  // impide saber cuántos son»— y la única parte del censo que Pulso puede responder sin convenio,
+  // porque **no necesita el nombre de nadie**: cruza cuánto sacudió (USGS), cuánta señal ciudadana
+  // llegó y qué dice la autoridad, todo agregado por municipio.
+  //
+  // Va por ruta pública y no detrás de sesión a propósito. Un ente de control que quiera verificar
+  // esta cifra tiene que poder hacerlo sin pedirnos una cuenta.
+  app.get<{ Params: { incidentCode: string }; Querystring: { limit?: string } }>(
+    "/v1/public/incidents/:incidentCode/census-coverage",
+    async (request, reply) => {
+      const incident = await incidents.findByCode(request.params.incidentCode);
+      if (!incident) {
+        return reply
+          .status(404)
+          .send({ error: "incident_not_found", message: "La emergencia no existe." });
+      }
+      const limit = Number.parseInt(request.query.limit ?? "", 10);
+      return reply
+        .header("Cache-Control", "public, max-age=300, s-maxage=600, stale-while-revalidate=1800")
+        .send(
+          censusCoverageSummarySchema.parse(
+            await censusCoverage.summaryByIncident(incident.id, request.params.incidentCode, {
+              ...(Number.isFinite(limit) ? { limit } : {}),
+            }),
+          ),
         );
     },
   );

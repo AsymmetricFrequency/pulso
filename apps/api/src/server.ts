@@ -76,6 +76,7 @@ const app = await buildApp({
         operationsRepository: postgresRepositories.operations,
         publicFundsRepository: postgresRepositories.publicFunds,
         seismicShakingRepository: postgresRepositories.seismicShaking,
+        censusCoverageRepository: postgresRepositories.censusCoverage,
         publicReportRepository: postgresRepositories.publicReports,
         caliPublicSourceRepository: postgresRepositories.caliPublicSource,
         reconstructionProgressRepository: postgresRepositories.reconstructionProgress,

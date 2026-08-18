@@ -595,6 +595,31 @@ h2 {
   color: var(--status-restricted);
 }
 
+/* Estados de cobertura del censo. Llevan fondo además de tinta —al contrario que los de cobertura
+   territorial, que solo cambian de color de texto— porque «nadie ha ido» tiene que saltar en una
+   tabla de sesenta filas sin que haya que leerlas todas. La tinta es la de la escala, no el tono
+   pleno: el tono pleno sobre su propio fondo suave no alcanza el 4.5:1 que exige el texto. */
+.coverageBadge.critical {
+  background: var(--status-critical-soft);
+  color: var(--status-critical-ink);
+}
+.coverageBadge.severe {
+  background: var(--status-severe-soft);
+  color: var(--status-severe-ink);
+}
+.coverageBadge.moderate {
+  background: var(--status-moderate-soft);
+  color: var(--status-moderate-ink);
+}
+.coverageBadge.light {
+  background: var(--status-light-soft);
+  color: var(--status-light-ink);
+}
+.coverageBadge.unknown {
+  background: var(--status-none-soft);
+  color: var(--text-secondary);
+}
+
 .mapLoading {
   display: grid;
   min-height: 480px;
@@ -2737,4 +2762,48 @@ button:active:not(:disabled),
 .feedToggle:hover {
   border-color: var(--primary);
   background: var(--primary-soft);
+}
+
+/* Cobertura del censo. El recuento va antes de la tabla porque es el titular: «44 municipios donde
+   nadie ha ido» es la frase, y la tabla es su respaldo. */
+.censusTally {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.censusTallyItem {
+  display: grid;
+  gap: 4px;
+  border-left: 4px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  padding: 14px 16px;
+}
+
+.censusTallyItem strong {
+  font-size: 34px;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.censusTallyItem span {
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.censusTallyItem small {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.censusTallyItem.critical {
+  border-left-color: var(--status-critical);
+}
+
+.censusTallyItem.severe {
+  border-left-color: var(--status-severe);
 }

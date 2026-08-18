@@ -2,6 +2,7 @@
 
 import { type CSSProperties, useEffect, useMemo, useState } from "react";
 import { AtlasMap, type PublicMapLayer } from "./atlas-map";
+import { CensusCoverageSection } from "./census-coverage-section";
 import { CommunityReportDetailCard } from "./community-report-detail";
 import type { PublicCommunityReport } from "./community-report-form";
 import { ShakingSection } from "./shaking-section";
@@ -396,6 +397,10 @@ export function PublicSituationReport() {
       </section>
 
       <ShakingSection />
+
+      {/* Va justo detrás de la sacudida porque se lee con ella: la intensidad dice dónde hay que ir
+          a mirar, y esta sección dice a cuáles de esos sitios todavía no ha ido nadie. */}
+      <CensusCoverageSection />
 
       <section className="mapSection" id="mapa" aria-labelledby="map-section-title">
         <div className="sectionHeading">

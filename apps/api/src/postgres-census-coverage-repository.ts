@@ -1,0 +1,110 @@
+import type { CensusCoverageRepository } from "@pulso/domain";
+import type { CensusCoverageRow, CensusCoverageState, CensusCoverageSummary } from "@pulso/schemas";
+import type postgres from "postgres";
+
+type Sql = ReturnType<typeof postgres>;
+
+const EMPTY_COUNTS: CensusCoverageSummary["counts"] = {
+  silencio: 0,
+  sin_censo: 0,
+  en_curso: 0,
+  con_censo: 0,
+  fuera_de_alcance: 0,
+};
+
+export class PostgresCensusCoverageRepository implements CensusCoverageRepository {
+  constructor(private readonly sql: Sql) {}
+
+  async summaryByIncident(
+    incidentId: string,
+    incidentCode: string,
+    query: { limit?: number } = {},
+  ): Promise<CensusCoverageSummary> {
+    const limit = Math.min(Math.max(query.limit ?? 200, 1), 1_200);
+
+    // El conteo va sobre los 1.121 municipios y la lista va recortada. Son dos preguntas: «cuántos
+    // faltan» tiene que ser exacta aunque la lista se muestre en pedazos, o el titular afirmaría
+    // algo que la tabla de abajo no sostiene.
+    const [counts, rows] = await Promise.all([
+      this.sql<{ coverage_state: string; total: string }[]>`
+        SELECT coverage_state, count(*) AS total
+        FROM territory_census_coverage
+        WHERE incident_id = ${incidentId}
+        GROUP BY coverage_state
+      `,
+      this.sql<Record<string, unknown>[]>`
+        SELECT divipola, municipality, department, mmi_max, mmi_label, report_count,
+               coverage_state, reported_people, registered_people, census_observed_at
+        FROM territory_census_coverage
+        WHERE incident_id = ${incidentId}
+          AND coverage_state <> 'fuera_de_alcance'
+        -- El silencio primero y, dentro de él, lo que más sacudió. Es el orden en que se decide a
+        -- dónde sale una brigada mañana: no alfabético, no por población.
+        ORDER BY
+          CASE coverage_state
+            WHEN 'silencio' THEN 0
+            WHEN 'sin_censo' THEN 1
+            WHEN 'en_curso' THEN 2
+            ELSE 3
+          END,
+          mmi_max DESC NULLS LAST,
+          report_count DESC,
+          municipality
+        LIMIT ${limit}
+      `,
+    ]);
+
+    const [shaking] = await this.sql<{ total: string }[]>`
+      SELECT count(*) AS total
+      FROM territory_census_coverage
+      WHERE incident_id = ${incidentId} AND mmi_max IS NOT NULL
+    `;
+
+    const tally = { ...EMPTY_COUNTS };
+    for (const row of counts) {
+      const key = row.coverage_state as CensusCoverageState;
+      if (key in tally) tally[key] = Number(row.total);
+    }
+
+    return {
+      incidentCode,
+      counts: tally,
+      municipalitiesWithShaking: Number(shaking?.total ?? 0),
+      rows: rows.map(mapRow),
+    };
+  }
+}
+
+function mapRow(row: Record<string, unknown>): CensusCoverageRow {
+  return {
+    divipola: (row.divipola as string | null) ?? null,
+    municipality: String(row.municipality),
+    department: (row.department as string | null) ?? null,
+    mmiMax: row.mmi_max === null ? null : Number(row.mmi_max),
+    mmiLabel: (row.mmi_label as string | null) ?? null,
+    reportCount: Number(row.report_count ?? 0),
+    coverageState: row.coverage_state as CensusCoverageState,
+    reportedPeople: row.reported_people === null ? null : Number(row.reported_people),
+    registeredPeople: row.registered_people === null ? null : Number(row.registered_people),
+    censusObservedAt:
+      row.census_observed_at instanceof Date ? row.census_observed_at.toISOString() : null,
+  };
+}
+
+/**
+ * Sin Postgres no hay malla ni reportes que cruzar. Devuelve ceros, nunca municipios de ejemplo:
+ * un «silencio: 44» inventado en una demo se cita después como si fuera real.
+ */
+export class EmptyCensusCoverageRepository implements CensusCoverageRepository {
+  async summaryByIncident(
+    _incidentId: string,
+    incidentCode: string,
+  ): Promise<CensusCoverageSummary> {
+    return {
+      incidentCode,
+      counts: { ...EMPTY_COUNTS },
+      municipalitiesWithShaking: 0,
+      rows: [],
+    };
+  }
+}
