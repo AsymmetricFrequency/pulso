@@ -132,7 +132,9 @@ export function HomeHero() {
           width={700}
           height={630}
           alt="Ilustración de Colombia con los puntos y rutas de la respuesta a la emergencia"
-          sizes="(max-width: 900px) 100vw, 40vw"
+          // 34vw es el ancho real del panel en pantalla ancha; con 40vw Next elegía una variante
+          // demasiado pequeña y la ampliaba, que es como se ve borrosa una imagen que sí está bien.
+          sizes="(max-width: 900px) 92vw, 34vw"
         />
 
         {coverage ? (

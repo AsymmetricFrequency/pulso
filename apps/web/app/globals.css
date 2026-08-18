@@ -3538,9 +3538,10 @@ button:active:not(:disabled),
   width: 100%;
   height: auto;
   border-radius: var(--r-xs);
-  /* La ilustración viene del papel crema de la identidad anterior. `multiply` la funde con el papel
-     frío de ahora en vez de dejarla flotando como una postal pegada encima. */
-  mix-blend-mode: multiply;
+  /* Sin `mix-blend-mode`. Lo intenté con `multiply` para fundir el papel crema de la ilustración con
+     el papel frío de ahora, y **la hacía desaparecer entera**: el fondo de la página lleva un
+     degradado repetido y el multiply contra ese respaldo la borraba. Su crema y el nuestro están
+     suficientemente cerca como para que se lea sola, sin trucos. */
   animation: heroImageIn 900ms var(--ease-out) both;
 }
 
