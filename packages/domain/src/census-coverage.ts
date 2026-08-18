@@ -10,6 +10,12 @@ import type { CensusCoverageRow, CensusCoverageSummary } from "@pulso/schemas";
 export interface CensusCoverageRepository {
   /** Un municipio por nombre o DIVIPOLA. La respuesta a «qué hago» depende de en cuál estés. */
   findMunicipality(incidentId: string, search: string): Promise<CensusCoverageRow | null>;
+  /** El municipio donde cae un punto. Un toque en vez de escribir un nombre con tildes. */
+  findByPoint(
+    incidentId: string,
+    latitude: number,
+    longitude: number,
+  ): Promise<CensusCoverageRow | null>;
   summaryByIncident(
     incidentId: string,
     incidentCode: string,

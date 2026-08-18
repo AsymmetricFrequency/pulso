@@ -3763,3 +3763,45 @@ button:active:not(:disabled),
     animation: none;
   }
 }
+
+/* --- Cero fricción: un botón antes que un campo ---------------------------
+   Escribir «El Cantón del San Pablo» con el pulgar son ocho toques, tildes y
+   la posibilidad de fallar. El botón es uno y no falla. Por eso va primero,
+   grande y solo; escribir es la alternativa, no el camino. */
+
+.whereActions {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  margin-top: 4px;
+}
+
+.whereLocate {
+  min-height: 56px;
+  padding: 0 28px;
+  font-size: 17px;
+}
+
+.whereTypeInstead {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--primary);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Va debajo del botón y no en la política de privacidad: quien duda de esto no lo toca, y
+   entonces vuelve a escribir a mano — que es justo la fricción que se está quitando. */
+.whereNote {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}

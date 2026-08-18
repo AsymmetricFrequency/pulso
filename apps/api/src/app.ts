@@ -959,13 +959,24 @@ export async function buildApp(options: BuildAppOptions = {}) {
   // esta cifra tiene que poder hacerlo sin pedirnos una cuenta.
   app.get<{
     Params: { incidentCode: string };
-    Querystring: { limit?: string; municipality?: string };
+    Querystring: { limit?: string; municipality?: string; lat?: string; lon?: string };
   }>("/v1/public/incidents/:incidentCode/census-coverage", async (request, reply) => {
     const incident = await incidents.findByCode(request.params.incidentCode);
     if (!incident) {
       return reply
         .status(404)
         .send({ error: "incident_not_found", message: "La emergencia no existe." });
+    }
+
+    // Por coordenada: es la vía de un toque. La ubicación se usa para resolver el municipio y **no
+    // se guarda**: entra por la cadena de consulta, sale un municipio, y ahí se acaba.
+    const lat = Number.parseFloat(request.query.lat ?? "");
+    const lon = Number.parseFloat(request.query.lon ?? "");
+    if (Number.isFinite(lat) && Number.isFinite(lon)) {
+      const found = await censusCoverage.findByPoint(incident.id, lat, lon);
+      return reply
+        .header("Cache-Control", "no-store")
+        .send({ municipality: found ? censusCoverageRowSchema.parse(found) : null });
     }
 
     // Consulta por municipio. La respuesta a «¿qué hago para que me censen?» depende de en cuál

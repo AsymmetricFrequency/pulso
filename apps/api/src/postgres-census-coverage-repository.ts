@@ -46,6 +46,33 @@ export class PostgresCensusCoverageRepository implements CensusCoverageRepositor
     return row ? mapRow(row) : null;
   }
 
+  /**
+   * El municipio en el que cae un punto.
+   *
+   * Es la versión sin fricción de la pregunta anterior: un toque en «usar mi ubicación» en vez de
+   * escribir «El Cantón del San Pablo» con el pulgar. Punto en polígono contra los límites del MGN
+   * del DANE, que ya están en la base con índice GiST — no hace falta pedirle nada a nadie ni
+   * depender de un servicio externo que puede estar caído justo cuando hace falta.
+   */
+  async findByPoint(
+    incidentId: string,
+    latitude: number,
+    longitude: number,
+  ): Promise<CensusCoverageRow | null> {
+    const [row] = await this.sql<Record<string, unknown>[]>`
+      SELECT c.divipola, c.municipality, c.department, c.mmi_max, c.mmi_label, c.report_count,
+             c.coverage_state, c.reported_people, c.registered_people, c.census_observed_at
+      FROM territories t
+      JOIN territory_census_coverage c ON c.territory_id = t.id
+      WHERE t.incident_id = ${incidentId}
+        AND t.territory_type = 'municipality'
+        AND t.deleted_at IS NULL
+        AND ST_Contains(t.geometry, ST_SetSRID(ST_MakePoint(${longitude}, ${latitude}), 4326))
+      LIMIT 1
+    `;
+    return row ? mapRow(row) : null;
+  }
+
   async summaryByIncident(
     incidentId: string,
     incidentCode: string,
@@ -128,6 +155,10 @@ function mapRow(row: Record<string, unknown>): CensusCoverageRow {
  */
 export class EmptyCensusCoverageRepository implements CensusCoverageRepository {
   async findMunicipality(): Promise<CensusCoverageRow | null> {
+    return null;
+  }
+
+  async findByPoint(): Promise<CensusCoverageRow | null> {
     return null;
   }
 

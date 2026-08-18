@@ -17,7 +17,7 @@ type Municipality = {
   censusObservedAt: string | null;
 };
 
-type Estado = "inicio" | "buscando" | "encontrado" | "sin_resultado";
+type Estado = "inicio" | "ubicando" | "buscando" | "encontrado" | "sin_resultado" | "fuera";
 
 /**
  * La página empieza preguntando dónde estás, y de ahí sale todo lo demás.
@@ -36,6 +36,49 @@ export function WhereAreYou() {
   const [estado, setEstado] = useState<Estado>("inicio");
   const [encontrado, setEncontrado] = useState<Municipality | null>(null);
   const [texto, setTexto] = useState("");
+  const [escribiendo, setEscribiendo] = useState(false);
+
+  /**
+   * Un toque en vez de escribir «El Cantón del San Pablo» con el pulgar.
+   *
+   * La ubicación se usa para resolver el municipio contra los límites del DANE y **no se guarda en
+   * ninguna parte**: entra en la consulta, sale un municipio, y ahí se acaba. Se dice en pantalla
+   * porque quien duda de eso no toca el botón, y entonces vuelve a escribir a mano.
+   */
+  const usarUbicacion = () => {
+    if (!navigator.geolocation) {
+      setEscribiendo(true);
+      return;
+    }
+    setEstado("ubicando");
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const response = await fetch(
+            `${apiUrl}/v1/public/incidents/${INCIDENT}/census-coverage?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`,
+          );
+          const data = (await response.json()) as { municipality: Municipality | null };
+          if (data.municipality) {
+            setEncontrado(data.municipality);
+            setEstado("encontrado");
+          } else {
+            // Fuera de los polígonos del MGN: en el mar, cruzando una frontera, o el GPS mintió.
+            setEstado("fuera");
+            setEscribiendo(true);
+          }
+        } catch {
+          setEstado("sin_resultado");
+          setEscribiendo(true);
+        }
+      },
+      () => {
+        // Permiso negado o sin señal de GPS. No se insiste: se abre el campo de texto y ya.
+        setEstado("inicio");
+        setEscribiendo(true);
+      },
+      { timeout: 12_000, maximumAge: 120_000 },
+    );
+  };
 
   const buscar = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -66,27 +109,57 @@ export function WhereAreYou() {
       <p className="helpStepNum">Empieza aquí</p>
       <h2>¿En qué municipio estás?</h2>
       <p>
-        Lo que te conviene hacer no es igual en todas partes. Dinos dónde estás y te decimos lo que
-        sirve <em>ahí</em>.
+        Lo que conviene hacer no es igual en todas partes. Un toque y te decimos lo que sirve{" "}
+        <em>ahí donde estás</em>.
       </p>
 
-      <form className="whereForm" onSubmit={buscar}>
-        <label htmlFor="municipio" className="srOnly">
-          Municipio
-        </label>
-        <input
-          id="municipio"
-          name="municipio"
-          value={texto}
-          onChange={(event) => setTexto(event.target.value)}
-          placeholder="Ej. Quibdó, Ulloa, Cali"
-          autoComplete="address-level2"
-          enterKeyHint="search"
-        />
-        <button type="submit" className="psNavCta helpPrimary" disabled={estado === "buscando"}>
-          {estado === "buscando" ? "Buscando…" : "Continuar"}
-        </button>
-      </form>
+      {/* Un botón. Es la ruta de cero fricción y por eso va primero, grande y solo: escribir es la
+          alternativa, no el camino principal. */}
+      {!escribiendo && estado !== "encontrado" ? (
+        <div className="whereActions">
+          <button
+            type="button"
+            className="psNavCta helpPrimary whereLocate"
+            onClick={usarUbicacion}
+            disabled={estado === "ubicando"}
+          >
+            {estado === "ubicando" ? "Ubicando…" : "Usar mi ubicación"}
+          </button>
+          <button type="button" className="whereTypeInstead" onClick={() => setEscribiendo(true)}>
+            O escribir el municipio
+          </button>
+          <p className="whereNote">
+            Solo la usamos para saber en qué municipio estás. <strong>No la guardamos.</strong>
+          </p>
+        </div>
+      ) : null}
+
+      {escribiendo && estado !== "encontrado" ? (
+        <form className="whereForm" onSubmit={buscar}>
+          <label htmlFor="municipio" className="srOnly">
+            Municipio
+          </label>
+          <input
+            id="municipio"
+            name="municipio"
+            value={texto}
+            onChange={(event) => setTexto(event.target.value)}
+            placeholder="Ej. Quibdó, Ulloa, Cali"
+            autoComplete="address-level2"
+            enterKeyHint="search"
+          />
+          <button type="submit" className="psNavCta helpPrimary" disabled={estado === "buscando"}>
+            {estado === "buscando" ? "Buscando…" : "Continuar"}
+          </button>
+        </form>
+      ) : null}
+
+      {estado === "fuera" ? (
+        <p className="helpError" role="status">
+          Tu ubicación cae fuera de los municipios que tenemos cargados. Escribe el nombre y
+          seguimos.
+        </p>
+      ) : null}
 
       {estado === "sin_resultado" ? (
         <p className="helpError" role="status">
