@@ -16,3 +16,8 @@ tmp/
 work/
 uploads/
 *.local
+
+# Playwright: resultados y rastros de las pruebas de navegador. El rastro pesa y solo sirve para el
+# fallo que lo generó — en CI se sube como artefacto cuando algo se rompe.
+apps/web/test-results/
+apps/web/playwright-report/

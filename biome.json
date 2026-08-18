@@ -11,7 +11,9 @@
       "!!**/.test-keys",
       "!!**/target",
       "!!research",
-      "!!data"
+      "!!data",
+      "!!**/playwright-report",
+      "!!**/test-results"
     ]
   },
   "formatter": {

@@ -56,3 +56,48 @@ jobs:
 
       - name: Pruebas
         run: pnpm test
+
+      # Las pruebas de navegador van en su propio trabajo (ver abajo), no aquí: instalar Chromium
+      # cuesta cerca de un minuto y bloquearía el resultado de lint y tipos, que es el que la gente
+      # mira primero. Separados, un fallo de formato se ve en 90 segundos como hasta ahora.
+
+  navegador:
+    # Cierra `PL-11`. Cubre lo que ninguna prueba cubría: abrir el mapa, tocar un punto, reportar un
+    # rescate y una necesidad, y comprobar que lo que sale del navegador lo acepta el mismo esquema
+    # con el que el servidor lo recibe.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.4.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # `@pulso/schemas` por su `dist`: la prueba valida el cuerpo del POST contra el esquema real.
+      - name: Compilar esquemas
+        run: pnpm --filter @pulso/schemas build
+
+      # Solo Chromium. Los tres navegadores triplicarían el tiempo para cubrir un formulario que no
+      # usa nada específico de motor.
+      - name: Instalar Chromium
+        run: pnpm --filter @pulso/web exec playwright install --with-deps chromium
+
+      - name: Flujo de reporte
+        run: pnpm --filter @pulso/web test:e2e
+
+      # El rastro solo se guarda cuando algo falla, y es lo que permite ver qué pasó en el navegador
+      # sin tener que reproducirlo a ciegas.
+      - name: Guardar el rastro si falló
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-trace
+          path: apps/web/test-results/
+          retention-days: 7
