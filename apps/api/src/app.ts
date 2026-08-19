@@ -5,6 +5,7 @@ import cors from "@fastify/cors";
 import rateLimit from "@fastify/rate-limit";
 import {
   type AidDeliveryRepository,
+  type RemoteDamageRepository,
   type AidTraceabilityRepository,
   AssessmentNotFoundError,
   type AssessmentRepository,
@@ -52,6 +53,7 @@ import {
   actorSchema,
   actorTrustProfileSchema,
   aidDeliveryCoverageSchema,
+  remoteDamageResponseSchema,
   aidTraceabilitySchema,
   assessmentSummarySchema,
   beginPasskeyAuthenticationSchema,
@@ -163,6 +165,7 @@ import { MemoryMissionAccessRepository } from "./mission-access-repositories.js"
 import { MemoryOperationsAccessRepository } from "./operations-access-repositories.js";
 import type { PostgresAdminRepository } from "./postgres-admin-repository.js";
 import { EmptyAidDeliveryRepository } from "./postgres-aid-delivery-repository.js";
+import { EmptyRemoteDamageRepository } from "./empty-remote-damage-repository.js";
 import { EmptyAidTraceabilityRepository } from "./postgres-aid-traceability-repository.js";
 import { EmptyCensusCoverageRepository } from "./postgres-census-coverage-repository.js";
 import { FallbackDataControllerRepository } from "./postgres-data-controller-repository.js";
@@ -205,6 +208,7 @@ export type BuildAppOptions = {
   censusCoverageRepository?: CensusCoverageRepository;
   aidTraceabilityRepository?: AidTraceabilityRepository;
   aidDeliveryRepository?: AidDeliveryRepository;
+  remoteDamageRepository?: RemoteDamageRepository;
   householdRegistryRepository?: HouseholdRegistryRepository;
   dataControllerRepository?: DataControllerRepository;
   publicReportRepository?: PublicReportRepository;
@@ -281,6 +285,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
     options.householdRegistryRepository ?? new EmptyHouseholdRegistryRepository();
   const dataController = options.dataControllerRepository ?? new FallbackDataControllerRepository();
   const aidDeliveries = options.aidDeliveryRepository ?? new EmptyAidDeliveryRepository();
+  const remoteDamage = options.remoteDamageRepository ?? new EmptyRemoteDamageRepository();
   const publicReports = options.publicReportRepository ?? new MemoryPublicReportRepository();
   const caliPublicSource =
     options.caliPublicSourceRepository ?? new EmptyCaliPublicSourceRepository();
@@ -1415,6 +1420,29 @@ export async function buildApp(options: BuildAppOptions = {}) {
             await aidDeliveries.coverage(incident.id, request.params.incidentCode),
           ),
         );
+    },
+  );
+
+  /*
+   * Daño visto desde un satélite.
+   *
+   * Se cachea generoso —una hora— porque no es un flujo: UNOSAT y Microsoft publican una
+   * evaluación y la revisan días después, no cada minuto. Y la respuesta trae su propia
+   * atribución: CC BY y CC BY-SA la exigen, y quien reutilice esto no debería tener que buscarla
+   * en otra página para cumplir la licencia.
+   */
+  app.get<{ Params: { incidentCode: string } }>(
+    "/v1/public/incidents/:incidentCode/remote-damage",
+    async (request, reply) => {
+      const incident = await incidents.findByCode(request.params.incidentCode);
+      if (!incident) {
+        return reply
+          .status(404)
+          .send({ error: "incident_not_found", message: "La emergencia no existe." });
+      }
+      return reply
+        .header("Cache-Control", "public, max-age=600, s-maxage=3600, stale-while-revalidate=86400")
+        .send(remoteDamageResponseSchema.parse(await remoteDamage.publicView(incident.id)));
     },
   );
 

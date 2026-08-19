@@ -43,6 +43,7 @@ import { PostgresEvidenceRepository } from "./evidence-repositories.js";
 import { PostgresMissionAccessRepository } from "./mission-access-repositories.js";
 import { PostgresOperationsAccessRepository } from "./operations-access-repositories.js";
 import { PostgresAidDeliveryRepository } from "./postgres-aid-delivery-repository.js";
+import { PostgresRemoteDamageRepository } from "./postgres-remote-damage-repository.js";
 import { PostgresAidTraceabilityRepository } from "./postgres-aid-traceability-repository.js";
 import { PostgresCensusCoverageRepository } from "./postgres-census-coverage-repository.js";
 import { PostgresCommunityReportRepository } from "./postgres-community-report-repository.js";
@@ -797,6 +798,7 @@ export function createPostgresRepositories(
     aidTraceability: new PostgresAidTraceabilityRepository(sql),
     dataController: new PostgresDataControllerRepository(sql),
     aidDeliveries: new PostgresAidDeliveryRepository(sql),
+    remoteDamage: new PostgresRemoteDamageRepository(sql),
     householdRegistry: new PostgresHouseholdRegistryRepository(sql, {
       // **Clave propia, no prestada.**
       //
