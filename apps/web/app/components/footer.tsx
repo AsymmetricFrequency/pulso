@@ -18,6 +18,7 @@ export function Footer() {
         </nav>
       </div>
       <div className="footerBottom">
+        <a href="/mi-registro">Mi registro</a>
         <a href="/privacidad">Cómo tratamos tus datos</a>
         <span>PULSO · Infraestructura abierta para emergencias</span>
         <span>

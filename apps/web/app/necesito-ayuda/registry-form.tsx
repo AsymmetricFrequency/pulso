@@ -245,8 +245,9 @@ export function RegistryForm({ municipalityCode = null }: { municipalityCode?: s
           {copied ? "Copiado" : "Copiar el código"}
         </button>
         <p>
-          Con él puedes pedir que borremos tus datos cuando quieras, sin dar explicaciones ni crear
-          ninguna cuenta. No lo compartas: es la llave de tu registro.
+          Con él puedes <a href="/mi-registro">ver qué te han entregado</a>, decir si algo no te
+          llegó, y pedir que borremos tus datos cuando quieras. No lo compartas: es la llave de tu
+          registro.
         </p>
         <EvidenceUpload publicCode={receipt.publicCode} />
 

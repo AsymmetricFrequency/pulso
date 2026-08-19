@@ -4045,3 +4045,115 @@ button:active:not(:disabled),
   font-size: 15px;
   line-height: 1.6;
 }
+
+/* --- Mi registro: lo que me entregaron -----------------------------------
+   La pantalla que convierte el registro en algo auditable. Sin ella, «se
+   entregaron 400 kits» es lo que dice quien los entregó y nada más. */
+
+/* Especificidad por el ancestro y no con !important: `.whereForm input` fija 16px y un código que
+   se lee en voz alta o se copia a mano necesita ser más grande. */
+.whereForm input.codeInput {
+  font-family: var(--font-data, ui-monospace, monospace);
+  font-size: 18px;
+  letter-spacing: 0.14em;
+  text-align: center;
+  max-width: 240px;
+}
+
+.deliveryList {
+  display: grid;
+  gap: 12px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.deliveryItem {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--line-strong);
+  background: var(--surface);
+  padding: 16px 18px;
+}
+
+.deliveryItem.confirmada {
+  border-left-color: var(--primary);
+}
+
+/* Una entrega desmentida se marca fuerte y **se queda a la vista**: es el dato más importante que
+   este sistema puede producir y esconderlo sería vaciarlo de sentido. */
+.deliveryItem.rechazada {
+  border-left-color: var(--signal);
+  background: var(--paper-deep);
+}
+
+.deliveryItem strong {
+  display: block;
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.deliveryItem small {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.deliveryAnswer {
+  display: grid;
+  gap: 10px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.helpStep .deliveryAnswer p {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.deliveryButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* Los dos del mismo tamaño y peso. Hacer «No me llegó» más pequeño o más pálido inclinaría la
+   respuesta, y una respuesta inclinada no sirve para auditar nada. */
+.deliveryYes,
+.deliveryNo {
+  flex: 1 1 160px;
+  min-height: 48px;
+  border-radius: var(--radius-sm);
+  padding: 0 18px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.deliveryYes {
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: white;
+}
+
+.deliveryNo {
+  border: 1px solid var(--signal-ink);
+  background: transparent;
+  color: var(--signal-ink);
+}
+
+.deliveryNo:hover {
+  background: #fdece7;
+}
+
+.helpStep .deliveryState {
+  margin: 0;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
