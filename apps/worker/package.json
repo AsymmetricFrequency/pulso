@@ -12,6 +12,7 @@
     "ingest:cali": "tsx src/ingest-cali.ts",
     "ingest:sgc": "tsx src/ingest-sgc.ts",
     "ingest:dane": "tsx src/ingest-dane.ts",
+    "ingest:remote-damage": "tsx src/ingest-remote-damage.ts",
     "ingest:contemos": "tsx src/ingest-contemos.ts",
     "ingest:gravitas": "tsx src/ingest-gravitas.ts",
     "ingest:ayudaspereira": "tsx src/ingest-ayudaspereira.ts",
