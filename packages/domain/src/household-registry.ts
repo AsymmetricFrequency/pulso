@@ -36,6 +36,19 @@ export interface HouseholdRegistryRepository {
     query?: { signal?: string; limit?: number },
   ): Promise<RegistrationQueueItem[]>;
 
+  /**
+   * Una foto, para un auditor. **Escribe en `pii_access_log` en la misma transacción**: si fueran
+   * dos pasos, un fallo entre ellos dejaría a alguien habiendo visto la casa de una familia sin
+   * rastro, y el rastro es la única razón por la que esta operación puede existir.
+   */
+  readEvidence(
+    incidentId: string,
+    evidenceId: string,
+    context: { actorId: string; actorRole: string; purpose: string },
+    // `Uint8Array` y no `Buffer`: el dominio no conoce Node, y no tiene por qué. El repositorio de
+    // Postgres devuelve un Buffer, que es un Uint8Array, así que encaja sin conversión.
+  ): Promise<{ content: Uint8Array; contentType: string; exifStripped: boolean } | null>;
+
   review(
     incidentId: string,
     registrationId: string,

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ContractReview } from "./contract-review";
 import styles from "./operations.module.css";
+import { RegistryQueue } from "./registry-queue";
 
 type OperationsSession = {
   sessionToken: string;
@@ -273,6 +274,10 @@ export function OperationsFlow() {
             Actualizado {new Date(summary.calculatedAt).toLocaleString("es-CO")} · No incluye
             nombres, notas ni fotografías.
           </p>
+
+          {/* La cola del censo va antes de la revisión de contratos: decidir sobre una familia que
+              dice no haber sido censada es más urgente que revisar un contrato. */}
+          <RegistryQueue incidentId={session.incident.id} sessionToken={session.sessionToken} />
 
           <ContractReview incidentId={session.incident.id} sessionToken={session.sessionToken} />
         </>

@@ -579,3 +579,184 @@
   font-size: var(--text-sm);
   line-height: 1.55;
 }
+
+/* =============================================================================
+   Cola del censo comunitario
+   ===========================================================================
+   Va antes que la revisión de contratos: decidir sobre una familia que dice no
+   haber sido censada es más urgente que revisar un contrato. */
+
+.queueSection {
+  display: grid;
+  gap: 14px;
+  margin-top: 40px;
+  border-top: 2px solid var(--ink);
+  padding-top: 22px;
+}
+
+.queueHeading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.queueHeading h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.queueHeading span {
+  color: var(--text-secondary);
+  font-family: var(--font-data, monospace);
+  font-size: 13px;
+}
+
+.queueNote,
+.queueEmpty {
+  max-width: 72ch;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.queueList {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.queueItem {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-xs);
+  background: var(--surface-raised);
+  padding: 16px 18px;
+}
+
+.queueItemHead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.queueItemHead strong {
+  display: block;
+  font-size: 16px;
+}
+
+.queueItemHead small {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.queueBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.queueLevel {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-full);
+  padding: 3px 9px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.queueSignalHelp,
+.queueReviewed,
+.queueError {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.queueSignalHelp {
+  color: var(--text-secondary);
+}
+
+.queueError {
+  color: var(--signal-ink);
+}
+
+.queueOpen {
+  justify-self: start;
+  min-height: 44px;
+  border: 1px solid var(--primary);
+  border-radius: var(--r-xs);
+  background: transparent;
+  padding: 0 18px;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.queueForm {
+  display: grid;
+  gap: 12px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+.queueForm label {
+  display: grid;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.queueForm select,
+.queueForm textarea {
+  min-height: 44px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-xs);
+  background: var(--white);
+  padding: 10px 12px;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 400;
+}
+
+.queueRationale textarea {
+  min-height: 76px;
+  resize: vertical;
+}
+
+.queueActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.queueActions button {
+  min-height: 44px;
+  border: 1px solid var(--primary);
+  border-radius: var(--r-xs);
+  background: var(--primary);
+  padding: 0 20px;
+  color: var(--white);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.queueActions button[type="button"] {
+  background: transparent;
+  border-color: var(--line-strong);
+  color: var(--text-secondary);
+}

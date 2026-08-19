@@ -41,6 +41,100 @@ const SHELTERING = [
 type Receipt = { publicCode: string; createdAt: string };
 
 /**
+ * Subir la foto **después** de registrar, no antes.
+ *
+ * Si la foto fuera parte del formulario, sería un paso más entre alguien y estar en la lista — y
+ * subir una imagen desde un teléfono con poca señal es el paso que más veces falla. Así el registro
+ * queda guardado primero y la foto es un extra que, si no sale, no se llevó nada por delante.
+ */
+function EvidenceUpload({ publicCode }: { publicCode: string }) {
+  const [estado, setEstado] = useState<"inicio" | "subiendo" | "listo" | "error">("inicio");
+  const [mensaje, setMensaje] = useState<string | null>(null);
+
+  const subir = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (file.size > 12 * 1024 * 1024) {
+      setEstado("error");
+      setMensaje("La foto pesa demasiado. Prueba con una más pequeña.");
+      return;
+    }
+    setEstado("subiendo");
+    setMensaje(null);
+
+    try {
+      const dataBase64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result).split(",")[1] ?? "");
+        reader.onerror = () => reject(new Error("no se pudo leer"));
+        reader.readAsDataURL(file);
+      });
+
+      const response = await fetch(
+        `${apiUrl}/v1/public/incidents/${INCIDENT}/household-registry/evidence`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            publicCode,
+            fileName: file.name.slice(0, 180),
+            contentType: file.type === "image/png" ? "image/png" : "image/jpeg",
+            dataBase64,
+          }),
+        },
+      );
+      if (!response.ok) {
+        setEstado("error");
+        setMensaje("No se pudo subir. Puedes intentarlo otra vez cuando tengas mejor señal.");
+        return;
+      }
+      setEstado("listo");
+    } catch {
+      setEstado("error");
+      setMensaje("No se pudo subir. Puedes intentarlo otra vez cuando tengas mejor señal.");
+    }
+  };
+
+  if (estado === "listo") {
+    return (
+      <p className="evidenceDone" role="status">
+        <strong>Foto recibida.</strong> Solo la ve quien revisa, nunca se publica, y se borra con
+        tus datos si usas tu código.
+      </p>
+    );
+  }
+
+  return (
+    <div className="evidenceUpload">
+      <p>
+        <strong>Si puedes, añade una foto del daño.</strong> Es opcional y ayuda a que tu registro
+        pese más cuando alguien lo revise.
+      </p>
+      {/* `capture` abre la cámara directamente en un teléfono: una foto del daño se toma ahí mismo,
+          no se busca en la galería. */}
+      <label className="evidenceButton">
+        <input
+          type="file"
+          accept="image/jpeg,image/png"
+          capture="environment"
+          onChange={subir}
+          disabled={estado === "subiendo"}
+        />
+        <span>{estado === "subiendo" ? "Subiendo…" : "Tomar o elegir una foto"}</span>
+      </label>
+      <small>
+        Le quitamos la ubicación y los datos del teléfono antes de guardarla. No se publica nunca.
+      </small>
+      {mensaje ? (
+        <p className="registryError" role="alert">
+          {mensaje}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+/**
  * Dos pasos, y el segundo es opcional de verdad.
  *
  * La primera versión de esto pedía trece campos, trece opciones de radio y un párrafo de ciento
@@ -141,6 +235,8 @@ export function RegistryForm({ municipalityCode = null }: { municipalityCode?: s
           Con él puedes pedir que borremos tus datos cuando quieras, sin dar explicaciones ni crear
           ninguna cuenta. No lo compartas: es la llave de tu registro.
         </p>
+        <EvidenceUpload publicCode={receipt.publicCode} />
+
         <p className="registryReminder">
           <strong>Esto no es el censo oficial</strong> y no te inscribe en ninguna ayuda. Lo que
           hicimos fue anotar que tu hogar resultó afectado, para poder decirle a tu alcaldía dónde

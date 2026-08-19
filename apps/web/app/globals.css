@@ -3806,3 +3806,70 @@ button:active:not(:disabled),
   color: var(--text-secondary);
   font-size: 14px;
 }
+
+/* --- Subir la foto del daño ------------------------------------------------
+   Va en el recibo, después de registrar. Si fuera parte del formulario sería un
+   paso más entre alguien y estar en la lista — y subir una imagen con poca
+   señal es el paso que más veces falla. */
+
+.evidenceUpload {
+  display: grid;
+  gap: 10px;
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+
+.evidenceUpload p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.evidenceUpload small {
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* El input nativo se esconde y la etiqueta hace de botón: el control del sistema es distinto en
+   cada navegador y ninguno se parece al resto de la página. */
+.evidenceButton {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-sm);
+  padding: 0 20px;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.evidenceButton:hover {
+  background: var(--primary-soft);
+}
+
+.evidenceButton input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* El foco tiene que verse: el input real está oculto, así que sin esto quien navega con teclado no
+   sabría nunca dónde está parado. */
+.evidenceButton:focus-within {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.evidenceDone {
+  margin: 0;
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+  font-size: 15px;
+  line-height: 1.5;
+}

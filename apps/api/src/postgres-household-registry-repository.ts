@@ -239,6 +239,60 @@ export class PostgresHouseholdRegistryRepository implements HouseholdRegistryRep
     }));
   }
 
+  /**
+   * Devuelve una foto para que un auditor la mire, **y deja constancia en el mismo momento**.
+   *
+   * El registro de acceso se escribe en la misma transacción que la lectura, no después. Si fueran
+   * dos pasos, un fallo entre ellos dejaría a alguien habiendo visto la casa de una familia sin que
+   * quede rastro — y el rastro es la única razón por la que esta ruta puede existir.
+   *
+   * El propósito es obligatorio y viaja desde quien pide. «Porque sí» no cabe: el campo tiene largo
+   * mínimo y quien audita tiene que escribir para qué está mirando.
+   */
+  async readEvidence(
+    incidentId: string,
+    evidenceId: string,
+    context: { actorId: string; actorRole: string; purpose: string },
+  ): Promise<{ content: Buffer; contentType: string; exifStripped: boolean } | null> {
+    return this.sql.begin(async (tx) => {
+      const [row] = await tx<
+        {
+          id: string;
+          registration_id: string;
+          content: Buffer;
+          content_type: string;
+          exif_stripped: boolean;
+        }[]
+      >`
+        SELECT e.id, e.registration_id, e.content, e.content_type, e.exif_stripped
+        FROM registration_evidence e
+        JOIN household_self_registrations r ON r.id = e.registration_id
+        WHERE e.id = ${evidenceId}
+          AND r.incident_id = ${incidentId}
+          AND e.redacted_at IS NULL
+          AND e.content IS NOT NULL
+        LIMIT 1
+      `;
+      if (!row) return null;
+
+      await tx`
+        INSERT INTO pii_access_log (
+          id, incident_id, subject_table, subject_id, actor_id, actor_role, fields, purpose
+        ) VALUES (
+          ${randomUUID()}, ${incidentId}, 'household_self_registrations',
+          ${row.registration_id}, ${context.actorId}, ${context.actorRole},
+          ARRAY['foto_dano'], ${context.purpose}
+        )
+      `;
+
+      return {
+        content: row.content,
+        contentType: row.content_type,
+        exifStripped: row.exif_stripped,
+      };
+    });
+  }
+
   /** La decisión humana, firmada y motivada. */
   async review(
     incidentId: string,
@@ -345,6 +399,9 @@ export class EmptyHouseholdRegistryRepository implements HouseholdRegistryReposi
   }
   async queue(): Promise<RegistrationQueueItem[]> {
     return [];
+  }
+  async readEvidence(): Promise<null> {
+    return null;
   }
   async review(): Promise<boolean> {
     return false;

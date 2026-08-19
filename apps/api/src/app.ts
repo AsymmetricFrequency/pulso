@@ -1218,6 +1218,67 @@ export async function buildApp(options: BuildAppOptions = {}) {
     },
   );
 
+  /**
+   * Ver una foto del daño, siendo auditor.
+   *
+   * **El propósito es obligatorio y viaja en la consulta.** No es burocracia: sin él, el registro de
+   * accesos diría quién miró la casa de una familia y no diría para qué, que es lo único que se
+   * pregunta cuando alguien revisa esos accesos después.
+   *
+   * La lectura y la anotación ocurren en la misma transacción, así que no existe el caso de «la vio
+   * pero no quedó registrado».
+   */
+  app.get<{
+    Params: { incidentId: string; evidenceId: string };
+    Querystring: { purpose?: string };
+  }>(
+    "/v1/operations/incidents/:incidentId/registry-evidence/:evidenceId",
+    async (request, reply) => {
+      const session = await operationsAccess.resolveSession(
+        bearerToken(request.headers.authorization),
+      );
+      if (session.incidentId !== request.params.incidentId) {
+        throw new MissionAccessDeniedError("La sesión pertenece a otra emergencia.");
+      }
+      if (!["coordinator", "auditor", "incident_admin"].includes(session.role)) {
+        throw new MissionAccessDeniedError(
+          "Este rol no puede ver evidencia del censo comunitario.",
+        );
+      }
+
+      const purpose = (request.query.purpose ?? "").trim();
+      if (purpose.length < 8) {
+        return reply.status(400).send({
+          error: "purpose_required",
+          message:
+            "Escribe para qué estás mirando esta foto. Queda registrado junto a tu nombre, con al menos 8 caracteres.",
+        });
+      }
+
+      const found = await householdRegistry.readEvidence(
+        request.params.incidentId,
+        request.params.evidenceId,
+        { actorId: session.actorId, actorRole: session.role, purpose },
+      );
+      if (!found) {
+        return reply.status(404).send({
+          error: "evidence_not_found",
+          message: "Esa evidencia no existe o fue borrada a petición de la persona.",
+        });
+      }
+
+      return (
+        reply
+          .header("Content-Type", found.contentType)
+          // Nunca en caché de nadie: una foto de la casa de una familia no puede quedarse en un
+          // proxy intermedio ni en el disco del navegador de quien la revisó.
+          .header("Cache-Control", "no-store, private")
+          .header("X-Pulso-Exif-Stripped", String(found.exifStripped))
+          .send(Buffer.from(found.content))
+      );
+    },
+  );
+
   app.get("/v1/incidents", async () => incidentListSchema.parse(await incidents.list()));
 
   app.get<{ Params: { id: string } }>("/v1/incidents/:id", async (request, reply) => {
