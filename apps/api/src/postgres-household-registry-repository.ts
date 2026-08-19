@@ -79,7 +79,8 @@ export class PostgresHouseholdRegistryRepository implements HouseholdRegistryRep
         has_disability, has_pregnancy, has_chronic_illness,
         dwelling_status, sheltering_at, officially_censused,
         contact_name_encrypted, contact_phone_encrypted, document_encrypted, identity_fingerprint,
-        consent_text_id, consented_at, source_ip_hash, client_mutation_id
+        consent_text_id, consented_at, source_ip_hash, client_mutation_id,
+        consent_purposes, sensitive_data_authorized
       ) VALUES (
         ${randomUUID()}, ${incidentId}, ${code}, ${territoryId}, ${input.neighborhood},
         ${
@@ -95,7 +96,8 @@ export class PostgresHouseholdRegistryRepository implements HouseholdRegistryRep
         ${input.contactPhone ? encryptField(this.secrets.fieldSecret, input.contactPhone) : null},
         ${input.document ? encryptField(this.secrets.fieldSecret, input.document) : null},
         ${fingerprint},
-        ${consent.id}, now(), ${context.sourceIpHash}, ${input.clientMutationId}
+        ${consent.id}, now(), ${context.sourceIpHash}, ${input.clientMutationId},
+        ${input.consentPurposes}, ${input.sensitiveDataAuthorized}
       )
       ON CONFLICT (incident_id, client_mutation_id) DO UPDATE SET updated_at = now()
       RETURNING id, public_code, created_at

@@ -21,5 +21,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE}/necesito-ayuda`, lastModified: now, changeFrequency: "daily", priority: 1 },
     { url: `${SITE}/auditoria`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
     { url: `${SITE}/reconstruccion`, lastModified: now, changeFrequency: "weekly", priority: 0.6 },
+    { url: `${SITE}/privacidad`, lastModified: now, changeFrequency: "monthly", priority: 0.3 },
   ];
 }

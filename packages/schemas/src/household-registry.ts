@@ -51,6 +51,23 @@ export const createHouseholdRegistrationSchema = z
     hasPregnancy: z.boolean().default(false),
     hasChronicIllness: z.boolean().default(false),
 
+    /**
+     * Datos de salud = sensibles (art. 5, Ley 1581). El art. 6 del Decreto 1377 exige autorización
+     * **expresa** y separada, e informar que responder es facultativo. Sin esta marca, los tres
+     * campos de salud se ignoran aunque lleguen llenos.
+     */
+    sensitiveDataAuthorized: z.boolean().default(false),
+
+    /**
+     * Las finalidades autorizadas. Independientes a propósito: alguien puede querer aparecer en la
+     * lista que va a la alcaldía y **no** querer que una fundación lo llame. Usar el dato para una
+     * finalidad no marcada viola el principio de finalidad.
+     */
+    consentPurposes: z
+      .array(z.enum(["autoridad", "entrega_ayuda"]))
+      .min(1)
+      .default(["autoridad"]),
+
     dwellingStatus: dwellingStatusSchema,
     shelteringAt: shelteringAtSchema,
     officiallyCensused: censusedSchema.default("no_sabe"),
@@ -70,7 +87,18 @@ export const createHouseholdRegistrationSchema = z
   .refine((input) => input.childrenCount + input.olderAdultsCount <= input.peopleCount, {
     message: "Los niños y las personas mayores no pueden sumar más que el total del hogar.",
     path: ["childrenCount"],
-  });
+  })
+  // La misma invariante que impone la base, aquí arriba para que el error llegue antes y con un
+  // mensaje que se entienda en vez de un fallo de restricción.
+  .refine(
+    (input) =>
+      input.sensitiveDataAuthorized ||
+      (!input.hasDisability && !input.hasPregnancy && !input.hasChronicIllness),
+    {
+      message: "No se pueden guardar datos de salud sin autorización expresa para ellos.",
+      path: ["sensitiveDataAuthorized"],
+    },
+  );
 
 /**
  * Lo que se le devuelve a quien se registra: su código y nada más.

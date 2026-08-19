@@ -3873,3 +3873,167 @@ button:active:not(:disabled),
   font-size: 15px;
   line-height: 1.5;
 }
+
+/* =============================================================================
+   Páginas legales
+   ===========================================================================
+   La política de tratamiento la lee alguien que acaba de registrar a su familia,
+   no un abogado. Columna estrecha, tipografía de lectura, y las tablas con
+   desplazamiento propio para que la página nunca se mueva de lado. */
+
+.legalMain {
+  display: grid;
+}
+
+.legalHero {
+  display: grid;
+  gap: 12px;
+  width: min(720px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 56px 0 8px;
+}
+
+.legalHero h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(30px, 5vw, 44px);
+  font-weight: 400;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+.legalLede {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.legalDate {
+  margin: 0;
+  color: var(--text-secondary);
+  font-family: var(--font-data, ui-monospace, monospace);
+  font-size: 13px;
+}
+
+.legalSection {
+  display: grid;
+  gap: 14px;
+  width: min(720px, calc(100% - 40px));
+  margin: 0 auto;
+  border-top: 1px solid var(--line);
+  padding: 32px 0;
+}
+
+.legalSection h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(21px, 3vw, 27px);
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.legalSection h3 {
+  margin: 10px 0 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.legalSection p,
+.legalSection li {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.legalSection ul,
+.legalSection ol {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 22px;
+}
+
+.legalNote {
+  border-left: 3px solid var(--line-strong);
+  padding-left: 16px;
+  color: var(--text-secondary);
+}
+
+/* Especificidad por el ancestro, no con !important: `.legalSection ol` fija 8px y estas dos listas
+   llevan párrafos dentro, así que necesitan más aire. */
+.legalSection .legalPurposes,
+.legalSection .legalSteps {
+  gap: 12px;
+}
+
+/* La tabla se desplaza dentro de su caja: la página nunca se mueve de lado. */
+.legalTableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.legalTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  font-size: 15px;
+}
+
+.legalTable th,
+.legalTable td {
+  border-bottom: 1px solid var(--line);
+  padding: 11px 14px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.legalTable th {
+  background: var(--paper-deep);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.legalTable tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* --- Datos sensibles de salud ---------------------------------------------
+   Marcados en la forma y no solo en el texto: el artículo 6 del Decreto 1377
+   exige decir explícitamente cuáles son sensibles, y un bloque que se ve igual
+   que los demás no lo dice. */
+
+.registryGroup.sensitive {
+  border-color: var(--line-strong);
+  background: var(--paper-deep);
+}
+
+.registrySensitiveNotice {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+/* Se ven apagados hasta que se autoriza: la casilla de arriba es la que abre estos tres, y verlo
+   es más claro que leerlo. */
+.registrySensitiveFields {
+  display: grid;
+  gap: 2px;
+  border-left: 2px solid var(--line);
+  padding-left: 14px;
+}
+
+.registryPurpose {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  padding: 14px 16px;
+  font-size: 14px;
+}
+
+.registryConsent a {
+  color: var(--primary);
+  font-weight: 600;
+}

@@ -10,19 +10,25 @@ const INCIDENT = "colombia-2026";
  * cambia el texto sin subir la versión, el registro se rechaza. Un booleano «aceptó» no prueba
  * **a qué** aceptó, y eso es lo que hay que poder demostrar.
  */
-const CONSENT_VERSION = 1;
+const CONSENT_VERSION = 2;
 
 /** El texto completo, palabra por palabra el que guarda `consent_texts` en la versión de arriba. */
 const CONSENT_FULL =
-  "Autorizo a Pulso a tratar los datos que entrego en este formulario con una única finalidad: " +
-  "entregarle a la alcaldía o a la autoridad de gestión del riesgo de mi municipio la información " +
-  "de que mi hogar resultó afectado y, si es el caso, que todavía no nos ha censado nadie, para " +
-  "que una brigada pueda venir. Entiendo que Pulso no es una autoridad, que registrarme aquí NO me " +
-  "inscribe en ninguna ayuda y NO me da derecho a recibirla, y que el censo oficial se hace de " +
-  "forma presencial. Entiendo que mi nombre, mi teléfono y mi documento se guardan cifrados, que " +
-  "nunca se publican, y que puedo consultar o pedir el borrado de mis datos en cualquier momento " +
-  "con el código que se me entrega al terminar. Este tratamiento se hace conforme a la Ley 1581 " +
-  "de 2012.";
+  "Autorizo a Pulso a tratar los datos que entrego en este formulario para las finalidades que yo " +
+  "marque, y solo para esas: (1) entregarle a la alcaldía o a la autoridad de gestión del riesgo " +
+  "de mi municipio que mi hogar resultó afectado y, si es el caso, que todavía no nos ha censado " +
+  "nadie; y (2) si lo autorizo aparte, que una organización de ayuda pueda contactarme para " +
+  "hacerme llegar ayuda y dejar constancia de que la recibí. " +
+  "Las preguntas sobre discapacidad, embarazo o enfermedad son DATOS SENSIBLES de salud: NO " +
+  "estoy obligado a responderlas ni a autorizar su tratamiento, y no responderlas no me quita " +
+  "nada — el registro funciona igual sin ellas. " +
+  "Entiendo que Pulso no es una autoridad, que registrarme aquí NO me inscribe en ninguna ayuda " +
+  "y NO me da derecho a recibirla, y que el censo oficial se hace de forma presencial. " +
+  "Mi nombre, teléfono y documento se guardan cifrados y no se publican nunca. Puedo consultar, " +
+  "corregir o pedir el borrado de mis datos en cualquier momento con el código que se me entrega " +
+  "al terminar, sin dar explicaciones. Si no lo pido, se borran solos a los 90 días. " +
+  "Responsable del tratamiento: Pulso — pulso.my — vortexlabcol@gmail.com. " +
+  "La política completa está en pulso.my/privacidad. Ley 1581 de 2012 y Decreto 1377 de 2013.";
 
 const DWELLING = [
   { value: "destruida", label: "Se cayó o quedó destruida" },
@@ -167,6 +173,7 @@ export function RegistryForm({ municipalityCode = null }: { municipalityCode?: s
       const parsed = Number.parseInt(String(form.get(name) ?? ""), 10);
       return Number.isFinite(parsed) ? parsed : 0;
     };
+    const sensitiveOk = form.get("sensitiveOk") === "on";
 
     try {
       const response = await fetch(`${apiUrl}/v1/public/incidents/${INCIDENT}/household-registry`, {
@@ -180,9 +187,15 @@ export function RegistryForm({ municipalityCode = null }: { municipalityCode?: s
           peopleCount: count("peopleCount"),
           childrenCount: count("childrenCount"),
           olderAdultsCount: count("olderAdultsCount"),
-          hasDisability: form.get("hasDisability") === "on",
-          hasPregnancy: form.get("hasPregnancy") === "on",
-          hasChronicIllness: form.get("hasChronicIllness") === "on",
+          // Los datos de salud solo viajan si la persona autorizó **expresamente** su tratamiento.
+          // Sin esa marca se mandan en falso aunque las casillas estén puestas: es la regla del
+          // artículo 6 del Decreto 1377, y la base la impone además con una restricción.
+          sensitiveDataAuthorized: sensitiveOk,
+          hasDisability: sensitiveOk && form.get("hasDisability") === "on",
+          hasPregnancy: sensitiveOk && form.get("hasPregnancy") === "on",
+          hasChronicIllness: sensitiveOk && form.get("hasChronicIllness") === "on",
+          consentPurposes:
+            form.get("aidPurpose") === "on" ? ["autoridad", "entrega_ayuda"] : ["autoridad"],
           // Cuando el paso opcional no se abre, el servidor recibe lo que de verdad sabemos:
           // «no sabe». Mandar «con daños» por omisión sería inventarle una respuesta a alguien.
           dwellingStatus: form.get("dwellingStatus") ?? "no_sabe",
@@ -334,23 +347,36 @@ export function RegistryForm({ municipalityCode = null }: { municipalityCode?: s
               ))}
             </fieldset>
 
-            <fieldset className="registryGroup">
+            {/* Datos sensibles de salud. El artículo 6 del Decreto 1377 exige tres cosas:
+                informar que **no está obligado** a autorizar su tratamiento, decir explícitamente
+                cuáles son sensibles, y no condicionar nada a que los entregue. Las tres están aquí,
+                y la tercera además la impone una restricción en la base. */}
+            <fieldset className="registryGroup sensitive">
               <legend>¿Hay alguien en estas situaciones?</legend>
-              <small className="registryGroupHint">
-                Sirve para dar prioridad en albergues. No pedimos detalles médicos.
-              </small>
+              <p className="registrySensitiveNotice">
+                <strong>Son datos de salud, y la ley los llama sensibles.</strong> No estás obligado
+                a responderlos ni a autorizar que los usemos, y no responderlos{" "}
+                <strong>no te quita nada</strong>: el registro funciona igual. Sirven solo para dar
+                prioridad en albergues.
+              </p>
               <label className="registryCheck">
-                <input type="checkbox" name="hasDisability" />
-                <span>Alguien con discapacidad</span>
+                <input type="checkbox" name="sensitiveOk" />
+                <span>Autorizo que usen esta información de salud para dar prioridad</span>
               </label>
-              <label className="registryCheck">
-                <input type="checkbox" name="hasPregnancy" />
-                <span>Alguien en embarazo</span>
-              </label>
-              <label className="registryCheck">
-                <input type="checkbox" name="hasChronicIllness" />
-                <span>Alguien con una enfermedad que necesita tratamiento</span>
-              </label>
+              <div className="registrySensitiveFields">
+                <label className="registryCheck">
+                  <input type="checkbox" name="hasDisability" />
+                  <span>Alguien con discapacidad</span>
+                </label>
+                <label className="registryCheck">
+                  <input type="checkbox" name="hasPregnancy" />
+                  <span>Alguien en embarazo</span>
+                </label>
+                <label className="registryCheck">
+                  <input type="checkbox" name="hasChronicIllness" />
+                  <span>Alguien con una enfermedad que necesita tratamiento</span>
+                </label>
+              </div>
               <div className="registryCounts">
                 <div className="registryField">
                   <label htmlFor="childrenCount">Menores de edad</label>
@@ -409,11 +435,22 @@ export function RegistryForm({ municipalityCode = null }: { municipalityCode?: s
           más (formulario rechazado por no marcarla) sobre alguien que acaba de perder la casa.
           Lo que **no** cambia: la fila sigue apuntando a la versión del texto que se mostró, así
           que sigue siendo demostrable a qué autorizó cada persona. */}
+      {/* La segunda finalidad va aparte y sin marcar. Meterla dentro de la primera sería usar los
+          datos para algo que la persona no eligió — el principio de finalidad de la Ley 1581. */}
+      <label className="registryCheck registryPurpose">
+        <input type="checkbox" name="aidPurpose" />
+        <span>
+          Además, autorizo que <strong>una organización de ayuda pueda contactarme</strong> para
+          hacerme llegar ayuda. Es opcional y aparte de lo anterior.
+        </span>
+      </label>
+
       <div className="registryConsent">
         <p className="registryConsentText">
           Al registrar autorizas que usemos estos datos <strong>solo</strong> para decirle a tu
           alcaldía que tu hogar resultó afectado. <strong>No te inscribe en ninguna ayuda.</strong>{" "}
-          Puedes pedir que se borren cuando quieras con el código que recibirás.
+          Puedes pedir que se borren cuando quieras con el código que recibirás, y si no lo pides se
+          borran solos a los 90 días. <a href="/privacidad">Cómo tratamos tus datos</a>.
         </p>
         <details>
           <summary>Leer el texto completo</summary>
