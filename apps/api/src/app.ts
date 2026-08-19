@@ -4,6 +4,7 @@ import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import rateLimit from "@fastify/rate-limit";
 import {
+  type AidDeliveryRepository,
   type AidTraceabilityRepository,
   AssessmentNotFoundError,
   type AssessmentRepository,
@@ -50,6 +51,7 @@ import {
   actorEndorsementSchema,
   actorSchema,
   actorTrustProfileSchema,
+  aidDeliveryCoverageSchema,
   aidTraceabilitySchema,
   assessmentSummarySchema,
   beginPasskeyAuthenticationSchema,
@@ -57,6 +59,7 @@ import {
   censusCoverageSummarySchema,
   communityReportSchema,
   completeFieldVisitSchema,
+  confirmDeliverySchema,
   coverageEventSchema,
   createActorEndorsementSchema,
   createActorSchema,
@@ -65,6 +68,7 @@ import {
   createFieldAssignmentSchema,
   createFieldEvidenceSchema,
   createFieldVisitSchema,
+  createHouseholdDeliverySchema,
   createHouseholdRegistrationSchema,
   createIdentityClaimSchema,
   createIncidentSchema,
@@ -85,6 +89,7 @@ import {
   fieldEvidenceSchema,
   fieldSessionSchema,
   fieldVisitSchema,
+  householdDeliverySchema,
   householdRegistrationReceiptSchema,
   householdRegistryStatsSchema,
   identityClaimSchema,
@@ -157,6 +162,7 @@ import { MemoryWorkforceProfileRepository } from "./memory-workforce-profile-rep
 import { MemoryMissionAccessRepository } from "./mission-access-repositories.js";
 import { MemoryOperationsAccessRepository } from "./operations-access-repositories.js";
 import type { PostgresAdminRepository } from "./postgres-admin-repository.js";
+import { EmptyAidDeliveryRepository } from "./postgres-aid-delivery-repository.js";
 import { EmptyAidTraceabilityRepository } from "./postgres-aid-traceability-repository.js";
 import { EmptyCensusCoverageRepository } from "./postgres-census-coverage-repository.js";
 import { FallbackDataControllerRepository } from "./postgres-data-controller-repository.js";
@@ -198,6 +204,7 @@ export type BuildAppOptions = {
   seismicShakingRepository?: SeismicShakingRepository;
   censusCoverageRepository?: CensusCoverageRepository;
   aidTraceabilityRepository?: AidTraceabilityRepository;
+  aidDeliveryRepository?: AidDeliveryRepository;
   householdRegistryRepository?: HouseholdRegistryRepository;
   dataControllerRepository?: DataControllerRepository;
   publicReportRepository?: PublicReportRepository;
@@ -273,6 +280,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
   const householdRegistry =
     options.householdRegistryRepository ?? new EmptyHouseholdRegistryRepository();
   const dataController = options.dataControllerRepository ?? new FallbackDataControllerRepository();
+  const aidDeliveries = options.aidDeliveryRepository ?? new EmptyAidDeliveryRepository();
   const publicReports = options.publicReportRepository ?? new MemoryPublicReportRepository();
   const caliPublicSource =
     options.caliPublicSourceRepository ?? new EmptyCaliPublicSourceRepository();
@@ -1296,6 +1304,118 @@ export async function buildApp(options: BuildAppOptions = {}) {
     reply
       .header("Cache-Control", "public, max-age=300, s-maxage=900")
       .send(dataControllerSchema.parse(await dataController.current())),
+  );
+
+  // ===========================================================================
+  // Donación → entrega real
+  // ===========================================================================
+
+  /** Registrar que a un hogar le llegó algo. Rol de coordinación. */
+  app.post<{ Params: { incidentId: string } }>(
+    "/v1/operations/incidents/:incidentId/household-deliveries",
+    async (request, reply) => {
+      const session = await operationsAccess.resolveSession(
+        bearerToken(request.headers.authorization),
+      );
+      if (session.incidentId !== request.params.incidentId) {
+        throw new MissionAccessDeniedError("La sesión pertenece a otra emergencia.");
+      }
+      if (!["coordinator", "incident_admin"].includes(session.role)) {
+        throw new MissionAccessDeniedError("Este rol no puede registrar entregas.");
+      }
+      const input = createHouseholdDeliverySchema.parse(request.body);
+      try {
+        const id = await aidDeliveries.record(request.params.incidentId, input);
+        if (!id) {
+          return reply.status(404).send({
+            error: "registration_not_found",
+            message: "No encontramos ese código de hogar.",
+          });
+        }
+        return reply.status(201).send({ id });
+      } catch (error) {
+        // El trigger de finalidad. Se traduce a algo que se entienda en vez de devolver un error de
+        // Postgres: quien registra una entrega a las nueve de la noche necesita saber qué hacer.
+        const message = error instanceof Error ? error.message : "";
+        if (message.includes("entrega_ayuda")) {
+          return reply.status(409).send({
+            error: "purpose_not_authorized",
+            message:
+              "Ese hogar no autorizó ser contactado para recibir ayuda. No se puede registrar una entrega a su nombre.",
+          });
+        }
+        throw error;
+      }
+    },
+  );
+
+  /**
+   * Lo que un hogar ve con su código, y donde puede **desmentir** una entrega.
+   *
+   * Sin sesión: el código es la credencial. Y sin él no se toca la entrega de nadie más, porque la
+   * comprobación va en el `WHERE` de la consulta y no en una condición del código.
+   */
+  app.get<{ Params: { incidentCode: string; code: string } }>(
+    "/v1/public/incidents/:incidentCode/household-registry/:code/deliveries",
+    async (request, reply) => {
+      const incident = await incidents.findByCode(request.params.incidentCode);
+      if (!incident) {
+        return reply
+          .status(404)
+          .send({ error: "incident_not_found", message: "La emergencia no existe." });
+      }
+      return reply
+        .header("Cache-Control", "no-store, private")
+        .send(
+          householdDeliverySchema
+            .array()
+            .parse(await aidDeliveries.listForHousehold(incident.id, request.params.code)),
+        );
+    },
+  );
+
+  app.post<{ Params: { incidentCode: string; code: string; deliveryId: string } }>(
+    "/v1/public/incidents/:incidentCode/household-registry/:code/deliveries/:deliveryId/confirm",
+    async (request, reply) => {
+      const incident = await incidents.findByCode(request.params.incidentCode);
+      if (!incident) {
+        return reply
+          .status(404)
+          .send({ error: "incident_not_found", message: "La emergencia no existe." });
+      }
+      const input = confirmDeliverySchema.parse(request.body);
+      const done = await aidDeliveries.confirm(
+        incident.id,
+        request.params.code,
+        request.params.deliveryId,
+        input,
+      );
+      if (!done) {
+        return reply
+          .status(404)
+          .send({ error: "delivery_not_found", message: "No encontramos esa entrega." });
+      }
+      return reply.status(200).send({ recorded: true, received: input.received });
+    },
+  );
+
+  app.get<{ Params: { incidentCode: string } }>(
+    "/v1/public/incidents/:incidentCode/aid-delivery-coverage",
+    async (request, reply) => {
+      const incident = await incidents.findByCode(request.params.incidentCode);
+      if (!incident) {
+        return reply
+          .status(404)
+          .send({ error: "incident_not_found", message: "La emergencia no existe." });
+      }
+      return reply
+        .header("Cache-Control", "public, max-age=120, s-maxage=300")
+        .send(
+          aidDeliveryCoverageSchema.parse(
+            await aidDeliveries.coverage(incident.id, request.params.incidentCode),
+          ),
+        );
+    },
   );
 
   app.get("/v1/incidents", async () => incidentListSchema.parse(await incidents.list()));
