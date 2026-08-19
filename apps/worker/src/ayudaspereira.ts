@@ -27,7 +27,7 @@ const CATEGORY_MAP: Record<string, string> = {
   Medicamentos: "salud",
   "Aseo e higiene": "higiene",
   "Pañales y bebés": "higiene",
-  "Cobijas y colchonetas": "refugio",
+  "Cobijas y colchonetas": "albergues",
   "Ropa y franelas": "otro",
   "Linternas y pilas": "herramienta",
   Otros: "otro",

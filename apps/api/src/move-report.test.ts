@@ -38,6 +38,8 @@ function moveFixture() {
     damageSeverity: null,
     shelterCapacity: null,
     shelterOccupancy: null,
+    metadata: null,
+    urgency: null,
   };
 }
 

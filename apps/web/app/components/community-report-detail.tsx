@@ -71,7 +71,10 @@ const STATUS_LABEL: Record<PublicCommunityReport["status"], string> = {
 
 const urgencyToken = (urgency: string) => {
   const value = urgency.toLowerCase();
-  if (value.includes("urgente") || value.includes("alta")) return "high";
+  if (value.includes("crítica") || value.includes("critica") || value.includes("urgente")) {
+    return "high";
+  }
+  if (value.includes("alta")) return "high";
   if (value.includes("media")) return "medium";
   return "low";
 };

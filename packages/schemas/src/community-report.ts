@@ -65,6 +65,29 @@ export const locationPrecisionSchema = z.enum([
 
 export const damageSeveritySchema = z.enum(["colapso", "grave", "moderado", "leve", "sin_evaluar"]);
 
+export const communityReportUrgencySchema = z.enum(["baja", "media", "alta", "critica"]);
+
+export const communityReportUrgencyLabel: Record<
+  z.infer<typeof communityReportUrgencySchema>,
+  string
+> = {
+  baja: "Baja",
+  media: "Media",
+  alta: "Alta",
+  critica: "Crítica",
+};
+
+/**
+ * Categorías de una necesidad.
+ *
+ * **`refugio` es una necesidad, no un sitio.** Existe también `albergue` como tipo de reporte —el
+ * lugar donde alguien duerme esta noche, con aforo y ocupación— y son cosas distintas a propósito:
+ * un albergue lleno y una familia pidiendo refugio son las dos caras del mismo problema, y
+ * fusionarlas borraría la comparación que dice si el alojamiento alcanza.
+ *
+ * Por la misma razón no hay `centros_acopio` aquí: un acopio es un tipo de reporte desde la
+ * migración 046, con 1.113 filas. Tenerlo en los dos sitios daría dos respuestas a «cuántos hay».
+ */
 export const communityReportCategorySchema = z.enum([
   "agua",
   "alimentos",
@@ -76,6 +99,8 @@ export const communityReportCategorySchema = z.enum([
   "voluntariado",
   "animales",
   "logistica",
+  "catastros",
+  "puntos_ayuda",
   "otro",
 ]);
 
@@ -125,6 +150,7 @@ export const createCommunityReportSchema = z
     clientMutationId: z.uuid(),
     reportType: communityReportTypeSchema,
     category: communityReportCategorySchema.nullable().default(null),
+    urgency: communityReportUrgencySchema.nullable().default(null),
     title: z.string().trim().min(3).max(140),
     description: z.string().trim().max(2_000).nullable().default(null),
     location: pointGeometrySchema,
@@ -299,6 +325,7 @@ export const upsertExternalCommunityReportSchema = z.object({
 });
 
 export type CommunityReportType = z.infer<typeof communityReportTypeSchema>;
+export type CommunityReportUrgency = z.infer<typeof communityReportUrgencySchema>;
 export type RescueSignsOfLife = z.infer<typeof rescueSignsOfLifeSchema>;
 export type RouteStatus = z.infer<typeof routeStatusSchema>;
 export type DamageSeverity = z.infer<typeof damageSeveritySchema>;

@@ -20,7 +20,7 @@ const CATEGORY_MAP: Record<string, string> = {
   agua: "agua",
   alimentos: "alimentos",
   salud: "salud",
-  refugio: "refugio",
+  refugio: "albergues",
   higiene: "higiene",
   herramienta: "herramienta",
   rescate_herr: "herramienta",

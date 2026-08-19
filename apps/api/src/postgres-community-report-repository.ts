@@ -6,13 +6,14 @@ import {
   type PublicCommunityReportPage,
   type PublicCommunityReportQuery,
 } from "@pulso/domain";
-import type {
-  CommunityReportDto,
-  CreateCommunityReportInput,
-  MoveCommunityReportInput,
-  PublicCommunityReportDto,
-  ReviewCommunityReportInput,
-  UpsertExternalCommunityReportInput,
+import {
+  type CommunityReportDto,
+  type CreateCommunityReportInput,
+  communityReportUrgencyLabel,
+  type MoveCommunityReportInput,
+  type PublicCommunityReportDto,
+  type ReviewCommunityReportInput,
+  type UpsertExternalCommunityReportInput,
 } from "@pulso/schemas";
 import type postgres from "postgres";
 import { v7 as uuidv7 } from "uuid";
@@ -114,12 +115,13 @@ export class PostgresCommunityReportRepository implements CommunityReportReposit
     // bajo esa promesa y después tirarlo era lo peor de las dos opciones: la molestia de darlo sin
     // la posibilidad de que sirviera. Es dato de primera mano y consentido — distinto de un
     // teléfono copiado de otra plataforma, que sigue sin entrar.
+    const metadata = input.urgency ? { urgency: communityReportUrgencyLabel[input.urgency] } : null;
     const [row] = await this.sql<DbRow[]>`
       INSERT INTO community_reports (
         id, incident_id, report_type, category, title, description, location,
         people_reported, signs_of_life, responders_on_site, route_status, damage_severity,
         shelter_capacity, shelter_occupancy,
-        contact_encrypted, source_ip_hash, client_mutation_id
+        contact_encrypted, source_ip_hash, client_mutation_id, metadata
       ) VALUES (
         ${uuidv7()}, ${incidentId}, ${input.reportType}, ${input.category}, ${input.title},
         ${input.description},
@@ -132,7 +134,8 @@ export class PostgresCommunityReportRepository implements CommunityReportReposit
             ? encryptField(this.contactSecret, input.contact)
             : null
         },
-        ${context.sourceIpHash}, ${input.clientMutationId}
+        ${context.sourceIpHash}, ${input.clientMutationId},
+        ${metadata ? this.sql.json(metadata) : null}
       )
       ON CONFLICT (incident_id, client_mutation_id) DO UPDATE SET incident_id = EXCLUDED.incident_id
       RETURNING *, ST_AsGeoJSON(location)::json AS location

@@ -118,9 +118,7 @@ type LeafletMapProps = {
   municipalities: FeatureCollection<Geometry, MunicipalityProperties> | null;
   sgcEvents: SgcEvent[];
   reports: PublicCommunityReport[];
-  reportMode: boolean;
   pendingPoint: [number, number] | null;
-  onMapClickForReport: (lonLat: [number, number]) => void;
   onSelectReport: (report: PublicCommunityReport) => void;
   /** Centro de la vista tras cada movimiento, para poder decir en qué municipio estás parado. */
   onCenterChange?: (center: [number, number]) => void;
@@ -132,9 +130,7 @@ export function LeafletMap({
   municipalities,
   sgcEvents,
   reports,
-  reportMode,
   pendingPoint,
-  onMapClickForReport,
   onSelectReport,
   onCenterChange,
   focusMunicipalityCode,
@@ -142,8 +138,8 @@ export function LeafletMap({
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const pendingMarkerRef = useRef<L.Marker | null>(null);
-  const callbacksRef = useRef({ onMapClickForReport, onSelectReport, onCenterChange, reportMode });
-  callbacksRef.current = { onMapClickForReport, onSelectReport, onCenterChange, reportMode };
+  const callbacksRef = useRef({ onSelectReport, onCenterChange });
+  callbacksRef.current = { onSelectReport, onCenterChange };
 
   // Map instance: created once per mounted department view, destroyed on unmount.
   useEffect(() => {
@@ -162,11 +158,6 @@ export function LeafletMap({
       style: { color: "#10231c", weight: 2, fill: false },
     }).addTo(map);
     map.fitBounds(departmentLayer.getBounds(), { padding: [24, 24] });
-
-    map.on("click", (event: L.LeafletMouseEvent) => {
-      if (!callbacksRef.current.reportMode) return;
-      callbacksRef.current.onMapClickForReport([event.latlng.lng, event.latlng.lat]);
-    });
 
     const emitCenter = () => {
       const center = map.getCenter();
@@ -323,12 +314,6 @@ export function LeafletMap({
     }).addTo(map);
     pendingMarkerRef.current = marker;
   }, [pendingPoint, departmentFeature]);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-    container.classList.toggle("reportMode", reportMode);
-  }, [reportMode]);
 
   return <div className="leafletMapContainer" ref={containerRef} />;
 }

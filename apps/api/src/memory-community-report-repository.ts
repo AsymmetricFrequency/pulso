@@ -7,13 +7,14 @@ import {
   type PublicCommunityReportPage,
   type PublicCommunityReportQuery,
 } from "@pulso/domain";
-import type {
-  CommunityReportDto,
-  CreateCommunityReportInput,
-  MoveCommunityReportInput,
-  PublicCommunityReportDto,
-  ReviewCommunityReportInput,
-  UpsertExternalCommunityReportInput,
+import {
+  type CommunityReportDto,
+  type CreateCommunityReportInput,
+  communityReportUrgencyLabel,
+  type MoveCommunityReportInput,
+  type PublicCommunityReportDto,
+  type ReviewCommunityReportInput,
+  type UpsertExternalCommunityReportInput,
 } from "@pulso/schemas";
 import { v7 as uuidv7 } from "uuid";
 
@@ -98,7 +99,7 @@ export class MemoryCommunityReportRepository implements CommunityReportRepositor
       status: "reported",
       contact: input.contact,
       externalSourceId: null,
-      metadata: null,
+      metadata: input.urgency ? { urgency: communityReportUrgencyLabel[input.urgency] } : null,
       peopleReported: input.peopleReported,
       signsOfLife: input.signsOfLife,
       respondersOnSite: input.respondersOnSite,

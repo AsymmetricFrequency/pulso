@@ -4267,3 +4267,108 @@ button:active:not(:disabled),
 .remoteDot.modelo {
   border-style: dashed;
 }
+
+/* =============================================================================
+   Selector de ubicación y barra del mapa
+   =============================================================================
+
+   De la rama de frontend. Marcar el punto pasa de hacer clic sobre el SVG
+   coroplético a arrastrar un marcador sobre un mapa con calles: quien reporta
+   reconoce su esquina, no el contorno de su departamento.
+   ========================================================================== */
+
+.mapToolbar.active {
+  background: var(--status-strong-soft);
+}
+
+.contentreport {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.pulsoMarkerDanger {
+  background: var(--signal);
+  color: white;
+}
+
+.reportModalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(16, 35, 28, 0.55);
+}
+
+.locationPickerSection {
+  display: grid;
+  gap: 8px;
+}
+
+.locationPickerMap {
+  height: 200px;
+  min-height: 200px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+
+.locationPickerActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.locationPickerActions .communityReportFormLabel {
+  margin: 0;
+  flex: 1 1 160px;
+}
+
+.mapTerritorySelects {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.mapTerritorySelects i {
+  color: rgba(238, 246, 241, 0.5);
+  font-style: normal;
+}
+
+.mapCrumbSelect {
+  display: inline-flex;
+  min-width: 0;
+}
+
+.mapCrumbSelect select {
+  max-width: 160px;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.14);
+  padding: 2px 8px;
+  color: var(--white);
+  font-size: inherit;
+  font-weight: inherit;
+  font-family: inherit;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+
+.mapCrumbSelect select:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.mapCrumbSelect select option {
+  color: var(--ink);
+}

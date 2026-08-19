@@ -5,7 +5,6 @@ import cors from "@fastify/cors";
 import rateLimit from "@fastify/rate-limit";
 import {
   type AidDeliveryRepository,
-  type RemoteDamageRepository,
   type AidTraceabilityRepository,
   AssessmentNotFoundError,
   type AssessmentRepository,
@@ -42,6 +41,7 @@ import {
   type PublicFundsRepository,
   type PublicReportRepository,
   type ReconstructionProgressRepository,
+  type RemoteDamageRepository,
   type SeismicShakingRepository,
   type TerritoryRepository,
   WorkforceProfileRateLimitError,
@@ -53,7 +53,6 @@ import {
   actorSchema,
   actorTrustProfileSchema,
   aidDeliveryCoverageSchema,
-  remoteDamageResponseSchema,
   aidTraceabilitySchema,
   assessmentSummarySchema,
   beginPasskeyAuthenticationSchema,
@@ -121,6 +120,7 @@ import {
   redeemMissionInvitationSchema,
   redeemOperationsInvitationSchema,
   registrationQueueItemSchema,
+  remoteDamageResponseSchema,
   reviewCommunityReportSchema,
   reviewContractSchema,
   reviewRegistrationSchema,
@@ -151,6 +151,7 @@ import {
 } from "./cali-public-source-repositories.js";
 import type { DiscordClient } from "./discord.js";
 import { EmptyPublicFundsRepository } from "./empty-public-funds-repository.js";
+import { EmptyRemoteDamageRepository } from "./empty-remote-damage-repository.js";
 import { MemoryEvidenceRepository } from "./evidence-repositories.js";
 import { MemoryCommunityReportRepository } from "./memory-community-report-repository.js";
 import { MemoryIdentityTrustRepository } from "./memory-identity-trust-repository.js";
@@ -165,7 +166,6 @@ import { MemoryMissionAccessRepository } from "./mission-access-repositories.js"
 import { MemoryOperationsAccessRepository } from "./operations-access-repositories.js";
 import type { PostgresAdminRepository } from "./postgres-admin-repository.js";
 import { EmptyAidDeliveryRepository } from "./postgres-aid-delivery-repository.js";
-import { EmptyRemoteDamageRepository } from "./empty-remote-damage-repository.js";
 import { EmptyAidTraceabilityRepository } from "./postgres-aid-traceability-repository.js";
 import { EmptyCensusCoverageRepository } from "./postgres-census-coverage-repository.js";
 import { FallbackDataControllerRepository } from "./postgres-data-controller-repository.js";

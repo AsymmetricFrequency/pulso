@@ -458,49 +458,50 @@ export function PublicSituationReport() {
           ))}
         </div>
 
-        <nav className="territoryTrail" aria-label="Nivel territorial seleccionado">
-          <span>Colombia</span>
-          <i aria-hidden="true">/</i>
-          <strong>{departmentName}</strong>
-          <i aria-hidden="true">/</i>
-          <label>
-            <span className="srOnly">Municipio</span>
-            <select
-              value={municipalityIndex}
-              onChange={(event) => {
-                setMunicipalityIndex(Number(event.target.value));
-                setLocalityIndex(0);
-              }}
-            >
-              {profile.municipalities.map((item, index) => (
-                <option value={index} key={item.name}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <i aria-hidden="true">/</i>
-          <label>
-            <span className="srOnly">Ciudad, localidad o zona</span>
-            <select
-              value={localityIndex}
-              onChange={(event) => setLocalityIndex(Number(event.target.value))}
-            >
-              {municipality.localities.map((item, index) => (
-                <option value={index} key={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-          </label>
-        </nav>
-
         <div className="publicMapWorkspace">
+          {/* Municipio y localidad del perfil de demostración viajan como trailExtra: el propio
+              AtlasMap ya dice "Colombia › departamento" en su recuadro verde, así que agregarlos
+              en una barra aparte solo repetía ese mismo par. */}
           <AtlasMap
             layer={layer}
             selectedCode={departmentCode}
             onSelectCode={changeDepartment}
             onActiveReportChange={setActiveReport}
+            trailExtra={
+              <>
+                <i aria-hidden="true">›</i>
+                <label className="mapCrumbSelect">
+                  <span className="srOnly">Municipio</span>
+                  <select
+                    value={municipalityIndex}
+                    onChange={(event) => {
+                      setMunicipalityIndex(Number(event.target.value));
+                      setLocalityIndex(0);
+                    }}
+                  >
+                    {profile.municipalities.map((item, index) => (
+                      <option value={index} key={item.name}>
+                        {item.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <i aria-hidden="true">›</i>
+                <label className="mapCrumbSelect">
+                  <span className="srOnly">Ciudad, localidad o zona</span>
+                  <select
+                    value={localityIndex}
+                    onChange={(event) => setLocalityIndex(Number(event.target.value))}
+                  >
+                    {municipality.localities.map((item, index) => (
+                      <option value={index} key={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </>
+            }
             {...(municipality.code ? { focusMunicipalityCode: municipality.code } : {})}
           />
           <aside className="territorySummary" aria-live="polite">

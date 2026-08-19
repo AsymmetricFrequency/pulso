@@ -1,12 +1,13 @@
 "use client";
 
 import { geoBounds, geoIdentity, geoPath } from "d3-geo";
-import type { Feature, FeatureCollection, Geometry } from "geojson";
+import type { FeatureCollection, Geometry } from "geojson";
 import dynamic from "next/dynamic";
+import type { ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { reportStatusToken } from "./community-report-detail";
 import { CommunityReportForm, type PublicCommunityReport } from "./community-report-form";
-import { IconCrosshair, IconLocation, REPORT_MARKER_PATH, reportMarkerKey } from "./icons";
+import { IconLocation, REPORT_MARKER_PATH, reportMarkerKey } from "./icons";
 
 // Leaflet touches `window` at module scope, which breaks Next.js's server render pass
 // even inside a "use client" component — it must only ever be loaded in the browser.
@@ -220,6 +221,10 @@ type AtlasMapProps = {
   onSelectCode?: (code: string, name: string) => void;
   onActiveReportChange?: (report: PublicCommunityReport | null) => void;
   focusMunicipalityCode?: string;
+  // Niveles territoriales adicionales (municipio/localidad del perfil de demostración) que el
+  // llamador quiera anexar al mismo breadcrumb del recuadro verde, en vez de duplicar
+  // "Colombia › departamento" en una barra aparte.
+  trailExtra?: ReactNode;
 };
 
 const MAX_SPREAD_RING = 8;
@@ -318,6 +323,7 @@ export function AtlasMap({
   onSelectCode,
   onActiveReportChange,
   focusMunicipalityCode,
+  trailExtra,
 }: AtlasMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(720);
@@ -352,8 +358,6 @@ export function AtlasMap({
   // Centro actual de la vista Leaflet: es lo que permite decir en qué municipio está parado
   // quien mira el mapa, en vez de solo repetir el departamento que eligió.
   const [mapCenter, setMapCenter] = useState<[number, number] | null>(null);
-  const [locating, setLocating] = useState(false);
-  const [locationError, setLocationError] = useState<string | null>(null);
 
   useEffect(() => {
     onActiveReportChange?.(activeReport);
@@ -732,13 +736,7 @@ export function AtlasMap({
       ),
     [data],
   );
-  const selected = departments.find(
-    (feature: Feature<Geometry, DepartmentProperties>) =>
-      feature.properties.dpto_ccdgo === selectedCode,
-  );
   const selectedStatus = definition.statuses[selectedCode] ?? definition.defaultStatus;
-  const zoomedDepartmentName = departments.find((item) => item.properties.dpto_ccdgo === zoomedCode)
-    ?.properties.dpto_cnmbre;
 
   // "¿Dónde estoy parado?" — el municipio que hay debajo del centro de la vista. Se resuelve
   // contra los polígonos DANE ya cargados, sin pedirle nada a un geocodificador externo.
@@ -757,37 +755,6 @@ export function AtlasMap({
     // esto imprimía "E" en todo el país.
     `${Math.abs(lat).toFixed(3)}° ${lat >= 0 ? "N" : "S"}, ${Math.abs(lng).toFixed(3)}° ${lng >= 0 ? "E" : "O"}`;
 
-  // Colocar el punto con la ubicación del dispositivo: en campo, con una mano y sin saber
-  // leer un mapa, es la vía más corta para reportar donde uno está.
-  const useMyLocation = () => {
-    if (!navigator.geolocation) {
-      setLocationError("Este navegador no permite compartir la ubicación.");
-      return;
-    }
-    setLocating(true);
-    setLocationError(null);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const point: [number, number] = [position.coords.longitude, position.coords.latitude];
-        setLocating(false);
-        setReportMode(true);
-        setMapCenter(point);
-        const containing = departments.find((feature) => geometryContains(feature.geometry, point));
-        if (containing) {
-          const code = containing.properties.dpto_ccdgo;
-          selectDepartment(code);
-          setZoomedCode(code);
-        }
-        setPendingPoint(point);
-      },
-      () => {
-        setLocating(false);
-        setLocationError("No pudimos obtener tu ubicación. Puedes tocar el mapa en su lugar.");
-      },
-      { enableHighAccuracy: true, timeout: 10_000 },
-    );
-  };
-
   const selectDepartment = (code: string) => {
     const department = departments.find((item) => item.properties.dpto_ccdgo === code);
     setInternalCode(code);
@@ -795,27 +762,8 @@ export function AtlasMap({
   };
 
   const handleDepartmentClick = (code: string) => {
-    if (reportMode) return;
     selectDepartment(code);
     setZoomedCode(code);
-  };
-
-  const svgRef = useRef<SVGSVGElement>(null);
-  const handleSvgClick = (clientX: number, clientY: number) => {
-    if (!reportMode || !projection || !svgRef.current) return;
-    const point = svgRef.current.createSVGPoint();
-    point.x = clientX;
-    point.y = clientY;
-    const ctm = svgRef.current.getScreenCTM();
-    if (!ctm) return;
-    const local = point.matrixTransform(ctm.inverse());
-    // `local` is in root SVG user space; undo the zoom <g>'s transform to recover
-    // the raw projected coordinate the projection expects.
-    const rawX = (local.x - zoomTransform.x) / zoomTransform.scale;
-    const rawY = (local.y - zoomTransform.y) / zoomTransform.scale;
-    const lonLat = projection.invert?.([rawX, rawY]);
-    if (!lonLat) return;
-    setPendingPoint([lonLat[0], lonLat[1]]);
   };
 
   return (
@@ -823,6 +771,13 @@ export function AtlasMap({
       {/* Dónde estoy parado. Va arriba y siempre visible: es la primera pregunta que se hace
           cualquiera que abre un mapa, y antes solo aparecía debajo, después del mapa. */}
       <div className="mapWhereAmI" aria-live="polite">
+        <p className="mapWhereDetail">
+          {zoomedCode
+            ? mapCenter
+              ? `Centro de la vista: ${formatLatLng(mapCenter)}`
+              : "Moviendo el mapa verás en qué municipio estás"
+            : "Toca un departamento para entrar y ver sus reportes uno por uno"}
+        </p>
         <div className="mapWhereTrail">
           <button
             type="button"
@@ -832,41 +787,20 @@ export function AtlasMap({
           >
             Colombia
           </button>
-          {zoomedDepartmentName ? (
-            <>
-              <i aria-hidden="true">›</i>
-              <span className="mapCrumb current">{zoomedDepartmentName}</span>
-            </>
-          ) : null}
           {centerMunicipalityName ? (
             <>
               <i aria-hidden="true">›</i>
               <span className="mapCrumb current">{centerMunicipalityName}</span>
             </>
           ) : null}
+          <span className={`coverageBadge ${selectedStatus.token}`}>{selectedStatus.label}</span>
         </div>
-        <p className="mapWhereDetail">
-          {zoomedCode
-            ? mapCenter
-              ? `Centro de la vista: ${formatLatLng(mapCenter)}`
-              : "Moviendo el mapa verás en qué municipio estás"
-            : "Toca un departamento para entrar y ver sus reportes uno por uno"}
-        </p>
-      </div>
-
-      <div className="mapToolbar">
-        <div className="mapToolbarLayer">
-          <span className="mapKicker">Capa visible</span>
-          <strong>{definition.title}</strong>
-        </div>
-        <div className="mapToolbarActions">
-          {zoomedCode && (
-            <button type="button" className="mapZoomReset" onClick={() => setZoomedCode(null)}>
-              ← Volver a Colombia
-            </button>
-          )}
-          <label>
-            <span>Ir a un departamento</span>
+        {/* Departamento, municipio y localidad en una sola fila: son los tres niveles que se
+            eligen de un tirón, separados del resto del breadcrumb para que no compitan por
+            espacio con "Colombia" ni con el badge de estado. */}
+        <div className="mapTerritorySelects">
+          <label className="mapCrumbSelect">
+            <span className="srOnly">Ir a un departamento</span>
             <select
               value={selectedCode}
               onChange={(event) => {
@@ -884,19 +818,23 @@ export function AtlasMap({
               ))}
             </select>
           </label>
+          {trailExtra}
         </div>
       </div>
 
-      {/* Reportar es la acción principal de esta pantalla, así que vive en su propia barra con
-          dos caminos: tocar el mapa o dejar que el dispositivo diga dónde estás. */}
-      <div className={`mapReportBar${reportMode ? " active" : ""}`}>
+      {/* Capa activa y reportar comparten una sola barra: son las dos acciones inmediatas antes
+          de tocar el mapa, y antes vivían en dos franjas separadas mostrando información afín. */}
+      <div className={`mapToolbar${reportMode ? " active" : ""}`}>
+        <div className="mapToolbarLayer">
+          <span className="mapKicker">esta viendo</span>
+          <strong>{definition.title}</strong>
+        </div>
         <button
           type="button"
           className={`mapReportToggle${reportMode ? " active" : ""}`}
           onClick={() => {
             setReportMode((current) => !current);
             setPendingPoint(null);
-            setLocationError(null);
           }}
         >
           {reportMode ? (
@@ -908,24 +846,9 @@ export function AtlasMap({
             </>
           )}
         </button>
-        <button
-          type="button"
-          className="mapLocateButton"
-          onClick={useMyLocation}
-          disabled={locating}
-        >
-          {locating ? (
-            "Ubicando…"
-          ) : (
-            <>
-              <IconCrosshair />
-              Usar mi ubicación
-            </>
-          )}
-        </button>
         {reportMode ? (
           <p className="mapReportHint" role="status">
-            Toca el punto exacto en el mapa. Puedes acercarte primero para afinar.
+            Marca el punto en el mini mapa del formulario, o usa tu ubicación.
           </p>
         ) : (
           <p className="mapReportHint muted">
@@ -933,11 +856,6 @@ export function AtlasMap({
             <strong> sin verificar</strong>.
           </p>
         )}
-        {locationError ? (
-          <p className="mapReportHint error" role="alert">
-            {locationError}
-          </p>
-        ) : null}
       </div>
 
       {zoomedCode && data ? (
@@ -952,9 +870,7 @@ export function AtlasMap({
               municipalities={municipalitiesByDept[zoomedCode] ?? null}
               sgcEvents={sgcEvents}
               reports={visibleReports}
-              reportMode={reportMode}
               pendingPoint={pendingPoint}
-              onMapClickForReport={setPendingPoint}
               onSelectReport={setActiveReport}
               onCenterChange={setMapCenter}
               {...(selectedCode === zoomedCode && focusMunicipalityCode
@@ -968,14 +884,11 @@ export function AtlasMap({
           No fue posible cargar la capa territorial.
         </div>
       ) : data ? (
-        // biome-ignore lint/a11y/useKeyWithClickEvents: placing a report at an arbitrary map coordinate has no discrete keyboard equivalent; the department/municipality shapes underneath remain independently keyboard-operable.
         <svg
           viewBox={`0 0 ${width} ${height}`}
           role="img"
           aria-labelledby="map-title map-desc"
-          ref={svgRef}
-          className={`countryMap ${reportMode ? "reportMode" : ""}`}
-          onClick={(event) => handleSvgClick(event.clientX, event.clientY)}
+          className="countryMap"
         >
           <title id="map-title">{definition.title} por departamento</title>
           <desc id="map-desc">
@@ -1000,7 +913,6 @@ export function AtlasMap({
                   key={code}
                   vectorEffect="non-scaling-stroke"
                   onClick={(event) => {
-                    if (reportMode) return;
                     event.stopPropagation();
                     handleDepartmentClick(code);
                   }}
@@ -1215,12 +1127,19 @@ export function AtlasMap({
         </div>
       )}
 
-      {pendingPoint && (
+      {reportMode && (
         <CommunityReportForm
           point={pendingPoint}
+          onPointChange={setPendingPoint}
+          {...(mapCenter
+            ? { initialCenter: [mapCenter[1], mapCenter[0]] as [number, number] }
+            : {})}
           apiUrl={apiUrl}
           incidentCode={incidentCode}
-          onClose={() => setPendingPoint(null)}
+          onClose={() => {
+            setReportMode(false);
+            setPendingPoint(null);
+          }}
           onSubmitted={(report) => {
             setOptimisticReports((current) => [...current, report]);
             setPendingPoint(null);
@@ -1228,12 +1147,6 @@ export function AtlasMap({
           }}
         />
       )}
-
-      <div className="mapSelection" aria-live="polite">
-        <span>Territorio seleccionado</span>
-        <strong>{selected?.properties.dpto_cnmbre ?? "Cargando…"}</strong>
-        <span className={`coverageBadge ${selectedStatus.token}`}>{selectedStatus.label}</span>
-      </div>
 
       {/* El filtro. Solo se dibujan las familias que existen ahora mismo en el mapa: un botón
           «Albergues (0)» ocuparía sitio para decir que no hay nada que ver. */}
