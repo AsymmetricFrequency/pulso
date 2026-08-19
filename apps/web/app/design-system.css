@@ -999,8 +999,12 @@
   font-size: var(--text-sm);
 }
 
+/* Las columnas se declaran en la lista y cada peldaño las hereda con `subgrid`. Si cada `li`
+   dimensionara su propia rejilla, el 33 y los dos ceros caerían en sitios distintos — y leer la
+   caída en columna es justamente para lo que existe esta escalera. */
 .lastMileSteps {
   display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
   gap: var(--space-2);
   margin: 0;
   padding: 0;
@@ -1009,7 +1013,8 @@
 
 .lastMileStep {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
   align-items: baseline;
   gap: var(--space-3);
   border: 1px solid var(--border-subtle);
@@ -1041,6 +1046,7 @@
   font-variant-numeric: tabular-nums;
   font-weight: 650;
   white-space: nowrap;
+  text-align: right;
 }
 
 .lastMileStep.empty .lastMileValue {
@@ -1058,6 +1064,7 @@
   font-size: var(--text-xs);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  text-align: right;
 }
 
 .lastMileZero,
@@ -1080,15 +1087,21 @@
   color: var(--status-strong-ink);
 }
 
+/* En móvil la escalera se pliega a dos columnas. Se cambia en la **lista**, no en el peldaño: los
+   peldaños son subrejillas y redefinirles las columnas ahí rompería la herencia. */
 @media (max-width: 640px) {
-  .lastMileStep {
+  .lastMileSteps {
     grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .lastMileStep {
     row-gap: var(--space-1);
   }
 
   .lastMileValue,
   .lastMileAside {
     grid-column: 2;
+    text-align: left;
   }
 }
 
