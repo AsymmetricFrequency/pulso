@@ -172,6 +172,48 @@ const layerDefinitions: Record<PublicMapLayer, LayerDefinition> = {
   },
 };
 
+/**
+ * Daño señalado desde un satélite.
+ *
+ * `method` es lo único que decide cómo se dibuja: `analista` es una persona entrenada mirando
+ * imagen de muy alta resolución, `modelo` es un modelo puntuando huellas de edificación. En el
+ * mapa nunca comparten símbolo con un reporte ciudadano ni entre sí.
+ */
+type RemoteDamagePoint = {
+  id: string;
+  source: "unosat" | "microsoft_ai_for_good";
+  method: "analista" | "modelo";
+  damageLevel: "dano" | "posible_dano" | "sin_clasificar";
+  modelScore: number | null;
+  fieldValidated: boolean;
+  imageryDate: string;
+  sensor: string | null;
+  lat: number;
+  lon: number;
+};
+
+type RemoteDamage = {
+  points: RemoteDamagePoint[];
+  areas: Array<{ id: string; source: string; imageryDate: string; geometry: Geometry }>;
+  attribution: Array<{ attribution: string; sourceUrl: string; points: number }>;
+};
+
+const SOURCE_LABEL: Record<RemoteDamagePoint["source"], string> = {
+  unosat: "UNOSAT",
+  microsoft_ai_for_good: "Microsoft AI for Good Lab",
+};
+
+const REMOTE_LEVEL_LABEL: Record<RemoteDamagePoint["damageLevel"], string> = {
+  dano: "Daño",
+  posible_dano: "Posible daño",
+  sin_clasificar: "Sin clasificar",
+};
+
+const shortImageryDate = (value: string) =>
+  new Intl.DateTimeFormat("es-CO", { day: "numeric", month: "long" }).format(
+    new Date(`${value}T12:00:00Z`),
+  );
+
 type AtlasMapProps = {
   layer?: PublicMapLayer;
   selectedCode?: string;
@@ -281,6 +323,11 @@ export function AtlasMap({
   const [width, setWidth] = useState(720);
   const [data, setData] = useState<FeatureCollection<Geometry, DepartmentProperties> | null>(null);
   const [sgcEvents, setSgcEvents] = useState<SgcEvent[]>([]);
+  const [remoteDamage, setRemoteDamage] = useState<RemoteDamage | null>(null);
+  // Apagada de entrada. Son 1.627 puntos y encenderlos sin pedirlo taparía los reportes de
+  // personas, que es justo la jerarquía contraria a la que este mapa defiende: lo que alguien fue
+  // a ver vale más que lo que un sensor supuso.
+  const [showRemote, setShowRemote] = useState(false);
   const [internalCode, setInternalCode] = useState("27");
   const [error, setError] = useState(false);
   const selectedCode = controlledCode ?? internalCode;
@@ -413,7 +460,21 @@ export function AtlasMap({
         if (!(reason instanceof DOMException && reason.name === "AbortError")) setSgcEvents([]);
       }
     };
-    void Promise.all([loadTerritories(), loadSgcEvents()]);
+    const loadRemoteDamage = async () => {
+      try {
+        const response = await fetch(
+          `${apiUrl}/v1/public/incidents/${incidentCode}/remote-damage`,
+          { signal: controller.signal },
+        );
+        if (!response.ok) return;
+        setRemoteDamage((await response.json()) as RemoteDamage);
+      } catch (reason) {
+        if (!(reason instanceof DOMException && reason.name === "AbortError")) {
+          setRemoteDamage(null);
+        }
+      }
+    };
+    void Promise.all([loadTerritories(), loadSgcEvents(), loadRemoteDamage()]);
     return () => controller.abort();
   }, [apiUrl]);
 
@@ -643,6 +704,26 @@ export function AtlasMap({
       ),
     [projectedReports, zoomTransform.scale],
   );
+
+  const declusteredRemote = useMemo(() => {
+    if (!showRemote || !projection || !remoteDamage) return [];
+    const projected = remoteDamage.points.flatMap((point) => {
+      const xy = projection([point.lon, point.lat]);
+      return xy ? [{ x: xy[0], y: xy[1], item: point }] : [];
+    });
+    // Celda más ancha que la de los reportes. La densidad es mucho mayor —621 puntos en unas
+    // pocas manzanas de Cali— y una celda estrecha devolvería un enjambre ilegible en vez de un
+    // conteo.
+    return declusterPoints(projected, zoomTransform.scale, 22, 13);
+  }, [showRemote, projection, remoteDamage, zoomTransform.scale]);
+
+  const remoteAreaPaths = useMemo(() => {
+    if (!showRemote || !path || !remoteDamage) return [];
+    return remoteDamage.areas.flatMap((area) => {
+      const d = path({ type: "Feature", geometry: area.geometry, properties: {} } as never);
+      return d ? [{ id: area.id, d, imageryDate: area.imageryDate }] : [];
+    });
+  }, [showRemote, path, remoteDamage]);
 
   const departments = useMemo(
     () =>
@@ -945,6 +1026,21 @@ export function AtlasMap({
               </path>
             ))}
 
+            {/* El trozo que el satélite alcanzó a mirar, dibujado debajo de todo. Sin él, un punto
+                solitario se lee como «solo hubo un daño» cuando significa «solo se pudo ver este
+                pedazo». UNOSAT resume el municipio del epicentro diciendo que no observó daño
+                generalizado *dentro de las áreas sin nubes*, y el Chocó casi siempre está nublado. */}
+            {remoteAreaPaths.map((area) => (
+              <path
+                className="remoteAnalysedArea"
+                d={area.d}
+                key={area.id}
+                vectorEffect="non-scaling-stroke"
+              >
+                <title>{`Área mirada por satélite el ${shortImageryDate(area.imageryDate)} — fuera de aquí no se analizó`}</title>
+              </path>
+            ))}
+
             {declusteredEvents.map((entry, index) => {
               const key = entry.kind === "point" ? entry.item.id : `sgc-cluster-${index}`;
               if (entry.kind === "cluster") {
@@ -973,6 +1069,60 @@ export function AtlasMap({
                 >
                   <title>{`SGC · M ${event.magnitude.toFixed(1)} · ${event.place} · profundidad ${event.depthKm.toFixed(1)} km · ${event.localTime}`}</title>
                 </circle>
+              );
+            })}
+
+            {/* **Cuadrados sin relleno, nunca círculos.** Los reportes de personas son círculos
+                llenos con un glifo dentro; esto es un recuadro vacío, que es como un sensor
+                encierra lo que detecta. La diferencia se lee de un vistazo, sin abrir el detalle y
+                sin depender del color — que es lo que pedía el criterio de esta tarea. Va debajo de
+                los reportes ciudadanos a propósito: lo que alguien fue a ver tapa a lo que un
+                sensor supuso, y no al revés. */}
+            {declusteredRemote.map((entry, index) => {
+              const key = entry.kind === "point" ? entry.item.id : `remote-cluster-${index}`;
+              if (entry.kind === "cluster") {
+                const analyst = entry.items.filter((item) => item.method === "analista").length;
+                return (
+                  <g
+                    className="mapCluster remoteCluster"
+                    key={key}
+                    transform={`translate(${entry.x}, ${entry.y}) scale(${1 / zoomTransform.scale})`}
+                  >
+                    <rect x={-11} y={-11} width={22} height={22} rx={2} />
+                    <text textAnchor="middle" dominantBaseline="central">
+                      {entry.items.length}
+                    </text>
+                    <title>
+                      {`${entry.items.length} edificaciones señaladas por satélite — ${
+                        analyst > 0 ? `${analyst} por un analista de UNOSAT` : "todas por un modelo"
+                      }. Acércate para verlas por separado.`}
+                    </title>
+                  </g>
+                );
+              }
+              const point = entry.item;
+              return (
+                <rect
+                  className={`remoteDamageMarker ${point.method} ${point.damageLevel}`}
+                  key={key}
+                  x={entry.x - 6 / zoomTransform.scale}
+                  y={entry.y - 6 / zoomTransform.scale}
+                  width={12 / zoomTransform.scale}
+                  height={12 / zoomTransform.scale}
+                  vectorEffect="non-scaling-stroke"
+                >
+                  <title>
+                    {`${REMOTE_LEVEL_LABEL[point.damageLevel]} visto desde satélite · ${
+                      SOURCE_LABEL[point.source]
+                    } · ${point.method === "analista" ? "marcado por un analista" : "señalado por un modelo"}${
+                      point.modelScore === null ? "" : ` (puntaje ${point.modelScore.toFixed(2)})`
+                    } · imagen del ${shortImageryDate(point.imageryDate)} · ${
+                      point.fieldValidated
+                        ? "verificado en terreno"
+                        : "nadie lo ha verificado en el terreno"
+                    }`}
+                  </title>
+                </rect>
               );
             })}
 
@@ -1122,7 +1272,54 @@ export function AtlasMap({
         </fieldset>
       ) : null}
 
+      {/* El interruptor de la capa de satélite, con el número dentro: quien lo lee sabe qué va a
+          aparecer antes de encenderlo. Apagado por defecto — 1.627 recuadros taparían los reportes
+          de personas, y esa jerarquía es al revés de la que este mapa defiende. */}
+      {remoteDamage && remoteDamage.points.length > 0 ? (
+        <div className="remoteToggle">
+          <label>
+            <input
+              type="checkbox"
+              checked={showRemote}
+              onChange={(event) => setShowRemote(event.target.checked)}
+            />
+            <span>
+              Ver las <strong>{remoteDamage.points.length.toLocaleString("es-CO")}</strong>{" "}
+              edificaciones señaladas desde satélite
+            </span>
+          </label>
+          {showRemote ? (
+            <p className="remoteCaveat">
+              Un satélite señaló estas edificaciones; <strong>nadie ha ido a verificarlas</strong>.
+              El recuadro claro es el trozo que se alcanzó a mirar sin nubes — fuera de él no es que
+              no haya daño, es que no se analizó.{" "}
+              {remoteDamage.attribution.map((item) => (
+                <a
+                  className="remoteAttribution"
+                  href={item.sourceUrl}
+                  key={item.attribution}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  {item.attribution}
+                </a>
+              ))}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
       <ul className="mapLegend embedded" aria-label={`Leyenda: ${definition.title}`}>
+        {showRemote && remoteDamage ? (
+          <>
+            <li>
+              <i className="remoteDot analista" /> Marcado por un analista (UNOSAT)
+            </li>
+            <li>
+              <i className="remoteDot modelo" /> Señalado por un modelo (Microsoft)
+            </li>
+          </>
+        ) : null}
         {definition.legend.map((item) => (
           <li key={`${layer}-${item.token}`}>
             <i className={`statusDot ${item.token}`} /> {item.label}

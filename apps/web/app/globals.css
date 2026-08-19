@@ -4157,3 +4157,113 @@ button:active:not(:disabled),
   color: var(--text-secondary);
   font-size: 14px;
 }
+
+/* =============================================================================
+   Daño visto desde satélite
+   =============================================================================
+
+   La regla de esta capa es una sola y todo lo demás sale de ahí: **un reporte
+   de una persona es un círculo lleno; una detección de un sensor es un
+   recuadro vacío**. Forma, no color — así se distingue también sin ver color,
+   impresa en blanco y negro, y de reojo desde el otro lado de un puesto de
+   mando. Es lo que pedía el criterio de P1-5: saber cuál de las dos se está
+   mirando sin abrir el detalle.
+   ========================================================================== */
+
+:root {
+  /* Azul frío de instrumento. No entra en la escala de severidad a propósito:
+     esto no dice cuán grave es algo, dice quién lo vio. */
+  --remote: #3d5a80;
+  --remote-soft: rgba(61, 90, 128, 0.09);
+}
+
+.remoteDamageMarker {
+  fill: none;
+  stroke: var(--remote);
+  stroke-width: 1.6;
+  pointer-events: none;
+}
+
+/* El modelo va punteado y el analista continuo. El trazo discontinuo se lee
+   como «esto está por confirmar» sin necesidad de leyenda, y es el modelo el
+   que menos ha confirmado. */
+.remoteDamageMarker.modelo {
+  stroke-dasharray: 2.5 2;
+  opacity: 0.75;
+}
+
+.remoteDamageMarker.posible_dano {
+  stroke-dasharray: 1.5 2.5;
+  opacity: 0.65;
+}
+
+.remoteAnalysedArea {
+  fill: var(--remote-soft);
+  stroke: var(--remote);
+  stroke-width: 1;
+  stroke-dasharray: 5 4;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.mapCluster.remoteCluster rect {
+  fill: none;
+  stroke: var(--remote);
+  stroke-width: 2;
+}
+
+.mapCluster.remoteCluster text {
+  fill: var(--remote);
+}
+
+.remoteToggle {
+  margin: var(--space-3) 0 0;
+}
+
+.remoteToggle label {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+/* 20px reales, no la casilla de 13px del navegador: esto se marca con el pulgar
+   en la calle. El área táctil la da el padding de la etiqueta. */
+.remoteToggle input {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  accent-color: var(--remote);
+}
+
+.remoteCaveat {
+  max-width: 68ch;
+  margin: var(--space-2) 0 0 28px;
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  line-height: 1.6;
+}
+
+.remoteAttribution {
+  display: inline-block;
+  margin-right: var(--space-3);
+  color: var(--remote);
+}
+
+/* El punto de la leyenda es un recuadro, igual que el marcador. Una leyenda que
+   dibuja un círculo para explicar un cuadrado no explica nada. */
+.remoteDot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border: 1.6px solid var(--remote);
+  background: none;
+  vertical-align: -1px;
+}
+
+.remoteDot.modelo {
+  border-style: dashed;
+}
