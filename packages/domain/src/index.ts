@@ -3,6 +3,7 @@ export * from "./aid-traceability.js";
 export * from "./assessment.js";
 export * from "./census-coverage.js";
 export * from "./community-report.js";
+export * from "./data-controller.js";
 export * from "./evidence.js";
 export * from "./household-registry.js";
 export * from "./identity.js";

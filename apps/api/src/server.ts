@@ -122,6 +122,7 @@ const app = await buildApp({
         censusCoverageRepository: postgresRepositories.censusCoverage,
         aidTraceabilityRepository: postgresRepositories.aidTraceability,
         householdRegistryRepository: postgresRepositories.householdRegistry,
+        dataControllerRepository: postgresRepositories.dataController,
         publicReportRepository: postgresRepositories.publicReports,
         caliPublicSourceRepository: postgresRepositories.caliPublicSource,
         reconstructionProgressRepository: postgresRepositories.reconstructionProgress,

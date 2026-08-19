@@ -45,6 +45,7 @@ import { PostgresOperationsAccessRepository } from "./operations-access-reposito
 import { PostgresAidTraceabilityRepository } from "./postgres-aid-traceability-repository.js";
 import { PostgresCensusCoverageRepository } from "./postgres-census-coverage-repository.js";
 import { PostgresCommunityReportRepository } from "./postgres-community-report-repository.js";
+import { PostgresDataControllerRepository } from "./postgres-data-controller-repository.js";
 import { PostgresHouseholdRegistryRepository } from "./postgres-household-registry-repository.js";
 import { PostgresIdentityTrustRepository } from "./postgres-identity-trust-repository.js";
 import { PostgresMaterialSupplierRepository } from "./postgres-material-supplier-repository.js";
@@ -793,6 +794,7 @@ export function createPostgresRepositories(
     seismicShaking: new PostgresSeismicShakingRepository(sql),
     censusCoverage: new PostgresCensusCoverageRepository(sql),
     aidTraceability: new PostgresAidTraceabilityRepository(sql),
+    dataController: new PostgresDataControllerRepository(sql),
     householdRegistry: new PostgresHouseholdRegistryRepository(sql, {
       // **Clave propia, no prestada.**
       //

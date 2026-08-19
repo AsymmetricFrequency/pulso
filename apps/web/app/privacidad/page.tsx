@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Footer } from "../components/footer";
 import { SiteNav } from "../components/site-nav";
+import { DataController } from "./data-controller";
 
 export const metadata: Metadata = {
   title: "Política de tratamiento de datos personales",
@@ -34,37 +35,9 @@ export default function PrivacidadPage() {
           <p className="legalDate">Vigente desde el 18 de agosto de 2026 · versión 1</p>
         </section>
 
-        <section className="legalSection">
-          <h2>1. Quién responde por estos datos</h2>
-          <p>
-            <strong>Pulso</strong>, plataforma de código abierto de respuesta a la emergencia,
-            publicada bajo licencia Apache-2.0 y desarrollada de forma voluntaria.
-          </p>
-          <ul>
-            <li>
-              Sitio: <code>pulso.my</code>
-            </li>
-            <li>
-              Correo para todo lo relacionado con datos personales:{" "}
-              <a href="mailto:vortexlabcol@gmail.com">vortexlabcol@gmail.com</a>
-            </li>
-            <li>
-              Código fuente auditable:{" "}
-              <a
-                href="https://github.com/AsymmetricFrequency/pulso"
-                target="_blank"
-                rel="noreferrer noopener"
-              >
-                github.com/AsymmetricFrequency/pulso
-              </a>
-            </li>
-          </ul>
-          <p className="legalNote">
-            <strong>Pulso no es una autoridad.</strong> No decidimos quién recibe ayuda y
-            registrarse aquí no inscribe a nadie en ningún programa. El censo oficial lo hacen las
-            autoridades.
-          </p>
-        </section>
+        {/* Se lee de la API y no está escrito aquí: los datos se van a canalizar por una fundación
+            constituida, y ese día tiene que ser una fila nueva y no un despliegue de la web. */}
+        <DataController />
 
         <section className="legalSection">
           <h2>2. Qué guardamos y para qué</h2>

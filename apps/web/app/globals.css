@@ -4037,3 +4037,11 @@ button:active:not(:disabled),
   color: var(--primary);
   font-weight: 600;
 }
+
+.legalWarning {
+  border-left: 4px solid var(--amber);
+  background: var(--paper-deep);
+  padding: 14px 18px;
+  font-size: 15px;
+  line-height: 1.6;
+}

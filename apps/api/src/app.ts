@@ -13,6 +13,7 @@ import {
   CommunityReportRateLimitError,
   type CommunityReportRepository,
   ContractNotFoundError,
+  type DataControllerRepository,
   EvidenceAssessmentNotFoundError,
   EvidenceIntegrityError,
   type EvidenceRepository,
@@ -78,6 +79,7 @@ import {
   createTeamMembershipSchema,
   createTeamSchema,
   createWorkforceProfileSchema,
+  dataControllerSchema,
   type EmergencyRelevance,
   fieldAssignmentSchema,
   fieldEvidenceSchema,
@@ -157,6 +159,7 @@ import { MemoryOperationsAccessRepository } from "./operations-access-repositori
 import type { PostgresAdminRepository } from "./postgres-admin-repository.js";
 import { EmptyAidTraceabilityRepository } from "./postgres-aid-traceability-repository.js";
 import { EmptyCensusCoverageRepository } from "./postgres-census-coverage-repository.js";
+import { FallbackDataControllerRepository } from "./postgres-data-controller-repository.js";
 import { EmptyHouseholdRegistryRepository } from "./postgres-household-registry-repository.js";
 import { EmptySeismicShakingRepository } from "./postgres-seismic-shaking-repository.js";
 import { PublicReadCache } from "./public-read-cache.js";
@@ -196,6 +199,7 @@ export type BuildAppOptions = {
   censusCoverageRepository?: CensusCoverageRepository;
   aidTraceabilityRepository?: AidTraceabilityRepository;
   householdRegistryRepository?: HouseholdRegistryRepository;
+  dataControllerRepository?: DataControllerRepository;
   publicReportRepository?: PublicReportRepository;
   caliPublicSourceRepository?: CaliPublicSourceRepository;
   sgcPublicSourceRepository?: SgcPublicSourceRepository;
@@ -268,6 +272,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
   const aidTraceability = options.aidTraceabilityRepository ?? new EmptyAidTraceabilityRepository();
   const householdRegistry =
     options.householdRegistryRepository ?? new EmptyHouseholdRegistryRepository();
+  const dataController = options.dataControllerRepository ?? new FallbackDataControllerRepository();
   const publicReports = options.publicReportRepository ?? new MemoryPublicReportRepository();
   const caliPublicSource =
     options.caliPublicSourceRepository ?? new EmptyCaliPublicSourceRepository();
@@ -1277,6 +1282,20 @@ export async function buildApp(options: BuildAppOptions = {}) {
           .send(Buffer.from(found.content))
       );
     },
+  );
+
+  /**
+   * Quién responde por los datos personales, ahora mismo.
+   *
+   * Lo sirve la API y no una constante del sitio para que el día que entre la fundación no haya que
+   * desplegar la web: es una fila nueva y la página la lee. Y es público a propósito — el art. 13
+   * del Decreto 1377 obliga a poner la política en conocimiento de los titulares, y una política que
+   * exige sesión para leerse no está en conocimiento de nadie.
+   */
+  app.get("/v1/public/data-controller", async (_request, reply) =>
+    reply
+      .header("Cache-Control", "public, max-age=300, s-maxage=900")
+      .send(dataControllerSchema.parse(await dataController.current())),
   );
 
   app.get("/v1/incidents", async () => incidentListSchema.parse(await incidents.list()));
