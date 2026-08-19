@@ -78,6 +78,28 @@ export const fundingStageTotalSchema = z.object({
 });
 
 /**
+ * La última milla: de la plata rastreada, cuánta llega a una puerta que lo confirme.
+ *
+ * Va **desglosada por relevancia y sin sumar una sola cifra**, porque `confirmed` es lo que revisó
+ * una persona y `probable` es lo que supuso un clasificador. Colapsarlas obligaría a elegir entre
+ * esconder lo probable o presentarlo como revisado, y las dos opciones mienten.
+ *
+ * `deniedAmount` no se resta de `confirmedAmount`: un hogar diciendo que no le llegó es una
+ * denuncia sin resolver, no una corrección contable.
+ */
+export const fundingLastMileSchema = z.object({
+  relevance: emergencyRelevanceSchema,
+  contractsWithFlow: z.number().int().min(0),
+  trackedAmount: z.number(),
+  contractsWithAnyDelivery: z.number().int().min(0),
+  contractsConfirmedAtADoor: z.number().int().min(0),
+  confirmedAmount: z.number(),
+  contractsDeniedAtADoor: z.number().int().min(0),
+  deniedAmount: z.number(),
+  householdsReached: z.number().int().min(0),
+});
+
+/**
  * Resumen público de recursos.
  *
  * `reviewPending` no es un detalle: la ingesta trae todos los contratos del territorio en el
@@ -88,6 +110,8 @@ export const publicFundsSummarySchema = z.object({
   incidentCode: z.string(),
   currency: z.string(),
   stages: fundingStageTotalSchema.array(),
+  /** Hasta dónde se puede comprobar. Vacío mientras no haya un solo flujo rastreado. */
+  lastMile: fundingLastMileSchema.array().default([]),
   reviewed: z.object({
     confirmed: z.number().int().min(0),
     probable: z.number().int().min(0),
@@ -168,6 +192,7 @@ export type FundingStage = z.infer<typeof fundingStageSchema>;
 export type EmergencyRelevance = z.infer<typeof emergencyRelevanceSchema>;
 export type PublicContractDto = z.infer<typeof publicContractSchema>;
 export type PublicFundsSummaryDto = z.infer<typeof publicFundsSummarySchema>;
+export type FundingLastMileDto = z.infer<typeof fundingLastMileSchema>;
 
 /**
  * Intensidad sísmica por territorio.

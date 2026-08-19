@@ -71,7 +71,7 @@ export class PostgresPublicFundsRepository implements PublicFundsRepository {
   constructor(private readonly sql: Sql) {}
 
   async summarizeByIncident(incidentId: string): Promise<PublicFundsSummaryDto> {
-    const [stages, relevance, territories, sources, incident] = await Promise.all([
+    const [stages, relevance, territories, sources, incident, lastMile] = await Promise.all([
       // Solo se suma lo que una persona confirmó como parte de la emergencia. La ingesta trae
       // todos los contratos del territorio en el periodo y la mayoría es operación ordinaria del
       // municipio; sumarlos aquí convertiría el gasto corriente en gasto de emergencia.
@@ -119,6 +119,22 @@ export class PostgresPublicFundsRepository implements PublicFundsRepository {
         GROUP BY p.source_id, p.source_system
       `,
       this.sql<{ code: string }[]>`SELECT code FROM incidents WHERE id = ${incidentId} LIMIT 1`,
+      // La última milla. Sale de una vista y no de una consulta escrita aquí a propósito: la regla
+      // de qué cuenta como «llegó a una puerta» tiene que ser la misma para la API, para una
+      // consulta de auditoría y para cualquier ente de control que pida acceso de lectura.
+      this.sql<
+        {
+          emergency_relevance: string;
+          contracts_with_flow: string;
+          tracked_total: string;
+          contracts_with_any_delivery: string;
+          contracts_confirmed_at_a_door: string;
+          confirmed_amount: string;
+          contracts_denied_at_a_door: string;
+          denied_amount: string;
+          households_reached: string;
+        }[]
+      >`SELECT * FROM funding_execution_gap WHERE incident_id = ${incidentId}`,
     ]);
 
     const counts = Object.fromEntries(
@@ -132,6 +148,17 @@ export class PostgresPublicFundsRepository implements PublicFundsRepository {
         stage: row.stage as PublicFundsSummaryDto["stages"][number]["stage"],
         amount: asNumber(row.amount),
         contracts: Number(row.contracts),
+      })),
+      lastMile: lastMile.map((row) => ({
+        relevance: row.emergency_relevance as PublicFundsSummaryDto["lastMile"][number]["relevance"],
+        contractsWithFlow: Number(row.contracts_with_flow),
+        trackedAmount: asNumber(row.tracked_total),
+        contractsWithAnyDelivery: Number(row.contracts_with_any_delivery),
+        contractsConfirmedAtADoor: Number(row.contracts_confirmed_at_a_door),
+        confirmedAmount: asNumber(row.confirmed_amount),
+        contractsDeniedAtADoor: Number(row.contracts_denied_at_a_door),
+        deniedAmount: asNumber(row.denied_amount),
+        householdsReached: Number(row.households_reached),
       })),
       reviewed: {
         confirmed: counts.confirmed ?? 0,

@@ -156,6 +156,7 @@ door AS (
   GROUP BY d.contract_id
 )
 SELECT
+  c.incident_id,
   c.id AS contract_id,
   c.reference,
   c.emergency_relevance,
@@ -200,6 +201,7 @@ COMMENT ON VIEW funding_last_mile IS
 DROP VIEW IF EXISTS funding_execution_gap;
 CREATE VIEW funding_execution_gap AS
 SELECT
+  incident_id,
   emergency_relevance,
   count(*) FILTER (WHERE furthest_stage IS NOT NULL) AS contracts_with_flow,
   coalesce(sum(tracked_amount), 0) AS tracked_total,
@@ -210,7 +212,7 @@ SELECT
   coalesce(sum(tracked_amount) FILTER (WHERE denied_by_household > 0), 0) AS denied_amount,
   coalesce(sum(households_reached), 0) AS households_reached
 FROM funding_last_mile
-GROUP BY emergency_relevance;
+GROUP BY incident_id, emergency_relevance;
 
 COMMENT ON VIEW funding_execution_gap IS
   'De la plata que se movió, cuánto llegó a una puerta que lo confirme, desglosado por relevancia '

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { BarChart, type BarDatum, ChartLegend, DataTable, DonutChart } from "../components/charts";
+import { LastMile } from "./last-mile";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 const INCIDENT = "colombia-2026";
@@ -10,6 +11,17 @@ type FundsSummary = {
   incidentCode: string;
   currency: string;
   stages: Array<{ stage: string; amount: number; contracts: number }>;
+  lastMile: Array<{
+    relevance: "confirmed" | "probable" | "unrelated" | "unreviewed";
+    contractsWithFlow: number;
+    trackedAmount: number;
+    contractsWithAnyDelivery: number;
+    contractsConfirmedAtADoor: number;
+    confirmedAmount: number;
+    contractsDeniedAtADoor: number;
+    deniedAmount: number;
+    householdsReached: number;
+  }>;
   reviewed: { confirmed: number; probable: number; unrelated: number; unreviewed: number };
   territories: Array<{
     code: string | null;
@@ -197,6 +209,10 @@ export function PublicFundsPage() {
           </div>
         </section>
       ) : null}
+
+      {/* Va después de la escalera del dinero y antes de la lista de contratos: es la pregunta que
+          sigue naturalmente a «cuánto se contrató», y la que la lista no puede responder. */}
+      <LastMile rows={summary?.lastMile ?? []} currency={summary?.currency ?? "COP"} />
 
       <section className="fundsContracts" aria-labelledby="contracts-title">
         <div className="sectionHeading">

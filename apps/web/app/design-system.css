@@ -969,6 +969,129 @@
   line-height: 1.65;
 }
 
+/* ---- La última milla ----
+   Una escalera, no un gráfico: el valor está en ver que cada peldaño es menor que el anterior y
+   dónde se cae a cero. Un gráfico de barras haría bonito el hueco; la escalera lo señala. */
+
+.lastMile {
+  margin-bottom: var(--space-12);
+}
+
+.lastMile h2 {
+  max-width: 24ch;
+  margin: 0 0 var(--space-2);
+}
+
+.lastMileLede {
+  max-width: 66ch;
+  margin: 0 0 var(--space-6);
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+
+.lastMileBlock + .lastMileBlock {
+  margin-top: var(--space-8);
+}
+
+.lastMileWho {
+  margin: 0 0 var(--space-3);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.lastMileSteps {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lastMileStep {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: baseline;
+  gap: var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-sm);
+  background: var(--surface-raised);
+  padding: var(--space-3) var(--space-4);
+}
+
+/* El peldaño vacío no se pinta de rojo: cero no es un fallo, es un estado. Se apaga. */
+.lastMileStep.empty {
+  border-style: dashed;
+  background: var(--surface-sunken);
+}
+
+.lastMileRung {
+  min-width: 1.6em;
+  color: var(--text-tertiary);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.lastMileLabel {
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+}
+
+.lastMileValue {
+  font-size: var(--text-lg);
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.lastMileStep.empty .lastMileValue {
+  color: var(--text-tertiary);
+}
+
+.lastMileValue small {
+  font-size: var(--text-xs);
+  font-weight: 400;
+  color: var(--text-tertiary);
+}
+
+.lastMileAside {
+  color: var(--text-tertiary);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.lastMileZero,
+.lastMileDenied {
+  max-width: 72ch;
+  margin: var(--space-3) 0 0;
+  font-size: var(--text-sm);
+  line-height: 1.65;
+}
+
+.lastMileZero {
+  color: var(--text-secondary);
+}
+
+.lastMileDenied {
+  border-left: 3px solid var(--status-strong);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  background: var(--status-strong-soft);
+  padding: var(--space-4);
+  color: var(--status-strong-ink);
+}
+
+@media (max-width: 640px) {
+  .lastMileStep {
+    grid-template-columns: auto minmax(0, 1fr);
+    row-gap: var(--space-1);
+  }
+
+  .lastMileValue,
+  .lastMileAside {
+    grid-column: 2;
+  }
+}
+
 .fundsContracts {
   margin-bottom: var(--space-12);
 }

@@ -20,6 +20,7 @@ export class EmptyPublicFundsRepository implements PublicFundsRepository {
       incidentCode: this.incidentCode,
       currency: "COP",
       stages: [],
+      lastMile: [],
       reviewed: { confirmed: 0, probable: 0, unrelated: 0, unreviewed: 0 },
       territories: [],
       sources: [],
