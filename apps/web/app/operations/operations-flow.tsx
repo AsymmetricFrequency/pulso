@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ContractReview } from "./contract-review";
 import styles from "./operations.module.css";
+import { RecordDelivery } from "./record-delivery";
 import { RegistryQueue } from "./registry-queue";
 
 type OperationsSession = {
@@ -277,6 +278,8 @@ export function OperationsFlow() {
 
           {/* La cola del censo va antes de la revisión de contratos: decidir sobre una familia que
               dice no haber sido censada es más urgente que revisar un contrato. */}
+          <RecordDelivery incidentId={session.incident.id} sessionToken={session.sessionToken} />
+
           <RegistryQueue incidentId={session.incident.id} sessionToken={session.sessionToken} />
 
           <ContractReview incidentId={session.incident.id} sessionToken={session.sessionToken} />

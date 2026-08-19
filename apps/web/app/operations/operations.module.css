@@ -760,3 +760,68 @@
   border-color: var(--line-strong);
   color: var(--text-secondary);
 }
+
+/* --- Registrar una entrega ------------------------------------------------
+   Se llena al lado de la puerta, con el teléfono en una mano y la caja en la
+   otra. De ahí que pida lo mínimo y que la fecha se ponga sola. */
+
+.deliveryForm {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-xs);
+  background: var(--surface-raised);
+  padding: 18px 20px;
+}
+
+.deliveryForm label {
+  display: grid;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.deliveryForm input {
+  min-height: 46px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-xs);
+  background: var(--white);
+  padding: 0 12px;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.deliveryWide {
+  grid-column: 1 / -1;
+}
+
+.deliveryCode {
+  font-family: var(--font-data, ui-monospace, monospace);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* El bloqueo por finalidad se explica entero, no con un error corto: quien está de pie con la caja
+   necesita saber que puede resolverlo y cómo, no solo que no se pudo. */
+.deliveryBlocked {
+  grid-column: 1 / -1;
+  margin: 0;
+  border-left: 4px solid var(--signal);
+  background: var(--paper-deep);
+  padding: 14px 16px;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.deliveryDone {
+  grid-column: 1 / -1;
+  margin: 0;
+  border-left: 4px solid var(--primary);
+  background: var(--paper-deep);
+  padding: 14px 16px;
+  font-size: 14px;
+  line-height: 1.55;
+}
