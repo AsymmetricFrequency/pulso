@@ -2,10 +2,11 @@
 # Redespliegue de Pulso en pulso.my
 #
 # Trae main desde GitHub, reinstala dependencias, reconstruye y reinicia los tres
-# servicios. NO corre migraciones: las migraciones de este repo no son idempotentes
-# (CREATE TABLE sin IF NOT EXISTS), así que una migración nueva se aplica a mano:
+# servicios. NO corre migraciones, y el orden importa: **primero la base, después el código.**
+# Al revés queda código consultando algo que la base todavía no tiene, que ya pasó una vez y
+# costó veinte minutos de 500 en /auditoria.
 #
-#   psql -h 127.0.0.1 -U pulso -d pulso -v ON_ERROR_STOP=1 -f infrastructure/postgres/migrations/0NN_*.sql
+#   /opt/pulso/migrate.sh 0NN && /opt/pulso/deploy.sh
 #
 set -euo pipefail
 
