@@ -297,21 +297,23 @@ export function LeafletMap({
     }
 
     for (const point of remoteDamage) {
-      const marker = L.rectangle(
-        // Un recuadro de unos 12 m de lado: a la escala de una manzana envuelve la edificación
-        // sin taparla, que es justo lo que hace falta para poder cotejarla con la imagen.
-        [
-          [point.lat - 0.00006, point.lon - 0.00006],
-          [point.lat + 0.00006, point.lon + 0.00006],
-        ],
-        {
-          color: "#3d5a80",
-          weight: 1.6,
-          fill: false,
-          dashArray: point.method === "modelo" ? "2.5 2" : undefined,
-          opacity: point.method === "modelo" ? 0.75 : 1,
-        },
-      );
+      // Tamaño fijo en pantalla, no en metros.
+      //
+      // Un rectángulo geográfico de 12 m se encoge hasta ser una mota en cuanto te alejas de la
+      // manzana, y ahí se pierde justo lo que distingue esta capa: la **forma**. A tamaño fijo el
+      // cuadrado se lee como cuadrado a cualquier acercamiento, igual que los marcadores de reporte
+      // se leen como círculos. Y no perdemos nada de precisión: lo que se ingirió son centroides,
+      // así que el rectángulo nunca fue la huella real del edificio.
+      const marker = L.marker([point.lat, point.lon], {
+        interactive: true,
+        keyboard: false,
+        icon: L.divIcon({
+          className: "remoteDamageIcon",
+          html: `<span class="remoteDamageBox ${point.method} ${point.damageLevel}"></span>`,
+          iconSize: [12, 12],
+          iconAnchor: [6, 6],
+        }),
+      });
       marker.bindTooltip(
         `${point.damageLevel === "dano" ? "Daño" : "Posible daño"} visto desde satélite · ` +
           `${point.method === "analista" ? "marcado por un analista" : "señalado por un modelo"}` +
