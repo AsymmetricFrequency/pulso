@@ -150,7 +150,8 @@ export class PostgresPublicFundsRepository implements PublicFundsRepository {
         contracts: Number(row.contracts),
       })),
       lastMile: lastMile.map((row) => ({
-        relevance: row.emergency_relevance as PublicFundsSummaryDto["lastMile"][number]["relevance"],
+        relevance:
+          row.emergency_relevance as PublicFundsSummaryDto["lastMile"][number]["relevance"],
         contractsWithFlow: Number(row.contracts_with_flow),
         trackedAmount: asNumber(row.tracked_total),
         contractsWithAnyDelivery: Number(row.contracts_with_any_delivery),

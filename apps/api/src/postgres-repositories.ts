@@ -43,7 +43,6 @@ import { PostgresEvidenceRepository } from "./evidence-repositories.js";
 import { PostgresMissionAccessRepository } from "./mission-access-repositories.js";
 import { PostgresOperationsAccessRepository } from "./operations-access-repositories.js";
 import { PostgresAidDeliveryRepository } from "./postgres-aid-delivery-repository.js";
-import { PostgresRemoteDamageRepository } from "./postgres-remote-damage-repository.js";
 import { PostgresAidTraceabilityRepository } from "./postgres-aid-traceability-repository.js";
 import { PostgresCensusCoverageRepository } from "./postgres-census-coverage-repository.js";
 import { PostgresCommunityReportRepository } from "./postgres-community-report-repository.js";
@@ -54,6 +53,7 @@ import { PostgresMaterialSupplierRepository } from "./postgres-material-supplier
 import { PostgresPublicFundsRepository } from "./postgres-public-funds-repository.js";
 import { PostgresPublicReportRepository } from "./postgres-public-report-repository.js";
 import { PostgresReconstructionProgressRepository } from "./postgres-reconstruction-progress-repository.js";
+import { PostgresRemoteDamageRepository } from "./postgres-remote-damage-repository.js";
 import { PostgresSeismicShakingRepository } from "./postgres-seismic-shaking-repository.js";
 import { PostgresWorkforceProfileRepository } from "./postgres-workforce-profile-repository.js";
 import { PostgresSgcPublicSourceRepository } from "./sgc-public-source-repositories.js";
