@@ -1072,60 +1072,6 @@ export function AtlasMap({
               );
             })}
 
-            {/* **Cuadrados sin relleno, nunca círculos.** Los reportes de personas son círculos
-                llenos con un glifo dentro; esto es un recuadro vacío, que es como un sensor
-                encierra lo que detecta. La diferencia se lee de un vistazo, sin abrir el detalle y
-                sin depender del color — que es lo que pedía el criterio de esta tarea. Va debajo de
-                los reportes ciudadanos a propósito: lo que alguien fue a ver tapa a lo que un
-                sensor supuso, y no al revés. */}
-            {declusteredRemote.map((entry, index) => {
-              const key = entry.kind === "point" ? entry.item.id : `remote-cluster-${index}`;
-              if (entry.kind === "cluster") {
-                const analyst = entry.items.filter((item) => item.method === "analista").length;
-                return (
-                  <g
-                    className="mapCluster remoteCluster"
-                    key={key}
-                    transform={`translate(${entry.x}, ${entry.y}) scale(${1 / zoomTransform.scale})`}
-                  >
-                    <rect x={-11} y={-11} width={22} height={22} rx={2} />
-                    <text textAnchor="middle" dominantBaseline="central">
-                      {entry.items.length}
-                    </text>
-                    <title>
-                      {`${entry.items.length} edificaciones señaladas por satélite — ${
-                        analyst > 0 ? `${analyst} por un analista de UNOSAT` : "todas por un modelo"
-                      }. Acércate para verlas por separado.`}
-                    </title>
-                  </g>
-                );
-              }
-              const point = entry.item;
-              return (
-                <rect
-                  className={`remoteDamageMarker ${point.method} ${point.damageLevel}`}
-                  key={key}
-                  x={entry.x - 6 / zoomTransform.scale}
-                  y={entry.y - 6 / zoomTransform.scale}
-                  width={12 / zoomTransform.scale}
-                  height={12 / zoomTransform.scale}
-                  vectorEffect="non-scaling-stroke"
-                >
-                  <title>
-                    {`${REMOTE_LEVEL_LABEL[point.damageLevel]} visto desde satélite · ${
-                      SOURCE_LABEL[point.source]
-                    } · ${point.method === "analista" ? "marcado por un analista" : "señalado por un modelo"}${
-                      point.modelScore === null ? "" : ` (puntaje ${point.modelScore.toFixed(2)})`
-                    } · imagen del ${shortImageryDate(point.imageryDate)} · ${
-                      point.fieldValidated
-                        ? "verificado en terreno"
-                        : "nadie lo ha verificado en el terreno"
-                    }`}
-                  </title>
-                </rect>
-              );
-            })}
-
             {declusteredReports.map((entry, index) => {
               const key = entry.kind === "point" ? entry.item.id : `report-cluster-${index}`;
               if (entry.kind === "cluster") {
@@ -1190,6 +1136,64 @@ export function AtlasMap({
                   />
                   <title>{report.title}</title>
                 </g>
+              );
+            })}
+
+            {/* **Cuadrados sin relleno, nunca círculos.** Los reportes de personas son círculos
+                llenos con un glifo dentro; esto es un recuadro vacío, que es como un sensor
+                encierra lo que detecta. La diferencia se lee de un vistazo, sin abrir el detalle y
+                sin depender del color — que es lo que pedía el criterio de esta tarea.
+
+                Se dibuja **encima** de los reportes ciudadanos, y solo cuando alguien enciende la
+                capa. Debajo quedaba enterrada: los 1.627 recuadros caen sobre las mismas manzanas
+                donde se apilan 3.247 reportes, así que encender el interruptor no mostraba nada.
+                La jerarquía —lo que alguien fue a ver pesa más que lo que un sensor supuso— la
+                sostiene el hecho de que la capa venga apagada, no taparla cuando se pide. */}
+            {declusteredRemote.map((entry, index) => {
+              const key = entry.kind === "point" ? entry.item.id : `remote-cluster-${index}`;
+              if (entry.kind === "cluster") {
+                const analyst = entry.items.filter((item) => item.method === "analista").length;
+                return (
+                  <g
+                    className="mapCluster remoteCluster"
+                    key={key}
+                    transform={`translate(${entry.x}, ${entry.y}) scale(${1 / zoomTransform.scale})`}
+                  >
+                    <rect x={-11} y={-11} width={22} height={22} rx={2} />
+                    <text textAnchor="middle" dominantBaseline="central">
+                      {entry.items.length}
+                    </text>
+                    <title>
+                      {`${entry.items.length} edificaciones señaladas por satélite — ${
+                        analyst > 0 ? `${analyst} por un analista de UNOSAT` : "todas por un modelo"
+                      }. Acércate para verlas por separado.`}
+                    </title>
+                  </g>
+                );
+              }
+              const point = entry.item;
+              return (
+                <rect
+                  className={`remoteDamageMarker ${point.method} ${point.damageLevel}`}
+                  key={key}
+                  x={entry.x - 6 / zoomTransform.scale}
+                  y={entry.y - 6 / zoomTransform.scale}
+                  width={12 / zoomTransform.scale}
+                  height={12 / zoomTransform.scale}
+                  vectorEffect="non-scaling-stroke"
+                >
+                  <title>
+                    {`${REMOTE_LEVEL_LABEL[point.damageLevel]} visto desde satélite · ${
+                      SOURCE_LABEL[point.source]
+                    } · ${point.method === "analista" ? "marcado por un analista" : "señalado por un modelo"}${
+                      point.modelScore === null ? "" : ` (puntaje ${point.modelScore.toFixed(2)})`
+                    } · imagen del ${shortImageryDate(point.imageryDate)} · ${
+                      point.fieldValidated
+                        ? "verificado en terreno"
+                        : "nadie lo ha verificado en el terreno"
+                    }`}
+                  </title>
+                </rect>
               );
             })}
 
