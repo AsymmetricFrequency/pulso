@@ -63,15 +63,23 @@ async function stubApi(page: Page, onPost: (body: unknown) => void) {
   });
 }
 
-/** Activa el modo reporte y toca el mapa, que es como se abre el formulario de verdad. */
+/**
+ * Abre el formulario, que es como se reporta de verdad.
+ *
+ * El punto ya no se marca tocando el mapa de país: se arrastra un marcador sobre el mini mapa con
+ * calles que vive dentro del propio formulario, donde quien reporta reconoce su esquina. Así que
+ * abrir el formulario es un solo toque y el punto se pone dentro.
+ */
 async function abrirFormularioEnElMapa(page: Page) {
   await page.getByRole("button", { name: /Reportar personas atrapadas/i }).click();
-  const mapa = page.locator("svg.countryMap");
-  await expect(mapa).toBeVisible();
-  const caja = await mapa.boundingBox();
-  if (!caja) throw new Error("el mapa no tiene caja: no se pudo tocar un punto");
-  await page.mouse.click(caja.x + caja.width / 2, caja.y + caja.height / 2);
   await expect(page.getByRole("dialog", { name: /Reportar en este punto/i })).toBeVisible();
+  // El mini mapa es Leaflet y tarda en montar; sin esperarlo, el clic para marcar el punto cae
+  // sobre un contenedor vacío.
+  await expect(page.locator(".locationPickerMap.leaflet-container")).toBeVisible();
+  const mapa = page.locator(".locationPickerMap.leaflet-container");
+  const caja = await mapa.boundingBox();
+  if (!caja) throw new Error("el mini mapa no tiene caja: no se pudo marcar un punto");
+  await page.mouse.click(caja.x + caja.width / 2, caja.y + caja.height / 2);
 }
 
 test.describe("reportar desde el mapa", () => {
@@ -120,6 +128,9 @@ test.describe("reportar desde el mapa", () => {
     const dialogo = page.getByRole("dialog", { name: /Reportar en este punto/i });
     await dialogo.getByRole("button", { name: /^Necesidad$/i }).click();
     await dialogo.getByRole("textbox").first().fill("Falta agua potable en la comuna 18");
+    // Sin tocar esto, el formulario no deja enviar: la categoría no viene preelegida a propósito,
+    // porque un valor puesto de fábrica afirmaría algo que la persona no dijo.
+    await dialogo.getByRole("button", { name: /^Agua$/i }).click();
     await dialogo.getByRole("button", { name: /Publicar reporte/i }).click();
 
     await expect

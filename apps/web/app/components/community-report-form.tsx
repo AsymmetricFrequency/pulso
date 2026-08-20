@@ -300,6 +300,13 @@ export function CommunityReportForm({
       setError("Escribe un título de al menos 3 caracteres.");
       return;
     }
+    // La categoría no viene preelegida, así que hay que pedirla aquí. El servidor rechaza una
+    // necesidad sin categoría, y dejar que el envío llegue hasta allá devolvería un error de
+    // validación en inglés a alguien que está de pie en la calle.
+    if (reportType === "necesidad" && category === null) {
+      setError("Elige de qué es la necesidad.");
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
