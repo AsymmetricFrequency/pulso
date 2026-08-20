@@ -113,11 +113,32 @@ function clusterIcon(color: string) {
     });
 }
 
+export type RemoteDamagePoint = {
+  id: string;
+  method: "analista" | "modelo";
+  damageLevel: "dano" | "posible_dano" | "sin_clasificar";
+  modelScore: number | null;
+  fieldValidated: boolean;
+  imageryDate: string;
+  sensor: string | null;
+  lat: number;
+  lon: number;
+};
+
 type LeafletMapProps = {
   departmentFeature: Feature<Geometry, DepartmentProperties>;
   municipalities: FeatureCollection<Geometry, MunicipalityProperties> | null;
   sgcEvents: SgcEvent[];
   reports: PublicCommunityReport[];
+  /**
+   * Edificaciones señaladas desde satélite. Vacío mientras nadie encienda la capa.
+   *
+   * Aquí importan más que en el mapa de país: 1.627 puntos de edificación no significan nada a
+   * escala nacional, y este es el nivel donde alguien mira una manzana y decide si manda a
+   * alguien.
+   */
+  remoteDamage: RemoteDamagePoint[];
+  remoteAreas: Array<{ id: string; geometry: Geometry }>;
   reportMode: boolean;
   pendingPoint: [number, number] | null;
   onMapClickForReport: (lonLat: [number, number]) => void;
@@ -132,6 +153,8 @@ export function LeafletMap({
   municipalities,
   sgcEvents,
   reports,
+  remoteDamage,
+  remoteAreas,
   reportMode,
   pendingPoint,
   onMapClickForReport,
@@ -238,6 +261,72 @@ export function LeafletMap({
       map.removeLayer(group);
     };
   }, [sgcEvents, departmentFeature]);
+
+  /*
+   * Daño visto desde satélite.
+   *
+   * **Cuadrado sin relleno, nunca un pin.** Un reporte de una persona es un marcador lleno; una
+   * detección de un sensor es un recuadro vacío, que es como un sensor encierra lo que detecta.
+   * La diferencia se lee sin abrir nada y sin depender del color.
+   *
+   * Sin agrupar, a diferencia de los reportes: a este nivel de acercamiento cada recuadro es una
+   * edificación concreta, y agruparlos devolvería el número que ya se ve arriba en vez de la
+   * manzana a la que hay que ir.
+   */
+  // biome-ignore lint/correctness/useExhaustiveDependencies: departmentFeature isn't read here, but must rerun when the map is recreated.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const group = L.layerGroup();
+
+    // El trozo que el satélite alcanzó a mirar, debajo de todo. Sin él, un recuadro solitario se
+    // lee como «solo se dañó esto» cuando significa «esto es lo único que se pudo ver sin nubes».
+    for (const area of remoteAreas) {
+      group.addLayer(
+        L.geoJSON(area.geometry, {
+          style: {
+            color: "#3d5a80",
+            weight: 1,
+            dashArray: "5 4",
+            fillColor: "#3d5a80",
+            fillOpacity: 0.07,
+            opacity: 0.55,
+          },
+        }).bindTooltip("Área mirada por satélite — fuera de aquí no se analizó"),
+      );
+    }
+
+    for (const point of remoteDamage) {
+      const marker = L.rectangle(
+        // Un recuadro de unos 12 m de lado: a la escala de una manzana envuelve la edificación
+        // sin taparla, que es justo lo que hace falta para poder cotejarla con la imagen.
+        [
+          [point.lat - 0.00006, point.lon - 0.00006],
+          [point.lat + 0.00006, point.lon + 0.00006],
+        ],
+        {
+          color: "#3d5a80",
+          weight: 1.6,
+          fill: false,
+          dashArray: point.method === "modelo" ? "2.5 2" : undefined,
+          opacity: point.method === "modelo" ? 0.75 : 1,
+        },
+      );
+      marker.bindTooltip(
+        `${point.damageLevel === "dano" ? "Daño" : "Posible daño"} visto desde satélite · ` +
+          `${point.method === "analista" ? "marcado por un analista" : "señalado por un modelo"}` +
+          `${point.modelScore === null ? "" : ` (puntaje ${point.modelScore.toFixed(2)})`} · ` +
+          `imagen del ${point.imageryDate} · ` +
+          `${point.fieldValidated ? "verificado en terreno" : "nadie lo ha verificado en el terreno"}`,
+      );
+      group.addLayer(marker);
+    }
+
+    map.addLayer(group);
+    return () => {
+      map.removeLayer(group);
+    };
+  }, [remoteDamage, remoteAreas, departmentFeature]);
 
   // Citizen/PMU/necesidad reports, clustered.
   // biome-ignore lint/correctness/useExhaustiveDependencies: departmentFeature isn't read here, but must rerun when the map is recreated.

@@ -224,6 +224,11 @@ type AtlasMapProps = {
 
 const MAX_SPREAD_RING = 8;
 
+// Referencias estables para la capa apagada. Un `[]` escrito en línea es un array nuevo en cada
+// render, y el efecto de Leaflet volvería a montar la capa entera en cada uno.
+const EMPTY_REMOTE_POINTS: RemoteDamagePoint[] = [];
+const EMPTY_REMOTE_AREAS: RemoteDamage["areas"] = [];
+
 // Contención punto-en-polígono en el plano, por lanzamiento de rayo.
 //
 // No se usa `geoContains` de d3-geo a propósito: ese resuelve en la esfera y ahí el sentido de
@@ -952,6 +957,8 @@ export function AtlasMap({
               municipalities={municipalitiesByDept[zoomedCode] ?? null}
               sgcEvents={sgcEvents}
               reports={visibleReports}
+              remoteDamage={showRemote && remoteDamage ? remoteDamage.points : EMPTY_REMOTE_POINTS}
+              remoteAreas={showRemote && remoteDamage ? remoteDamage.areas : EMPTY_REMOTE_AREAS}
               reportMode={reportMode}
               pendingPoint={pendingPoint}
               onMapClickForReport={setPendingPoint}
