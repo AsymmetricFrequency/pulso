@@ -47,6 +47,7 @@ import { PostgresAidTraceabilityRepository } from "./postgres-aid-traceability-r
 import { PostgresCensusCoverageRepository } from "./postgres-census-coverage-repository.js";
 import { PostgresCommunityReportRepository } from "./postgres-community-report-repository.js";
 import { PostgresDataControllerRepository } from "./postgres-data-controller-repository.js";
+import { PostgresDuplicateTrayRepository } from "./postgres-duplicate-tray-repository.js";
 import { PostgresHouseholdRegistryRepository } from "./postgres-household-registry-repository.js";
 import { PostgresIdentityTrustRepository } from "./postgres-identity-trust-repository.js";
 import { PostgresMaterialSupplierRepository } from "./postgres-material-supplier-repository.js";
@@ -799,6 +800,7 @@ export function createPostgresRepositories(
     dataController: new PostgresDataControllerRepository(sql),
     aidDeliveries: new PostgresAidDeliveryRepository(sql),
     remoteDamage: new PostgresRemoteDamageRepository(sql),
+    duplicateTray: new PostgresDuplicateTrayRepository(sql),
     householdRegistry: new PostgresHouseholdRegistryRepository(sql, {
       // **Clave propia, no prestada.**
       //

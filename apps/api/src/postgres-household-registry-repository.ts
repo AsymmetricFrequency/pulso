@@ -31,6 +31,24 @@ function publicCode(): string {
   return code;
 }
 
+/**
+ * Deja el teléfono en los dígitos con los que dos personas lo escribirían igual.
+ *
+ * `+57 300 123 4567`, `300 123 4567` y `0057-3001234567` son el mismo número, y si la huella se
+ * calculara sobre el texto crudo los tres darían resultados distintos — el emparejador no vería el
+ * duplicado justo en el caso más común, que es la misma familia escribiendo su número de dos formas.
+ * Solo se quita el indicativo de país cuando lo que queda son los diez dígitos de un número
+ * colombiano: recortar a ciegas convertiría un número de otro país en uno que no existe.
+ */
+export function normalizePhone(raw: string): string {
+  const digits = raw.replace(/\D/g, "");
+  // `00` es el prefijo internacional que se marca desde un fijo; `0057…` y `+57…` son el mismo
+  // número escrito por dos personas distintas.
+  const international = digits.startsWith("00") ? digits.slice(2) : digits;
+  if (international.length === 12 && international.startsWith("57")) return international.slice(2);
+  return international;
+}
+
 export class PostgresHouseholdRegistryRepository implements HouseholdRegistryRepository {
   constructor(
     private readonly sql: Sql,
@@ -60,6 +78,15 @@ export class PostgresHouseholdRegistryRepository implements HouseholdRegistryRep
           .update(`${incidentId}:${input.document.replace(/\D/g, "")}`)
           .digest("hex")
       : null;
+    // La huella del teléfono, para poder emparejar dos registros del mismo hogar sin descifrar
+    // ninguno. Va con su propio separador (`:tel:`) para que no pueda chocar con la del documento:
+    // una cédula y un celular pueden ser el mismo número de dígitos, y sin separar los espacios
+    // dos personas distintas acabarían pareciendo la misma.
+    const phoneFingerprint = input.contactPhone
+      ? createHmac("sha256", this.secrets.fingerprintSecret)
+          .update(`${incidentId}:tel:${normalizePhone(input.contactPhone)}`)
+          .digest("hex")
+      : null;
 
     const territoryId = input.territoryCode
       ? ((
@@ -79,6 +106,7 @@ export class PostgresHouseholdRegistryRepository implements HouseholdRegistryRep
         has_disability, has_pregnancy, has_chronic_illness,
         dwelling_status, sheltering_at, officially_censused,
         contact_name_encrypted, contact_phone_encrypted, document_encrypted, identity_fingerprint,
+        phone_fingerprint,
         consent_text_id, consented_at, source_ip_hash, client_mutation_id,
         consent_purposes, sensitive_data_authorized
       ) VALUES (
@@ -96,6 +124,7 @@ export class PostgresHouseholdRegistryRepository implements HouseholdRegistryRep
         ${input.contactPhone ? encryptField(this.secrets.fieldSecret, input.contactPhone) : null},
         ${input.document ? encryptField(this.secrets.fieldSecret, input.document) : null},
         ${fingerprint},
+        ${phoneFingerprint},
         ${consent.id}, now(), ${context.sourceIpHash}, ${input.clientMutationId},
         ${input.consentPurposes}, ${input.sensitiveDataAuthorized}
       )
@@ -134,6 +163,7 @@ export class PostgresHouseholdRegistryRepository implements HouseholdRegistryRep
         contact_phone_encrypted = NULL,
         document_encrypted = NULL,
         identity_fingerprint = NULL,
+        phone_fingerprint = NULL,
         location = NULL,
         status = 'retirado',
         redacted_at = now(),

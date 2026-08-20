@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ContractReview } from "./contract-review";
+import { DuplicateTray } from "./duplicate-tray";
 import styles from "./operations.module.css";
 import { RecordDelivery } from "./record-delivery";
 import { RegistryQueue } from "./registry-queue";
@@ -281,6 +282,14 @@ export function OperationsFlow() {
           <RecordDelivery incidentId={session.incident.id} sessionToken={session.sessionToken} />
 
           <RegistryQueue incidentId={session.incident.id} sessionToken={session.sessionToken} />
+
+          {/* Va justo después de la cola porque es la misma pregunta un paso más allá: la cola
+              decide sobre un registro, la bandeja decide si dos registros son uno. */}
+          <DuplicateTray
+            incidentId={session.incident.id}
+            sessionToken={session.sessionToken}
+            role={session.actor.role}
+          />
 
           <ContractReview incidentId={session.incident.id} sessionToken={session.sessionToken} />
         </>

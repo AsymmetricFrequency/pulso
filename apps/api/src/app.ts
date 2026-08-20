@@ -15,6 +15,7 @@ import {
   type CommunityReportRepository,
   ContractNotFoundError,
   type DataControllerRepository,
+  type DuplicateTrayRepository,
   EvidenceAssessmentNotFoundError,
   EvidenceIntegrityError,
   type EvidenceRepository,
@@ -85,6 +86,7 @@ import {
   createTeamSchema,
   createWorkforceProfileSchema,
   dataControllerSchema,
+  duplicateTraySchema,
   type EmergencyRelevance,
   fieldAssignmentSchema,
   fieldEvidenceSchema,
@@ -121,6 +123,7 @@ import {
   redeemOperationsInvitationSchema,
   registrationQueueItemSchema,
   remoteDamageResponseSchema,
+  resolveDuplicateSchema,
   reviewCommunityReportSchema,
   reviewContractSchema,
   reviewRegistrationSchema,
@@ -169,6 +172,7 @@ import { EmptyAidDeliveryRepository } from "./postgres-aid-delivery-repository.j
 import { EmptyAidTraceabilityRepository } from "./postgres-aid-traceability-repository.js";
 import { EmptyCensusCoverageRepository } from "./postgres-census-coverage-repository.js";
 import { FallbackDataControllerRepository } from "./postgres-data-controller-repository.js";
+import { EmptyDuplicateTrayRepository } from "./postgres-duplicate-tray-repository.js";
 import { EmptyHouseholdRegistryRepository } from "./postgres-household-registry-repository.js";
 import { EmptySeismicShakingRepository } from "./postgres-seismic-shaking-repository.js";
 import { PublicReadCache } from "./public-read-cache.js";
@@ -209,6 +213,7 @@ export type BuildAppOptions = {
   aidTraceabilityRepository?: AidTraceabilityRepository;
   aidDeliveryRepository?: AidDeliveryRepository;
   remoteDamageRepository?: RemoteDamageRepository;
+  duplicateTrayRepository?: DuplicateTrayRepository;
   householdRegistryRepository?: HouseholdRegistryRepository;
   dataControllerRepository?: DataControllerRepository;
   publicReportRepository?: PublicReportRepository;
@@ -286,6 +291,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
   const dataController = options.dataControllerRepository ?? new FallbackDataControllerRepository();
   const aidDeliveries = options.aidDeliveryRepository ?? new EmptyAidDeliveryRepository();
   const remoteDamage = options.remoteDamageRepository ?? new EmptyRemoteDamageRepository();
+  const duplicateTray = options.duplicateTrayRepository ?? new EmptyDuplicateTrayRepository();
   const publicReports = options.publicReportRepository ?? new MemoryPublicReportRepository();
   const caliPublicSource =
     options.caliPublicSourceRepository ?? new EmptyCaliPublicSourceRepository();
@@ -1233,6 +1239,96 @@ export async function buildApp(options: BuildAppOptions = {}) {
         });
       }
       return reply.status(201).send({ reviewed: true });
+    },
+  );
+
+  // ===========================================================================
+  // La bandeja de posibles duplicados
+  // ===========================================================================
+  //
+  // Una familia aparece dos veces y el barrio queda contado dos veces en la lista que se le entrega
+  // a una alcaldía. La plataforma empareja y dice con qué señal; una persona decide y firma.
+  //
+  // **No hay ruta de fusión, y la ausencia es la decisión.** Si existiera un `merge`, tarde o
+  // temprano alguien lo llamaría desde un trabajo nocturno «para limpiar la bandeja», y el censo se
+  // deduplicaría solo — que es exactamente lo que este ticket existe para impedir.
+  app.get<{
+    Params: { incidentId: string };
+    Querystring: { status?: string; strength?: string; limit?: string };
+  }>("/v1/operations/incidents/:incidentId/duplicate-tray", async (request) => {
+    const session = await operationsAccess.resolveSession(
+      bearerToken(request.headers.authorization),
+    );
+    if (session.incidentId !== request.params.incidentId) {
+      throw new MissionAccessDeniedError("La sesión pertenece a otra emergencia.");
+    }
+    if (!["coordinator", "auditor", "incident_admin"].includes(session.role)) {
+      throw new MissionAccessDeniedError("Este rol no puede ver la bandeja de duplicados.");
+    }
+    const limit = Number.parseInt(request.query.limit ?? "", 10);
+    return duplicateTraySchema.parse(
+      await duplicateTray.list(request.params.incidentId, {
+        ...(request.query.status ? { status: request.query.status } : {}),
+        ...(request.query.strength ? { strength: request.query.strength } : {}),
+        ...(Number.isFinite(limit) ? { limit } : {}),
+      }),
+    );
+  });
+
+  /**
+   * Volver a emparejar.
+   *
+   * Pide `coordinator` o `incident_admin` y deja fuera a `auditor`, que sí puede ver la bandeja: un
+   * ente de control mira y deja constancia, no dispara procesos sobre la base de otro.
+   */
+  app.post<{ Params: { incidentId: string } }>(
+    "/v1/operations/incidents/:incidentId/duplicate-tray/match",
+    async (request, reply) => {
+      const session = await operationsAccess.resolveSession(
+        bearerToken(request.headers.authorization),
+      );
+      if (session.incidentId !== request.params.incidentId) {
+        throw new MissionAccessDeniedError("La sesión pertenece a otra emergencia.");
+      }
+      if (!["coordinator", "incident_admin"].includes(session.role)) {
+        throw new MissionAccessDeniedError("Este rol no puede recorrer el censo buscando pares.");
+      }
+      const proposed = await duplicateTray.match(request.params.incidentId);
+      return reply.status(200).send({ proposed });
+    },
+  );
+
+  app.post<{ Params: { incidentId: string; candidateId: string } }>(
+    "/v1/operations/incidents/:incidentId/duplicate-tray/:candidateId/resolve",
+    async (request, reply) => {
+      const session = await operationsAccess.resolveSession(
+        bearerToken(request.headers.authorization),
+      );
+      if (session.incidentId !== request.params.incidentId) {
+        throw new MissionAccessDeniedError("La sesión pertenece a otra emergencia.");
+      }
+      // `auditor` no entra aquí. Marcar un hogar como duplicado cambia a qué puerta va una brigada,
+      // y eso es una decisión de operación, no de control.
+      if (!["coordinator", "incident_admin"].includes(session.role)) {
+        throw new MissionAccessDeniedError("Este rol no puede resolver duplicados.");
+      }
+      const input = resolveDuplicateSchema.parse(request.body);
+      const resolved = await duplicateTray.resolve(
+        request.params.incidentId,
+        request.params.candidateId,
+        session.actorId,
+        input,
+      );
+      if (!resolved) {
+        // Un 409 y no un 404: el caso frecuente no es que el par no exista, sino que otra persona
+        // que tenía la misma bandeja abierta lo resolvió primero. Decirlo así evita que quien
+        // llegó segundo crea que perdió su decisión por un error.
+        return reply.status(409).send({
+          error: "candidate_already_resolved",
+          message: "Ese par no existe o alguien más ya lo resolvió. Recarga la bandeja.",
+        });
+      }
+      return reply.status(201).send({ resolved: true });
     },
   );
 

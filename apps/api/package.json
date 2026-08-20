@@ -9,7 +9,8 @@
     "start": "node dist/server.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "pretest": "pnpm --filter @pulso/schemas build && pnpm --filter @pulso/domain build",
-    "test": "vitest run"
+    "test": "vitest run",
+    "backfill:phone-fingerprints": "tsx src/backfill-phone-fingerprints.ts"
   },
   "dependencies": {
     "@fastify/cookie": "11.1.2",

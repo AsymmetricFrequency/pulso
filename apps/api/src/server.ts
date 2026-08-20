@@ -125,6 +125,7 @@ const app = await buildApp({
         dataControllerRepository: postgresRepositories.dataController,
         aidDeliveryRepository: postgresRepositories.aidDeliveries,
         remoteDamageRepository: postgresRepositories.remoteDamage,
+        duplicateTrayRepository: postgresRepositories.duplicateTray,
         publicReportRepository: postgresRepositories.publicReports,
         caliPublicSourceRepository: postgresRepositories.caliPublicSource,
         reconstructionProgressRepository: postgresRepositories.reconstructionProgress,

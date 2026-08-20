@@ -5,6 +5,7 @@ export * from "./assessment.js";
 export * from "./census-coverage.js";
 export * from "./community-report.js";
 export * from "./data-controller.js";
+export * from "./duplicate-tray.js";
 export * from "./evidence.js";
 export * from "./household-registry.js";
 export * from "./identity.js";
